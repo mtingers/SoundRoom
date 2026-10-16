@@ -1,0 +1,65 @@
+{
+  "beats" : 2,
+  "bpm" : 287.0003204836912,
+  "parts" : [
+    {
+      "controllers" : [
+        {
+          "beat" : 0,
+          "kind" : "expression",
+          "value" : 0.8661417322834646
+        },
+        {
+          "beat" : 0.2,
+          "kind" : "pitchBend",
+          "value" : 0.6099987791478452
+        },
+        {
+          "beat" : 0.32083333333333336,
+          "kind" : "sustain",
+          "value" : 1
+        },
+        {
+          "beat" : 0.37083333333333335,
+          "kind" : "modulation",
+          "value" : 0.6771653543307087
+        },
+        {
+          "beat" : 1.2,
+          "kind" : "expression",
+          "value" : 0.7322834645669292
+        },
+        {
+          "beat" : 1.7104166666666667,
+          "kind" : "sustain",
+          "value" : 0
+        }
+      ],
+      "id" : 0,
+      "name" : "Track 1 · Channel 1",
+      "notes" : [
+        {
+          "durationBeats" : 0.42916666666666664,
+          "id" : "D6492DF1-A14E-413D-8E1F-74BFF0C197FC",
+          "pitch" : 48,
+          "startBeat" : 0,
+          "velocity" : 0.9133858267716536
+        },
+        {
+          "durationBeats" : 0.32083333333333336,
+          "id" : "B6223398-4BF0-4C97-B685-530F738C0F04",
+          "pitch" : 67,
+          "startBeat" : 0.6395833333333333,
+          "velocity" : 0.5433070866141733
+        },
+        {
+          "durationBeats" : 0.38125,
+          "id" : "1E402DEC-B33E-4F49-97E2-BDDE67F33D50",
+          "pitch" : 72,
+          "startBeat" : 1.0291666666666666,
+          "velocity" : 0.9291338582677166
+        }
+      ]
+    }
+  ]
+}

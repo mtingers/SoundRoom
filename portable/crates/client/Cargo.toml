@@ -1,0 +1,19 @@
+[package]
+name = "soundroom-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+soundroom-platform = { path = "../platform" }
+serde.workspace = true
+serde_json.workspace = true
+base64 = "=0.21.0"
+sha2 = "=0.10.2"
+native-tls = "=0.2.11"
+url = "=2.3.1"
+getrandom = "=0.2.17"
+libc = "=0.2.183"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "=0.36.1", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Authorization", "Win32_Storage_FileSystem", "Win32_System_Memory", "Win32_System_SystemServices", "Win32_System_Threading"] }

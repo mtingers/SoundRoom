@@ -1,0 +1,1899 @@
+[
+  {
+    "type": "RemoteAutomationWriteTarget",
+    "valid": true,
+    "value": {
+      "kind": "volume"
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteBeginRequest",
+    "valid": true,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "mode": "touch"
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueRequest",
+    "valid": true,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 1,
+      "value": 0.5
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteEndRequest",
+    "valid": true,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "finalSequence": 1,
+      "cancel": false
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteDraftRequest",
+    "valid": true,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc"
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteMapping",
+    "valid": true,
+    "value": {
+      "minimum": 0,
+      "maximum": 1.5,
+      "unit": "amplitude",
+      "logarithmic": false,
+      "integer": false,
+      "interpolationScale": "decibels",
+      "errorDomain": "decibels",
+      "errorTolerance": 0.125
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteLimits",
+    "valid": true,
+    "value": {
+      "maximumLeases": 16,
+      "maximumCaptureSamples": 65536,
+      "maximumDurationFrames": 28800000,
+      "maximumWrittenPoints": 4096,
+      "maximumLanePoints": 100000,
+      "maximumDraftBytes": 33554432,
+      "leaseTimeoutMilliseconds": 2000,
+      "rampFrames": 480
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteStamp",
+    "valid": true,
+    "value": {
+      "transportEpoch": 1,
+      "outputFrame": 100,
+      "controlFrame": 200,
+      "playbackClock": 100,
+      "latencyOffsetFrames": 100
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteBeginReply",
+    "valid": true,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 1,
+      "initialValue": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "limits": {
+        "maximumLeases": 16,
+        "maximumCaptureSamples": 65536,
+        "maximumDurationFrames": 28800000,
+        "maximumWrittenPoints": 4096,
+        "maximumLanePoints": 100000,
+        "maximumDraftBytes": 33554432,
+        "leaseTimeoutMilliseconds": 2000,
+        "rampFrames": 480
+      },
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueReply",
+    "valid": true,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 1,
+      "appliedSequence": 1,
+      "disposition": "applied",
+      "targetValue": 0.75,
+      "rampStartValue": 0.5,
+      "rampFrames": 480,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteLeaseUpdate",
+    "valid": true,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "phase": "committed",
+      "reason": "Applied prefix committed",
+      "revision": 2,
+      "lastAppliedSequence": 1,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteDraftReply",
+    "valid": true,
+    "value": {
+      "draftID": "12345678-1234-4234-8234-123456789abc",
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "reason": "Target changed; review the captured prefix",
+      "appliedValueCount": 1,
+      "firstStamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      },
+      "lastStamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      },
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "expiresInSeconds": 3600,
+      "artifact": {
+        "id": "12345678-1234-4234-8234-123456789abc",
+        "name": "AutomationDraft.json",
+        "bytes": 100,
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteTarget",
+    "valid": false,
+    "value": {
+      "kind": "volume",
+      "effectID": "12345678-1234-4234-8234-123456789abc"
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteTarget",
+    "valid": false,
+    "value": {
+      "kind": "effectAmount"
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteTarget",
+    "valid": false,
+    "value": {
+      "kind": "effectParameter",
+      "effectID": "12345678-1234-4234-8234-123456789abc",
+      "parameterID": ""
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteTarget",
+    "valid": false,
+    "value": {
+      "kind": "effectParameter",
+      "effectID": "12345678-1234-4234-8234-123456789abc",
+      "parameterID": "cut\u0000off"
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueRequest",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 0,
+      "value": 0.5
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueRequest",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 1,
+      "value": 1.00001
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueRequest",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 1,
+      "value": true
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueRequest",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 1,
+      "value": 0.5,
+      "clientTime": 123
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteEndRequest",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "finalSequence": -1,
+      "cancel": false
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteDraftRequest",
+    "valid": false,
+    "value": {
+      "gestureID": null
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteDraftRequest",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "draftID": "12345678-1234-4234-8234-123456789abc"
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteMapping",
+    "valid": false,
+    "value": {
+      "minimum": 2,
+      "maximum": 1.5,
+      "unit": "amplitude",
+      "logarithmic": false,
+      "integer": false,
+      "interpolationScale": "decibels",
+      "errorDomain": "decibels",
+      "errorTolerance": 0.125
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteLimits",
+    "valid": false,
+    "value": {
+      "maximumLeases": 16,
+      "maximumCaptureSamples": 65537,
+      "maximumDurationFrames": 28800000,
+      "maximumWrittenPoints": 4096,
+      "maximumLanePoints": 100000,
+      "maximumDraftBytes": 33554432,
+      "leaseTimeoutMilliseconds": 2000,
+      "rampFrames": 480
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteLimits",
+    "valid": false,
+    "value": {
+      "maximumLeases": 16,
+      "maximumCaptureSamples": 65536,
+      "maximumDurationFrames": 28800000,
+      "maximumWrittenPoints": 4096,
+      "maximumLanePoints": 100,
+      "maximumDraftBytes": 33554432,
+      "leaseTimeoutMilliseconds": 2000,
+      "rampFrames": 480
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteStamp",
+    "valid": false,
+    "value": {
+      "transportEpoch": 1,
+      "outputFrame": 100,
+      "controlFrame": 201,
+      "playbackClock": 100,
+      "latencyOffsetFrames": 100
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteStamp",
+    "valid": false,
+    "value": {
+      "transportEpoch": 0,
+      "outputFrame": 100,
+      "controlFrame": 200,
+      "playbackClock": 100,
+      "latencyOffsetFrames": 100
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueReply",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 1,
+      "appliedSequence": 2,
+      "disposition": "applied",
+      "targetValue": 0.75,
+      "rampStartValue": 0.5,
+      "rampFrames": 480,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueReply",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 1,
+      "appliedSequence": 1,
+      "disposition": "superseded",
+      "targetValue": 0.75,
+      "rampStartValue": 0.5,
+      "rampFrames": 480,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteLeaseUpdate",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "phase": "committed",
+      "reason": "Applied prefix committed",
+      "revision": null,
+      "lastAppliedSequence": 1,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteLeaseUpdate",
+    "valid": false,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "phase": "committed",
+      "reason": "\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9",
+      "revision": 2,
+      "lastAppliedSequence": 1,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteDraftReply",
+    "valid": false,
+    "value": {
+      "draftID": "12345678-1234-4234-8234-123456789abc",
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "reason": "Target changed; review the captured prefix",
+      "appliedValueCount": 1,
+      "firstStamp": null,
+      "lastStamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      },
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "expiresInSeconds": 3600,
+      "artifact": {
+        "id": "12345678-1234-4234-8234-123456789abc",
+        "name": "AutomationDraft.json",
+        "bytes": 100,
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteDraftReply",
+    "valid": false,
+    "value": {
+      "draftID": "12345678-1234-4234-8234-123456789abc",
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "reason": "Target changed; review the captured prefix",
+      "appliedValueCount": 1,
+      "firstStamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      },
+      "lastStamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      },
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "expiresInSeconds": 3600,
+      "artifact": {
+        "id": "12345678-1234-4234-8234-123456789abc",
+        "name": "AutomationDraft.json",
+        "bytes": 33554433,
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteValueReply",
+    "valid": true,
+    "value": {
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "sequence": 1,
+      "appliedSequence": 2,
+      "disposition": "superseded",
+      "targetValue": 0.75,
+      "rampStartValue": 0.5,
+      "rampFrames": 480,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 200,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 100
+      }
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": true,
+    "value": {
+      "operation": "automation.writeBegin",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInRyYWNrSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInRhcmdldCI6IHsia2luZCI6ICJ2b2x1bWUifSwgIm1vZGUiOiAidG91Y2gifQ=="
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeBegin",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 1
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInRyYWNrSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInRhcmdldCI6IHsia2luZCI6ICJ2b2x1bWUifSwgIm1vZGUiOiAidG91Y2gifQ=="
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeBegin",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": null
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeBegin",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {
+        "value": 0.5
+      },
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInRyYWNrSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInRhcmdldCI6IHsia2luZCI6ICJ2b2x1bWUifSwgIm1vZGUiOiAidG91Y2gifQ=="
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": true,
+    "value": {
+      "operation": "automation.writeValue",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInNlcXVlbmNlIjogMSwgInZhbHVlIjogMC41fQ=="
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeValue",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 1
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInNlcXVlbmNlIjogMSwgInZhbHVlIjogMC41fQ=="
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeValue",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": null
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeValue",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {
+        "value": 0.5
+      },
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgInNlcXVlbmNlIjogMSwgInZhbHVlIjogMC41fQ=="
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": true,
+    "value": {
+      "operation": "automation.writeEnd",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgImZpbmFsU2VxdWVuY2UiOiAxLCAiY2FuY2VsIjogZmFsc2V9"
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeEnd",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 1
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgImZpbmFsU2VxdWVuY2UiOiAxLCAiY2FuY2VsIjogZmFsc2V9"
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeEnd",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": null
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeEnd",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {
+        "value": 0.5
+      },
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIiwgImZpbmFsU2VxdWVuY2UiOiAxLCAiY2FuY2VsIjogZmFsc2V9"
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": true,
+    "value": {
+      "operation": "automation.writeDraft",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIn0="
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeDraft",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 1
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIn0="
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeDraft",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {},
+      "strings": {},
+      "flags": {},
+      "payload": null
+    }
+  },
+  {
+    "type": "RemoteEditorIntent",
+    "valid": false,
+    "value": {
+      "operation": "automation.writeDraft",
+      "context": {
+        "clipIDs": [],
+        "cursorFrame": 0
+      },
+      "integers": {},
+      "numbers": {
+        "value": 0.5
+      },
+      "strings": {},
+      "flags": {},
+      "payload": "eyJnZXN0dXJlSUQiOiAiMTIzNDU2NzgtMTIzNC00MjM0LTgyMzQtMTIzNDU2Nzg5YWJjIn0="
+    }
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRamp",
+    "value": {
+      "sequence": 1,
+      "restoring": false,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 116,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 16
+      },
+      "startValue": 0.5,
+      "targetValue": 0.8,
+      "rampFrames": 256
+    },
+    "valid": true
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRelease",
+    "value": {
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 164,
+        "controlFrame": 180,
+        "playbackClock": 164,
+        "latencyOffsetFrames": 16
+      },
+      "lastControlFrame": 179,
+      "lastValue": 0.6
+    },
+    "valid": true
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": true
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": null
+    },
+    "valid": true
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRelease",
+    "value": {
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 116,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 16
+      }
+    },
+    "valid": true
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRamp",
+    "value": {
+      "sequence": null,
+      "restoring": false,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 116,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 16
+      },
+      "startValue": 0.5,
+      "targetValue": 0.8,
+      "rampFrames": 256
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRamp",
+    "value": {
+      "sequence": 1,
+      "restoring": true,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 116,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 16
+      },
+      "startValue": 0.5,
+      "targetValue": 0.8,
+      "rampFrames": 256
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRamp",
+    "value": {
+      "sequence": 0,
+      "restoring": false,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 116,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 16
+      },
+      "startValue": 0.5,
+      "targetValue": 0.8,
+      "rampFrames": 256
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRamp",
+    "value": {
+      "sequence": 1,
+      "restoring": false,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 116,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 16
+      },
+      "startValue": 1.01,
+      "targetValue": 0.8,
+      "rampFrames": 256
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRamp",
+    "value": {
+      "sequence": 1,
+      "restoring": false,
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 100,
+        "controlFrame": 116,
+        "playbackClock": 100,
+        "latencyOffsetFrames": 16
+      },
+      "startValue": 0.5,
+      "targetValue": 0.8,
+      "rampFrames": 0
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRelease",
+    "value": {
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 164,
+        "controlFrame": 180,
+        "playbackClock": 164,
+        "latencyOffsetFrames": 16
+      },
+      "lastControlFrame": 179,
+      "lastValue": null
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRelease",
+    "value": {
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 164,
+        "controlFrame": 180,
+        "playbackClock": 164,
+        "latencyOffsetFrames": 16
+      },
+      "lastControlFrame": null,
+      "lastValue": 0.6
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRelease",
+    "value": {
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 164,
+        "controlFrame": 180,
+        "playbackClock": 164,
+        "latencyOffsetFrames": 16
+      },
+      "lastControlFrame": 178,
+      "lastValue": 0.6
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteCapturedRelease",
+    "value": {
+      "stamp": {
+        "transportEpoch": 1,
+        "outputFrame": 164,
+        "controlFrame": 180,
+        "playbackClock": 164,
+        "latencyOffsetFrames": 16
+      },
+      "lastControlFrame": 179,
+      "lastValue": -0.1
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 2,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 1.1,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": -1,
+          "value": 0.5
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 0,
+          "value": 1.01
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        },
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        },
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 101,
+            "controlFrame": 117,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        },
+        {
+          "sequence": 2,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 2,
+            "outputFrame": 101,
+            "controlFrame": 117,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        },
+        {
+          "sequence": 2,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 101,
+            "controlFrame": 118,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 17
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": null,
+          "restoring": true,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        },
+        {
+          "sequence": 2,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 101,
+            "controlFrame": 117,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": 1,
+          "restoring": false,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 2,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  },
+  {
+    "type": "RemoteAutomationWriteDraftContent",
+    "value": {
+      "version": 1,
+      "gestureID": "12345678-1234-4234-8234-123456789abc",
+      "trackID": "12345678-1234-4234-8234-123456789abc",
+      "target": {
+        "kind": "volume"
+      },
+      "trackRevision": 2,
+      "baseline": 0.5,
+      "mapping": {
+        "minimum": 0,
+        "maximum": 1.5,
+        "unit": "amplitude",
+        "logarithmic": false,
+        "integer": false,
+        "interpolationScale": "decibels",
+        "errorDomain": "decibels",
+        "errorTolerance": 0.125
+      },
+      "reason": "Interrupted; review the actual prefix",
+      "originalPoints": [
+        {
+          "frame": 50,
+          "value": 0.4,
+          "curve": "smooth",
+          "curveStart": 0.1,
+          "curveEnd": 0.9
+        }
+      ],
+      "capturedRamps": [
+        {
+          "sequence": null,
+          "restoring": true,
+          "stamp": {
+            "transportEpoch": 1,
+            "outputFrame": 100,
+            "controlFrame": 116,
+            "playbackClock": 100,
+            "latencyOffsetFrames": 16
+          },
+          "startValue": 0.5,
+          "targetValue": 0.8,
+          "rampFrames": 256
+        }
+      ],
+      "terminal": {
+        "stamp": {
+          "transportEpoch": 1,
+          "outputFrame": 164,
+          "controlFrame": 180,
+          "playbackClock": 164,
+          "latencyOffsetFrames": 16
+        },
+        "lastControlFrame": 179,
+        "lastValue": 0.6
+      }
+    },
+    "valid": false
+  }
+]

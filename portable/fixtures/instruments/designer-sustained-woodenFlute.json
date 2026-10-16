@@ -1,0 +1,44 @@
+{
+  "attack" : 0.06,
+  "baseGain" : 1,
+  "basePan" : 0,
+  "beats" : 2,
+  "bpm" : 120,
+  "character" : 0.4,
+  "controllers" : [
+
+  ],
+  "decay" : 0.12,
+  "detune" : 0,
+  "drive" : 1,
+  "fineTune" : 0,
+  "instrument" : "woodenFlute",
+  "layers" : [
+
+  ],
+  "noiseLevel" : 0,
+  "notes" : [
+    {
+      "durationBeats" : 2,
+      "id" : "414E4687-58DC-414F-BA2D-FA0F45828813",
+      "pitch" : 57,
+      "startBeat" : 0,
+      "velocity" : 0.8
+    }
+  ],
+  "organic" : {
+    "breath" : 0,
+    "drift" : 0,
+    "seed" : 17,
+    "timbre" : 0
+  },
+  "oscillatorMix" : 0,
+  "pulseWidth" : 0.5,
+  "release" : 0.14,
+  "resonance" : 0.45,
+  "secondWaveform" : "saw",
+  "subLevel" : 0,
+  "sustain" : 1,
+  "tone" : 0.78,
+  "waveform" : "triangle"
+}

@@ -1,0 +1,18 @@
+{
+ "repo": "sgossner/VCSL",
+ "tree": "vcsl-tree.json",
+ "robins": 1,
+ "maxSeconds": 4,
+ "release": 0.4,
+ "sets": [
+  {
+   "prefix": "Idiophones/Struck Idiophones/Marimba/",
+   "pattern": "Marimba_hit_Outrigger_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>soft|med|loud)_0(?P<rr>1)",
+   "layers": [
+    "soft",
+    "med",
+    "loud"
+   ]
+  }
+ ]
+}

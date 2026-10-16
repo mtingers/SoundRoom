@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+    <key>CFBundleName</key><string>Soundroom</string>
+    <key>CFBundleDisplayName</key><string>Soundroom</string>
+    <key>CFBundleIdentifier</key><string>com.soundroom.recorder</string>
+    <key>CFBundleExecutable</key><string>Soundroom</string>
+    <key>CFBundleIconFile</key><string>Soundroom</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleShortVersionString</key><string>0.8.0</string>
+<key>CFBundleVersion</key><string>52</string>
+    <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>NSHighResolutionCapable</key><true/>
+    <key>NSLocalNetworkUsageDescription</key><string>Soundroom lets paired GUI and terminal clients control this Mac’s audio hardware over your local network.</string>
+    <key>NSBonjourServices</key><array><string>_soundroom._tcp</string></array>
+    <key>NSMicrophoneUsageDescription</key><string>Soundroom records the audio input you choose onto your armed tracks.</string>
+    <key>CFBundleDocumentTypes</key><array><dict>
+        <key>CFBundleTypeName</key><string>Soundroom Session</string>
+        <key>CFBundleTypeRole</key><string>Editor</string>
+        <key>LSHandlerRank</key><string>Owner</string>
+        <key>LSItemContentTypes</key><array><string>com.soundroom.session</string></array>
+        <key>LSTypeIsPackage</key><true/>
+    </dict></array>
+    <key>UTExportedTypeDeclarations</key><array><dict>
+        <key>UTTypeIdentifier</key><string>com.soundroom.session</string>
+        <key>UTTypeDescription</key><string>Soundroom Session</string>
+        <key>UTTypeConformsTo</key><array><string>com.apple.package</string></array>
+        <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>soundroom</string></array></dict>
+    </dict><dict>
+        <key>UTTypeIdentifier</key><string>com.soundroom.effect-preset</string>
+        <key>UTTypeDescription</key><string>Soundroom Effect Preset</string>
+        <key>UTTypeConformsTo</key><array><string>public.json</string></array>
+        <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>soundpreset</string></array></dict>
+    </dict><dict>
+        <key>UTTypeIdentifier</key><string>com.soundroom.effect-chain</string>
+        <key>UTTypeDescription</key><string>Soundroom Effect Chain</string>
+        <key>UTTypeConformsTo</key><array><string>public.json</string></array>
+        <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>soundchain</string></array></dict>
+    </dict><dict>
+        <key>UTTypeIdentifier</key><string>com.soundroom.drum-pattern</string>
+        <key>UTTypeDescription</key><string>Soundroom Drum Pattern</string>
+        <key>UTTypeConformsTo</key><array><string>public.json</string></array>
+        <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>soundroomdrums</string></array></dict>
+    </dict></array>
+</dict></plist>

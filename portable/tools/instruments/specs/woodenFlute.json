@@ -1,0 +1,18 @@
+{
+ "repo": "sgossner/VSCO-2-CE",
+ "tree": "vsco-tree.json",
+ "robins": 1,
+ "loop": true,
+ "release": 0.25,
+ "sets": [
+  {
+   "prefix": "Woodwinds/Flute/susvib/",
+   "pattern": "LDFlute_susvib_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>v\\d)_(?P<rr>1)",
+   "layers": [
+    "v1",
+    "v2",
+    "v3"
+   ]
+  }
+ ]
+}

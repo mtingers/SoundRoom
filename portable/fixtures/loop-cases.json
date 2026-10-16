@@ -1,0 +1,226 @@
+[
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "envelopes",
+    "reference" : "loop-envelopes-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "envelopes",
+    "reference" : "loop-envelopes-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "modern-echo",
+    "reference" : "loop-modern-echo-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "modern-echo",
+    "reference" : "loop-modern-echo-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "chorus",
+    "reference" : "loop-chorus-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "chorus",
+    "reference" : "loop-chorus-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "dither",
+    "reference" : "loop-dither-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "dither",
+    "reference" : "loop-dither-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "room-transition",
+    "reference" : "loop-room-transition-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "room-transition",
+    "reference" : "loop-room-transition-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "warmth-transition",
+    "reference" : "loop-warmth-transition-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "warmth-transition",
+    "reference" : "loop-warmth-transition-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "limiter-track",
+    "reference" : "loop-limiter-track-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "limiter-track",
+    "reference" : "loop-limiter-track-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "limiter-master",
+    "reference" : "loop-limiter-master-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "limiter-master",
+    "reference" : "loop-limiter-master-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "resonance-track",
+    "reference" : "loop-resonance-track-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "resonance-track",
+    "reference" : "loop-resonance-track-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "resonance-master",
+    "reference" : "loop-resonance-master-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "resonance-master",
+    "reference" : "loop-resonance-master-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "latency-chain",
+    "reference" : "loop-latency-chain-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "latency-chain",
+    "reference" : "loop-latency-chain-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "mixed-latencies",
+    "reference" : "loop-mixed-latencies-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "mixed-latencies",
+    "reference" : "loop-mixed-latencies-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "pitch-edits",
+    "reference" : "loop-pitch-edits-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "pitch-edits",
+    "reference" : "loop-pitch-edits-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "pitch-automation",
+    "reference" : "loop-pitch-automation-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "pitch-automation",
+    "reference" : "loop-pitch-automation-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "pitch-master",
+    "reference" : "loop-pitch-master-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "pitch-master",
+    "reference" : "loop-pitch-master-short-swift.wav",
+    "start" : 5990
+  },
+  {
+    "end" : 11000,
+    "frames" : 24137,
+    "project" : "pitch-chain",
+    "reference" : "loop-pitch-chain-long-swift.wav",
+    "start" : 5000
+  },
+  {
+    "end" : 6320,
+    "frames" : 1457,
+    "project" : "pitch-chain",
+    "reference" : "loop-pitch-chain-short-swift.wav",
+    "start" : 5990
+  }
+]

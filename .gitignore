@@ -1,0 +1,41 @@
+# Build products and dependency caches
+.build/
+build/
+.swiftpm/
+target/
+node_modules/
+web/dist/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.mobileprovision
+operator.json
+
+# macOS and editor state
+.DS_Store
+._*
+*.xcuserstate
+xcuserdata/
+.idea/
+.vscode/
+*.swp
+*~
+
+# Audio fixtures are deliberately tracked. Put personal audio/projects in build/.
+
+# Only the two selected song demos belong in the shared repository.
+demos/*
+!demos/README.md
+!demos/Twinkle-Star/
+!demos/Nutshell/

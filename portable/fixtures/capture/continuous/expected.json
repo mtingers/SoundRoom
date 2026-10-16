@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "receiptId": "0D866EF5-DDB1-8510-BC5B-3ABAD368ECAE",
+  "rawTakeId": "11223344-5566-7788-9900-AABBCCDDEEFF",
+  "sourceSha256": "1d0157ea2f433a79822dbccb413a1746cee45d620232b5b19fe4cd304130b2c1",
+  "planSha256": "11ab9d7f2ad1f2b41200fbfa07b78e8e6b9ff2a9fea7bc2e01caa33c7b82bb9a",
+  "requiresReview": false,
+  "retainedNativeFrames": 4096,
+  "unalignedNativeFrames": 0,
+  "trimmedOutputFrames": 0,
+  "assets": [
+    {
+      "id": "4F4770D2-76C9-8401-858F-B5B4DF715A9B",
+      "clipId": "A396DDC0-DACC-8685-8B7C-A68AD30839CC",
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "relativePath": "Audio/4F4770D2-76C9-8401-858F-B5B4DF715A9B.wav",
+      "sha256": "ab950aa6778412e31671a73ac206d8d203fd7bb783b77fc128597bf794ad176e",
+      "frames": 4096,
+      "timelineStart": 40000,
+      "outputClockStart": 40000,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 0
+    },
+    {
+      "id": "C4E2F89D-3A3C-8185-A47E-D5622216D9C3",
+      "clipId": "A6B433DD-4EDC-8593-A723-CD5445EFDFF2",
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "relativePath": "Audio/C4E2F89D-3A3C-8185-A47E-D5622216D9C3.wav",
+      "sha256": "bb2969f38fdd4435cd841edbb611b7770a7cdbeeaa39f2b045c6c5119461441c",
+      "frames": 4096,
+      "timelineStart": 40000,
+      "outputClockStart": 40000,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 0
+    }
+  ],
+  "takes": [
+    {
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "id": "8200954F-36D9-89A3-85CF-57E718E6D121",
+      "epoch": 1,
+      "loopPass": 0,
+      "take": {
+        "clips": [
+          {
+            "id": "A396DDC0-DACC-8685-8B7C-A68AD30839CC",
+            "assetID": "4F4770D2-76C9-8401-858F-B5B4DF715A9B",
+            "name": "Reference capture",
+            "start": 40000,
+            "offset": 0,
+            "length": 4096
+          }
+        ],
+        "id": "8200954F-36D9-89A3-85CF-57E718E6D121",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    },
+    {
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "id": "20EB47CA-0CEB-8AC8-8BF7-E97CA45FEA16",
+      "epoch": 1,
+      "loopPass": 0,
+      "take": {
+        "clips": [
+          {
+            "id": "A6B433DD-4EDC-8593-A723-CD5445EFDFF2",
+            "assetID": "C4E2F89D-3A3C-8185-A47E-D5622216D9C3",
+            "name": "Reference capture",
+            "start": 40000,
+            "offset": 0,
+            "length": 4096
+          }
+        ],
+        "id": "20EB47CA-0CEB-8AC8-8BF7-E97CA45FEA16",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    }
+  ],
+  "issues": []
+}

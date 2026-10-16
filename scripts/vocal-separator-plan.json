@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "task": "Vocals versus accompaniment; minimum research quality before any app integration",
+  "candidates": [
+    "short-small",
+    "long-small",
+    "long-wide"
+  ],
+  "steps": 200,
+  "effectiveBatch": 2,
+  "physicalMicroBatch": 1,
+  "seed": 20261020,
+  "recipeSeed": 20261019,
+  "validationRecipes": 24,
+  "select": "Highest bestValidationScore after all three candidates complete; never choose using test scores",
+  "gates": {
+    "minimumVocalSDR": 6,
+    "minimumReferenceGain": 0.89,
+    "maximumReferenceGain": 1.12,
+    "maximumAbsentVocalEnergyFraction": 0.01,
+    "humanListeningRequired": true
+  },
+  "independentEvaluation": "All 40 vocadito clips (29 within-dataset singers) held out from training and selection; 8 instrumental and 8 solo cases added",
+  "limitations": [
+    "A bounded CPU pilot, not a Demucs parity claim",
+    "VocalSet exercises; Slakh synthesized at 16 kHz; shared native sample banks",
+    "Previously inspected VocalSet test treated as regression",
+    "Unverified performer overlap across separately collected datasets; no training on vocadito"
+  ],
+  "localApp": "Build44 unchanged; integrate only after quality gates and human audition pass"
+}

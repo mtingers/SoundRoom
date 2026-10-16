@@ -1,0 +1,115 @@
+{
+  "attack" : 0.18,
+  "baseGain" : 0.68,
+  "basePan" : 0,
+  "beats" : 2,
+  "bpm" : 287,
+  "character" : 0.5,
+  "controllers" : [
+    {
+      "beat" : 0,
+      "kind" : "expression",
+      "value" : 0.87
+    },
+    {
+      "beat" : 0.2,
+      "kind" : "pitchBend",
+      "value" : 0.61
+    },
+    {
+      "beat" : 0.37,
+      "kind" : "modulation",
+      "value" : 0.68
+    },
+    {
+      "beat" : 0.32,
+      "kind" : "sustain",
+      "value" : 1
+    },
+    {
+      "beat" : 1.2,
+      "kind" : "expression",
+      "value" : 0.73
+    },
+    {
+      "beat" : 1.71,
+      "kind" : "sustain",
+      "value" : 0
+    }
+  ],
+  "decay" : 0.12,
+  "detune" : 0,
+  "drive" : 1,
+  "fineTune" : 0,
+  "instrument" : "stringEnsemble",
+  "layers" : [
+    {
+      "delay" : 0.018,
+      "enabled" : true,
+      "fineTune" : -4,
+      "gain" : 0.34,
+      "id" : "FBCF9D4F-8D6C-4398-B734-052D16BF0FE4",
+      "maximumVelocity" : 1,
+      "minimumVelocity" : 0,
+      "organicSeed" : 97,
+      "pan" : -0.25,
+      "preset" : "Solo cello",
+      "transpose" : -12
+    },
+    {
+      "delay" : 0.009,
+      "enabled" : true,
+      "fineTune" : 3,
+      "gain" : 0.18,
+      "id" : "575A1B0B-E0C0-4B4B-9310-4A6F9E89723B",
+      "maximumVelocity" : 1,
+      "minimumVelocity" : 0,
+      "organicSeed" : 228,
+      "pan" : 0.3,
+      "preset" : "Solo cello",
+      "transpose" : 0
+    }
+  ],
+  "noiseLevel" : 0,
+  "notes" : [
+    {
+      "articulation" : "accent",
+      "durationBeats" : 0.43,
+      "id" : "1A4EED36-0E33-4B91-BE15-997EE3E60212",
+      "pitch" : 48,
+      "startBeat" : 0,
+      "velocity" : 0.73
+    },
+    {
+      "articulation" : "staccato",
+      "durationBeats" : 0.71,
+      "id" : "0DD51BCA-8CD7-441F-865B-C7B63375CBFA",
+      "pitch" : 67,
+      "startBeat" : 0.64,
+      "velocity" : 0.54
+    },
+    {
+      "articulation" : "tenuto",
+      "durationBeats" : 0.4,
+      "id" : "EB252515-368A-4BB7-B4EB-D7A829CD6F08",
+      "pitch" : 72,
+      "startBeat" : 1.03,
+      "velocity" : 0.93
+    }
+  ],
+  "organic" : {
+    "breath" : 0.25,
+    "drift" : 0.3,
+    "seed" : 17,
+    "timbre" : 0.4
+  },
+  "oscillatorMix" : 0,
+  "pulseWidth" : 0.5,
+  "release" : 0.65,
+  "resonance" : 0.5,
+  "secondWaveform" : "saw",
+  "subLevel" : 0,
+  "sustain" : 1,
+  "tone" : 0.65,
+  "waveform" : "triangle"
+}

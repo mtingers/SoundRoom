@@ -1,0 +1,18 @@
+{
+ "repo": "sgossner/VCSL",
+ "tree": "vcsl-tree.json",
+ "robins": 1,
+ "maxSeconds": 10,
+ "release": 0.35,
+ "sets": [
+  {
+   "prefix": "Chordophones/Zithers/Grand Piano, Kawai/Sustains/",
+   "pattern": "GPiano_sus_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>v[1-4])_rr(?P<rr>\\d)",
+   "layers": [
+    "v1",
+    "v2",
+    "v4"
+   ]
+  }
+ ]
+}

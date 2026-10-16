@@ -1,0 +1,53 @@
+{
+  "beats" : 2,
+  "bpm" : 90.00009000009,
+  "parts" : [
+    {
+      "controllers" : [
+        {
+          "beat" : 0,
+          "kind" : "expression",
+          "value" : 0.5039370078740157
+        }
+      ],
+      "id" : 16,
+      "name" : "Piano · Channel 1",
+      "notes" : [
+        {
+          "durationBeats" : 1,
+          "id" : "52FF3D11-88E2-4F29-B3DE-A4D68509CAE4",
+          "pitch" : 60,
+          "startBeat" : 0,
+          "velocity" : 0.7874015748031497
+        },
+        {
+          "durationBeats" : 1,
+          "id" : "616ED146-EB7C-43A4-9CE4-F99BAA35A67F",
+          "pitch" : 64,
+          "startBeat" : 0,
+          "velocity" : 0.7086614173228346
+        }
+      ]
+    },
+    {
+      "controllers" : [
+        {
+          "beat" : 0,
+          "kind" : "expression",
+          "value" : 1
+        }
+      ],
+      "id" : 33,
+      "name" : "Bass · Channel 2",
+      "notes" : [
+        {
+          "durationBeats" : 1,
+          "id" : "65635D3A-75F3-4C11-A8B2-F1C0EEB8F218",
+          "pitch" : 36,
+          "startBeat" : 1,
+          "velocity" : 0.6299212598425197
+        }
+      ]
+    }
+  ]
+}

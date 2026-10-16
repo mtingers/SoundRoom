@@ -1,0 +1,44 @@
+{
+  "attack" : 0.003,
+  "baseGain" : 1,
+  "basePan" : 0,
+  "beats" : 2,
+  "bpm" : 120,
+  "character" : 0.5,
+  "controllers" : [
+
+  ],
+  "decay" : 0.12,
+  "detune" : 0,
+  "drive" : 1,
+  "fineTune" : 0,
+  "instrument" : "vibraphone",
+  "layers" : [
+
+  ],
+  "noiseLevel" : 0,
+  "notes" : [
+    {
+      "durationBeats" : 2,
+      "id" : "F7152B80-F002-4E15-84DD-594964DD1C66",
+      "pitch" : 57,
+      "startBeat" : 0,
+      "velocity" : 0.8
+    }
+  ],
+  "organic" : {
+    "breath" : 0,
+    "drift" : 0,
+    "seed" : 17,
+    "timbre" : 0
+  },
+  "oscillatorMix" : 0,
+  "pulseWidth" : 0.5,
+  "release" : 0.9,
+  "resonance" : 0.55,
+  "secondWaveform" : "saw",
+  "subLevel" : 0,
+  "sustain" : 1,
+  "tone" : 0.86,
+  "waveform" : "triangle"
+}

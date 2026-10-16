@@ -1,0 +1,18 @@
+[package]
+name = "soundroom-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+soundroom-engine = { path = "../engine" }
+soundroom-platform = { path = "../platform" }
+serde_json.workspace = true
+
+soundroom-client = { path = "../client" }
+serde.workspace = true
+base64 = "=0.21.0"
+sha2 = "=0.10.2"
+native-tls = "=0.2.11"
+libc = "=0.2.183"
+url = "=2.3.1"

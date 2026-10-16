@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "kind": "hello",
+  "serverID": "12345678-1234-4234-8234-123456789abc",
+  "peer": {
+    "id": "12345678-1234-4234-8234-123456789abc",
+    "name": "Browser studio",
+    "role": "viewer"
+  },
+  "credentialID": "12345678-1234-4234-8234-123456789abc",
+  "proof": "fixture-proof-not-a-valid-credential"
+}

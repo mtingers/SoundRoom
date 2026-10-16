@@ -1,0 +1,16 @@
+{
+  "name": "soundroom-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node tools/build.mjs",
+    "test": "tsc -p tsconfig.json && node --test tests/*.test.mjs",
+    "dev": "node tools/serve.mjs",
+    "test:webkit": "npm run build && node tests/browser/run.mjs",
+    "dev:lan": "npm run build && node tools/trusted-lan.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.3.3"
+  }
+}

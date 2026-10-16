@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "Reference capture",
+  "routes": [
+    {
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "channels": [
+        0,
+        1
+      ]
+    },
+    {
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "channels": [
+        1
+      ]
+    }
+  ],
+  "range": {
+    "start": 40256,
+    "end": 40768
+  },
+  "loopRange": {
+    "start": 40000,
+    "end": 41024
+  },
+  "maximumDriftPpm": 2000.0,
+  "allowIncomplete": false
+}

@@ -1,0 +1,89 @@
+{
+  "attack" : 0.003,
+  "baseGain" : 1,
+  "basePan" : 0,
+  "beats" : 2,
+  "bpm" : 287,
+  "character" : 0.5,
+  "controllers" : [
+    {
+      "beat" : 0,
+      "kind" : "expression",
+      "value" : 0.87
+    },
+    {
+      "beat" : 0.2,
+      "kind" : "pitchBend",
+      "value" : 0.61
+    },
+    {
+      "beat" : 0.37,
+      "kind" : "modulation",
+      "value" : 0.68
+    },
+    {
+      "beat" : 0.32,
+      "kind" : "sustain",
+      "value" : 1
+    },
+    {
+      "beat" : 1.2,
+      "kind" : "expression",
+      "value" : 0.73
+    },
+    {
+      "beat" : 1.71,
+      "kind" : "sustain",
+      "value" : 0
+    }
+  ],
+  "decay" : 0.17,
+  "detune" : -18.2,
+  "drive" : 2.3,
+  "instrument" : "synthesizer",
+  "layers" : [
+
+  ],
+  "noiseLevel" : 0.18,
+  "notes" : [
+    {
+      "articulation" : "accent",
+      "durationBeats" : 0.43,
+      "id" : "F66E9D13-FDEB-47A7-ADA9-AE5074B732D1",
+      "pitch" : 48,
+      "startBeat" : 0,
+      "velocity" : 0.73
+    },
+    {
+      "articulation" : "staccato",
+      "durationBeats" : 0.71,
+      "id" : "A4D67E13-80AF-464E-BDEB-7F759AF725EE",
+      "pitch" : 67,
+      "startBeat" : 0.64,
+      "velocity" : 0.54
+    },
+    {
+      "articulation" : "tenuto",
+      "durationBeats" : 0.4,
+      "id" : "F41EE6E0-1020-4395-8D23-FF221EF03178",
+      "pitch" : 72,
+      "startBeat" : 1.03,
+      "velocity" : 0.93
+    }
+  ],
+  "organic" : {
+    "breath" : 0.61,
+    "drift" : 0.34,
+    "seed" : 18446744073709551613,
+    "timbre" : 0.46
+  },
+  "oscillatorMix" : 0.37,
+  "pulseWidth" : 0.23,
+  "release" : 0.21,
+  "resonance" : 0.5,
+  "secondWaveform" : "pulse",
+  "subLevel" : 0.37,
+  "sustain" : 0.63,
+  "tone" : 0.47,
+  "waveform" : "triangle"
+}

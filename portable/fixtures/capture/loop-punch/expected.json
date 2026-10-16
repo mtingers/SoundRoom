@@ -1,0 +1,288 @@
+{
+  "version": 1,
+  "receiptId": "C9F9B515-8427-8BD7-8E55-C45D2C6D1FAE",
+  "rawTakeId": "11223344-5566-7788-9900-AABBCCDDEEFF",
+  "sourceSha256": "1d0157ea2f433a79822dbccb413a1746cee45d620232b5b19fe4cd304130b2c1",
+  "planSha256": "17c0534ebb193f1aca825147c4fa431a18320f5ecf99d59083f5d7ffa9fadfbf",
+  "requiresReview": false,
+  "retainedNativeFrames": 4096,
+  "unalignedNativeFrames": 0,
+  "trimmedOutputFrames": 2048,
+  "assets": [
+    {
+      "id": "BD2739D6-63CD-8567-B9A2-19438397F1E0",
+      "clipId": "E6DF4EE8-FE74-81A8-9F01-552518E6799B",
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "relativePath": "Audio/BD2739D6-63CD-8567-B9A2-19438397F1E0.wav",
+      "sha256": "6480093692f8ac5bacf44a3aecbdc6fe9330317b4ad50fc6b1c3aa7570500591",
+      "frames": 512,
+      "timelineStart": 40256,
+      "outputClockStart": 40256,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 1
+    },
+    {
+      "id": "86A3CFED-88DE-8365-B2B4-72F362D05CA9",
+      "clipId": "8F8F2467-9145-83A3-9102-307BD472DCED",
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "relativePath": "Audio/86A3CFED-88DE-8365-B2B4-72F362D05CA9.wav",
+      "sha256": "ddfd1fd18e4aa9a52b1998bb9c12126ffb26f2ecb783e1b9413522af1d04df2d",
+      "frames": 512,
+      "timelineStart": 40256,
+      "outputClockStart": 40256,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 1
+    },
+    {
+      "id": "ED13D9D9-90A3-822C-9421-6A9CF38EE3F7",
+      "clipId": "2EDE8B5C-1962-88DF-853E-3341D08DA76E",
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "relativePath": "Audio/ED13D9D9-90A3-822C-9421-6A9CF38EE3F7.wav",
+      "sha256": "cc5f0e6d338c8c5c6c52ea2a191fc2e79aa77b81a42a9b3355391888ebd125ed",
+      "frames": 512,
+      "timelineStart": 40256,
+      "outputClockStart": 41280,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 2
+    },
+    {
+      "id": "629B74F5-5F5D-81D7-A1FB-0F9D5BD8D632",
+      "clipId": "2DDE88F0-907D-8609-8544-F43680420294",
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "relativePath": "Audio/629B74F5-5F5D-81D7-A1FB-0F9D5BD8D632.wav",
+      "sha256": "1d20acd8093e2bae7d7336b555071456e4d64f94c82f741472881b3cd2b4f90a",
+      "frames": 512,
+      "timelineStart": 40256,
+      "outputClockStart": 41280,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 2
+    },
+    {
+      "id": "70A697EA-6AB1-8349-BF2D-E7D0ADB642F2",
+      "clipId": "840EFE03-60B9-8BDF-A2B5-6045C1A6FCFE",
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "relativePath": "Audio/70A697EA-6AB1-8349-BF2D-E7D0ADB642F2.wav",
+      "sha256": "6480093692f8ac5bacf44a3aecbdc6fe9330317b4ad50fc6b1c3aa7570500591",
+      "frames": 512,
+      "timelineStart": 40256,
+      "outputClockStart": 42304,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 3
+    },
+    {
+      "id": "E9C4DB76-3A9C-8F99-A4B9-A6570CADF797",
+      "clipId": "5B56BD3F-6544-8E5F-BBD0-2DCCB530FD68",
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "relativePath": "Audio/E9C4DB76-3A9C-8F99-A4B9-A6570CADF797.wav",
+      "sha256": "ddfd1fd18e4aa9a52b1998bb9c12126ffb26f2ecb783e1b9413522af1d04df2d",
+      "frames": 512,
+      "timelineStart": 40256,
+      "outputClockStart": 42304,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 3
+    },
+    {
+      "id": "79EAB319-3EB7-8D41-B13A-C89B5BA687B4",
+      "clipId": "473CDADB-2A1C-87F8-B355-7427D28712D9",
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "relativePath": "Audio/79EAB319-3EB7-8D41-B13A-C89B5BA687B4.wav",
+      "sha256": "cc5f0e6d338c8c5c6c52ea2a191fc2e79aa77b81a42a9b3355391888ebd125ed",
+      "frames": 512,
+      "timelineStart": 40256,
+      "outputClockStart": 43328,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 4
+    },
+    {
+      "id": "D1F78D5F-E43D-83F1-BC41-F2940D450711",
+      "clipId": "1CFA3D1D-EB61-8400-B7D3-44904F2C0686",
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "relativePath": "Audio/D1F78D5F-E43D-83F1-BC41-F2940D450711.wav",
+      "sha256": "1d20acd8093e2bae7d7336b555071456e4d64f94c82f741472881b3cd2b4f90a",
+      "frames": 512,
+      "timelineStart": 40256,
+      "outputClockStart": 43328,
+      "nativeSegmentStart": 0,
+      "epoch": 1,
+      "loopPass": 4
+    }
+  ],
+  "takes": [
+    {
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "id": "B9AEC7F5-6432-8FBC-81FE-92E5D08816A9",
+      "epoch": 1,
+      "loopPass": 1,
+      "take": {
+        "clips": [
+          {
+            "id": "E6DF4EE8-FE74-81A8-9F01-552518E6799B",
+            "assetID": "BD2739D6-63CD-8567-B9A2-19438397F1E0",
+            "name": "Reference capture",
+            "start": 40256,
+            "offset": 0,
+            "length": 512
+          }
+        ],
+        "id": "B9AEC7F5-6432-8FBC-81FE-92E5D08816A9",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    },
+    {
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "id": "2DA1B876-2935-8F78-B2F8-DFBBE0C2EBCE",
+      "epoch": 1,
+      "loopPass": 2,
+      "take": {
+        "clips": [
+          {
+            "id": "2EDE8B5C-1962-88DF-853E-3341D08DA76E",
+            "assetID": "ED13D9D9-90A3-822C-9421-6A9CF38EE3F7",
+            "name": "Reference capture",
+            "start": 40256,
+            "offset": 0,
+            "length": 512
+          }
+        ],
+        "id": "2DA1B876-2935-8F78-B2F8-DFBBE0C2EBCE",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    },
+    {
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "id": "B04039F6-A09F-8694-82D3-51FF7D306932",
+      "epoch": 1,
+      "loopPass": 3,
+      "take": {
+        "clips": [
+          {
+            "id": "840EFE03-60B9-8BDF-A2B5-6045C1A6FCFE",
+            "assetID": "70A697EA-6AB1-8349-BF2D-E7D0ADB642F2",
+            "name": "Reference capture",
+            "start": 40256,
+            "offset": 0,
+            "length": 512
+          }
+        ],
+        "id": "B04039F6-A09F-8694-82D3-51FF7D306932",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    },
+    {
+      "trackId": "00112233-4455-6677-8899-AABBCCDDEEFF",
+      "id": "37B3155A-BA9E-8373-968F-E359D6FED58B",
+      "epoch": 1,
+      "loopPass": 4,
+      "take": {
+        "clips": [
+          {
+            "id": "473CDADB-2A1C-87F8-B355-7427D28712D9",
+            "assetID": "79EAB319-3EB7-8D41-B13A-C89B5BA687B4",
+            "name": "Reference capture",
+            "start": 40256,
+            "offset": 0,
+            "length": 512
+          }
+        ],
+        "id": "37B3155A-BA9E-8373-968F-E359D6FED58B",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    },
+    {
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "id": "828E8FDF-7A8A-80BE-A85D-037348DF886B",
+      "epoch": 1,
+      "loopPass": 1,
+      "take": {
+        "clips": [
+          {
+            "id": "8F8F2467-9145-83A3-9102-307BD472DCED",
+            "assetID": "86A3CFED-88DE-8365-B2B4-72F362D05CA9",
+            "name": "Reference capture",
+            "start": 40256,
+            "offset": 0,
+            "length": 512
+          }
+        ],
+        "id": "828E8FDF-7A8A-80BE-A85D-037348DF886B",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    },
+    {
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "id": "4A36E679-DE0E-8DBA-B20C-C89B79D70E53",
+      "epoch": 1,
+      "loopPass": 2,
+      "take": {
+        "clips": [
+          {
+            "id": "2DDE88F0-907D-8609-8544-F43680420294",
+            "assetID": "629B74F5-5F5D-81D7-A1FB-0F9D5BD8D632",
+            "name": "Reference capture",
+            "start": 40256,
+            "offset": 0,
+            "length": 512
+          }
+        ],
+        "id": "4A36E679-DE0E-8DBA-B20C-C89B79D70E53",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    },
+    {
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "id": "746A92C7-CBBD-8536-BFDB-ED95E936CB14",
+      "epoch": 1,
+      "loopPass": 3,
+      "take": {
+        "clips": [
+          {
+            "id": "5B56BD3F-6544-8E5F-BBD0-2DCCB530FD68",
+            "assetID": "E9C4DB76-3A9C-8F99-A4B9-A6570CADF797",
+            "name": "Reference capture",
+            "start": 40256,
+            "offset": 0,
+            "length": 512
+          }
+        ],
+        "id": "746A92C7-CBBD-8536-BFDB-ED95E936CB14",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    },
+    {
+      "trackId": "FFEEDDCC-BBAA-9988-7766-554433221100",
+      "id": "ABFCC477-A020-88E3-A041-838FFA7BC46E",
+      "epoch": 1,
+      "loopPass": 4,
+      "take": {
+        "clips": [
+          {
+            "id": "1CFA3D1D-EB61-8400-B7D3-44904F2C0686",
+            "assetID": "D1F78D5F-E43D-83F1-BC41-F2940D450711",
+            "name": "Reference capture",
+            "start": 40256,
+            "offset": 0,
+            "length": 512
+          }
+        ],
+        "id": "ABFCC477-A020-88E3-A041-838FFA7BC46E",
+        "name": "Reference capture",
+        "rawCaptureID": "11223344-5566-7788-9900-AABBCCDDEEFF"
+      }
+    }
+  ],
+  "issues": []
+}

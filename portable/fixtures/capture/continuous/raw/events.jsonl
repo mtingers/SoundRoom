@@ -1,0 +1,8 @@
+{"type":"outputAnchor","source_frame":0,"epoch":1,"playback_clock":40000,"frames":512,"sample_time_bits":4681608360884174848,"host_time":1000000000000000000,"flags":3}
+{"type":"outputAnchor","source_frame":512,"epoch":1,"playback_clock":40512,"frames":512,"sample_time_bits":4681643545256263680,"host_time":1000000000010666667,"flags":3}
+{"type":"outputAnchor","source_frame":1024,"epoch":1,"playback_clock":41024,"frames":512,"sample_time_bits":4681678729628352512,"host_time":1000000000021333333,"flags":3}
+{"type":"outputAnchor","source_frame":1536,"epoch":1,"playback_clock":41536,"frames":512,"sample_time_bits":4681713914000441344,"host_time":1000000000032000000,"flags":3}
+{"type":"outputAnchor","source_frame":2048,"epoch":1,"playback_clock":42048,"frames":512,"sample_time_bits":4681749098372530176,"host_time":1000000000042666667,"flags":3}
+{"type":"outputAnchor","source_frame":2560,"epoch":1,"playback_clock":42560,"frames":512,"sample_time_bits":4681784282744619008,"host_time":1000000000053333333,"flags":3}
+{"type":"outputAnchor","source_frame":3072,"epoch":1,"playback_clock":43072,"frames":512,"sample_time_bits":4681819467116707840,"host_time":1000000000064000000,"flags":3}
+{"type":"outputAnchor","source_frame":3584,"epoch":1,"playback_clock":43584,"frames":512,"sample_time_bits":4681854651488796672,"host_time":1000000000074666667,"flags":3}

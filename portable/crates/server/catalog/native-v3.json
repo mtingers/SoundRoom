@@ -1,0 +1,5743 @@
+{
+  "capabilities": {
+    "codecs": [],
+    "commands": [
+      "addTrack",
+      "beginUpload",
+      "deleteClips",
+      "downloadArtifact",
+      "editTracks",
+      "editor",
+      "exportMix",
+      "finishUpload",
+      "listProjects",
+      "moveClip",
+      "openProject",
+      "ping",
+      "play",
+      "readArtifact",
+      "record",
+      "redo",
+      "removeTrack",
+      "replaceTracks",
+      "saveProject",
+      "seek",
+      "setDevices",
+      "setLoop",
+      "setTrackArm",
+      "setTrackGain",
+      "setTrackInput",
+      "setTrackMute",
+      "setTrackName",
+      "setTrackPan",
+      "setTrackSolo",
+      "snapshot",
+      "splitClip",
+      "stop",
+      "takeTransport",
+      "undo",
+      "updateTrackControls",
+      "uploadChunk",
+      "waveform"
+    ],
+    "designerPresets": [
+      {
+        "category": "instrument",
+        "id": "factory.Warm keys",
+        "name": "Warm keys",
+        "sound": {
+          "attack": 0.01,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.3,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "synthesizer",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.25,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 0.55,
+          "tone": 0.6,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Glass pluck",
+        "name": "Glass pluck",
+        "sound": {
+          "attack": 0.002,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.35,
+          "detune": 12,
+          "drive": 1,
+          "instrument": "synthesizer",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0.3,
+          "pulseWidth": 0.5,
+          "release": 0.15,
+          "resonance": 0.5,
+          "secondWaveform": "triangle",
+          "subLevel": 0,
+          "sustain": 0.05,
+          "tone": 0.9,
+          "waveform": "sine"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Round bass",
+        "name": "Round bass",
+        "sound": {
+          "attack": 0.01,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.2,
+          "detune": 0,
+          "drive": 1.4,
+          "instrument": "synthesizer",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.35,
+          "release": 0.08,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0.8,
+          "sustain": 0.65,
+          "tone": 0.35,
+          "waveform": "pulse"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Wide pad",
+        "name": "Wide pad",
+        "sound": {
+          "attack": 0.5,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.5,
+          "detune": 18,
+          "drive": 1,
+          "instrument": "synthesizer",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0.5,
+          "pulseWidth": 0.5,
+          "release": 1.2,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 0.8,
+          "tone": 0.5,
+          "waveform": "saw"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Bright lead",
+        "name": "Bright lead",
+        "sound": {
+          "attack": 0.005,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.1,
+          "detune": -7,
+          "drive": 2,
+          "instrument": "synthesizer",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0.35,
+          "pulseWidth": 0.5,
+          "release": 0.12,
+          "resonance": 0.5,
+          "secondWaveform": "pulse",
+          "subLevel": 0,
+          "sustain": 0.8,
+          "tone": 0.9,
+          "waveform": "saw"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Soft drum",
+        "name": "Soft drum",
+        "sound": {
+          "attack": 0,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "synthesizer",
+          "layers": [],
+          "noiseLevel": 0.8,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.05,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0.5,
+          "sustain": 0,
+          "tone": 0.5,
+          "waveform": "sine"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Studio piano",
+        "name": "Studio piano",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.45,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "studioPiano",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.24,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.86,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Tine electric piano",
+        "name": "Tine electric piano",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.6,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "tinePiano",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.4,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.86,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Nylon plucked strings",
+        "name": "Nylon plucked strings",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "nylonStrings",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.18,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.86,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Concert marimba",
+        "name": "Concert marimba",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "marimba",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.12,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.86,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Glass bells",
+        "name": "Glass bells",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "glassBells",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.9,
+          "resonance": 0.75,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.86,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Tonewheel organ",
+        "name": "Tonewheel organ",
+        "sound": {
+          "attack": 0.006,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "tonewheelOrgan",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.04,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.86,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.String ensemble",
+        "name": "String ensemble",
+        "sound": {
+          "attack": 0.18,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "stringEnsemble",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.65,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.65,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Electric guitar",
+        "name": "Electric guitar",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.6,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "electricGuitar",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.2,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.72,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Picked bass",
+        "name": "Picked bass",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.4,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "pickedBass",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.13,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.58,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "instrument",
+        "id": "factory.Vocal ensemble",
+        "name": "Vocal ensemble",
+        "sound": {
+          "attack": 0.12,
+          "baseGain": 1,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "vocalEnsemble",
+          "layers": [],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0,
+            "drift": 0,
+            "seed": "17",
+            "timbre": 0
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.45,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.82,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "organic",
+        "id": "organic.Felt & glass",
+        "name": "Felt & glass",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 0.68,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.25,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "studioPiano",
+          "layers": [
+            {
+              "enabled": true,
+              "gain": 0.14,
+              "id": "B259D4DA-58E6-483F-AA49-9E7911DE1B7E",
+              "maximumVelocity": 1,
+              "minimumVelocity": 0.35,
+              "organicSeed": "97",
+              "pan": 0.45,
+              "preset": "Glass bells",
+              "transpose": 12,
+              "velocityFade": 0.25
+            },
+            {
+              "enabled": true,
+              "gain": 0.24,
+              "id": "054DBA65-A2A0-4125-BB72-9E5C60E2C4FA",
+              "maximumVelocity": 1,
+              "minimumVelocity": 0,
+              "organicSeed": "228",
+              "pan": -0.4,
+              "preset": "Tine electric piano",
+              "transpose": 0
+            }
+          ],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0.25,
+            "drift": 0.3,
+            "seed": "17",
+            "timbre": 0.4
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.24,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.65,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "organic",
+        "id": "organic.Cathedral breath",
+        "name": "Cathedral breath",
+        "sound": {
+          "attack": 0.2,
+          "baseGain": 0.68,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.18,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "vocalEnsemble",
+          "layers": [
+            {
+              "enabled": true,
+              "gain": 0.3,
+              "id": "7BFE2F61-B1D8-44A4-AD98-A12013021075",
+              "maximumVelocity": 1,
+              "minimumVelocity": 0,
+              "organicSeed": "97",
+              "pan": -0.35,
+              "preset": "String ensemble",
+              "transpose": 0
+            },
+            {
+              "enabled": true,
+              "gain": 0.15,
+              "id": "E4BDCD4D-753D-4BB7-BB4D-16FD1E558A1E",
+              "maximumVelocity": 1,
+              "minimumVelocity": 0,
+              "organicSeed": "228",
+              "pan": 0.35,
+              "preset": "Tonewheel organ",
+              "transpose": -12
+            }
+          ],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0.25,
+            "drift": 0.3,
+            "seed": "17",
+            "timbre": 0.4
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.8,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.62,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "organic",
+        "id": "organic.Copper garden",
+        "name": "Copper garden",
+        "sound": {
+          "attack": 0.003,
+          "baseGain": 0.68,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.35,
+          "controllers": [],
+          "decay": 0.12,
+          "detune": 0,
+          "drive": 1,
+          "instrument": "nylonStrings",
+          "layers": [
+            {
+              "enabled": true,
+              "gain": 0.24,
+              "id": "A00AE814-DFCB-4788-94F1-9689D61B254D",
+              "maximumVelocity": 1,
+              "minimumVelocity": 0,
+              "organicSeed": "97",
+              "pan": -0.3,
+              "preset": "Concert marimba",
+              "transpose": 0
+            },
+            {
+              "enabled": true,
+              "gain": 0.18,
+              "id": "BC6AD7E9-4741-4C69-BFBE-ED92047E7D87",
+              "maximumVelocity": 1,
+              "minimumVelocity": 0.3,
+              "organicSeed": "228",
+              "pan": 0.45,
+              "preset": "Electric guitar",
+              "transpose": 12,
+              "velocityFade": 0.25
+            }
+          ],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0.25,
+            "drift": 0.3,
+            "seed": "17",
+            "timbre": 0.4
+          },
+          "oscillatorMix": 0,
+          "pulseWidth": 0.5,
+          "release": 0.18,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 1,
+          "tone": 0.72,
+          "waveform": "triangle"
+        }
+      },
+      {
+        "category": "organic",
+        "id": "organic.Dusk strings",
+        "name": "Dusk strings",
+        "sound": {
+          "attack": 0.5,
+          "baseGain": 0.68,
+          "basePan": 0,
+          "beats": 4,
+          "bpm": 120,
+          "character": 0.5,
+          "controllers": [],
+          "decay": 0.5,
+          "detune": 18,
+          "drive": 1,
+          "instrument": "synthesizer",
+          "layers": [
+            {
+              "enabled": true,
+              "gain": 0.32,
+              "id": "4B2A7D4E-6F96-4073-828E-8783461065F2",
+              "maximumVelocity": 1,
+              "minimumVelocity": 0,
+              "organicSeed": "97",
+              "pan": -0.5,
+              "preset": "String ensemble",
+              "transpose": 0
+            },
+            {
+              "enabled": true,
+              "gain": 0.22,
+              "id": "635D4745-8F1C-4ED0-B27C-906FAA7C55FB",
+              "maximumVelocity": 1,
+              "minimumVelocity": 0,
+              "organicSeed": "228",
+              "pan": 0.5,
+              "preset": "Vocal ensemble",
+              "transpose": 12
+            }
+          ],
+          "noiseLevel": 0,
+          "notes": [],
+          "organic": {
+            "breath": 0.45,
+            "drift": 0.55,
+            "seed": "17",
+            "timbre": 0.4
+          },
+          "oscillatorMix": 0.5,
+          "pulseWidth": 0.5,
+          "release": 1.2,
+          "resonance": 0.5,
+          "secondWaveform": "saw",
+          "subLevel": 0,
+          "sustain": 0.8,
+          "tone": 0.5,
+          "waveform": "saw"
+        }
+      }
+    ],
+    "deviceBackends": [],
+    "drumKits": [
+      {
+        "articulations": {
+          "clap": [
+            "center"
+          ],
+          "closedHat": [
+            "center"
+          ],
+          "crash": [
+            "center",
+            "bell"
+          ],
+          "highTom": [
+            "center",
+            "rimshot"
+          ],
+          "kick": [
+            "center"
+          ],
+          "lowTom": [
+            "center",
+            "rimshot"
+          ],
+          "openHat": [
+            "center"
+          ],
+          "ride": [
+            "center",
+            "bell"
+          ],
+          "snare": [
+            "center",
+            "rimshot",
+            "sideStick",
+            "brush"
+          ]
+        },
+        "id": "acoustic",
+        "name": "Acoustic studio",
+        "voices": [
+          "kick",
+          "snare",
+          "closedHat",
+          "openHat",
+          "lowTom",
+          "highTom",
+          "clap",
+          "ride",
+          "crash"
+        ]
+      },
+      {
+        "articulations": {
+          "clap": [
+            "center"
+          ],
+          "closedHat": [
+            "center"
+          ],
+          "crash": [
+            "center",
+            "bell"
+          ],
+          "highTom": [
+            "center",
+            "rimshot"
+          ],
+          "kick": [
+            "center"
+          ],
+          "lowTom": [
+            "center",
+            "rimshot"
+          ],
+          "openHat": [
+            "center"
+          ],
+          "ride": [
+            "center",
+            "bell"
+          ],
+          "snare": [
+            "center",
+            "rimshot",
+            "sideStick",
+            "brush"
+          ]
+        },
+        "id": "electronic",
+        "name": "Electronic analog",
+        "voices": [
+          "kick",
+          "snare",
+          "closedHat",
+          "openHat",
+          "lowTom",
+          "highTom",
+          "clap",
+          "ride",
+          "crash"
+        ]
+      },
+      {
+        "articulations": {
+          "clap": [
+            "center"
+          ],
+          "closedHat": [
+            "center"
+          ],
+          "crash": [
+            "center",
+            "bell"
+          ],
+          "highTom": [
+            "center",
+            "rimshot"
+          ],
+          "kick": [
+            "center"
+          ],
+          "lowTom": [
+            "center",
+            "rimshot"
+          ],
+          "openHat": [
+            "center"
+          ],
+          "ride": [
+            "center",
+            "bell"
+          ],
+          "snare": [
+            "center",
+            "rimshot",
+            "sideStick",
+            "brush"
+          ]
+        },
+        "id": "jazzMaple",
+        "name": "Maple jazz · open",
+        "voices": [
+          "kick",
+          "snare",
+          "closedHat",
+          "openHat",
+          "lowTom",
+          "highTom",
+          "clap",
+          "ride",
+          "crash"
+        ]
+      },
+      {
+        "articulations": {
+          "clap": [
+            "center"
+          ],
+          "closedHat": [
+            "center"
+          ],
+          "crash": [
+            "center",
+            "bell"
+          ],
+          "highTom": [
+            "center",
+            "rimshot"
+          ],
+          "kick": [
+            "center"
+          ],
+          "lowTom": [
+            "center",
+            "rimshot"
+          ],
+          "openHat": [
+            "center"
+          ],
+          "ride": [
+            "center",
+            "bell"
+          ],
+          "snare": [
+            "center",
+            "rimshot",
+            "sideStick",
+            "brush"
+          ]
+        },
+        "id": "rockBirch",
+        "name": "Birch rock · punch",
+        "voices": [
+          "kick",
+          "snare",
+          "closedHat",
+          "openHat",
+          "lowTom",
+          "highTom",
+          "clap",
+          "ride",
+          "crash"
+        ]
+      },
+      {
+        "articulations": {
+          "clap": [
+            "center"
+          ],
+          "closedHat": [
+            "center"
+          ],
+          "crash": [
+            "center",
+            "bell"
+          ],
+          "highTom": [
+            "center",
+            "rimshot"
+          ],
+          "kick": [
+            "center"
+          ],
+          "lowTom": [
+            "center",
+            "rimshot"
+          ],
+          "openHat": [
+            "center"
+          ],
+          "ride": [
+            "center",
+            "bell"
+          ],
+          "snare": [
+            "center",
+            "rimshot",
+            "sideStick",
+            "brush"
+          ]
+        },
+        "id": "vintageDry",
+        "name": "Vintage · damped",
+        "voices": [
+          "kick",
+          "snare",
+          "closedHat",
+          "openHat",
+          "lowTom",
+          "highTom",
+          "clap",
+          "ride",
+          "crash"
+        ]
+      },
+      {
+        "articulations": {
+          "clap": [
+            "center"
+          ],
+          "closedHat": [
+            "center"
+          ],
+          "crash": [
+            "center",
+            "bell"
+          ],
+          "highTom": [
+            "center",
+            "rimshot"
+          ],
+          "kick": [
+            "center"
+          ],
+          "lowTom": [
+            "center",
+            "rimshot"
+          ],
+          "openHat": [
+            "center"
+          ],
+          "ride": [
+            "center",
+            "bell"
+          ],
+          "snare": [
+            "center",
+            "rimshot",
+            "sideStick",
+            "brush"
+          ]
+        },
+        "id": "brushed",
+        "name": "Brushes · intimate",
+        "voices": [
+          "kick",
+          "snare",
+          "closedHat",
+          "openHat",
+          "lowTom",
+          "highTom",
+          "clap",
+          "ride",
+          "crash"
+        ]
+      },
+      {
+        "articulations": {
+          "clap": [
+            "center"
+          ],
+          "closedHat": [
+            "center"
+          ],
+          "crash": [
+            "center",
+            "bell"
+          ],
+          "highTom": [
+            "center",
+            "rimshot"
+          ],
+          "kick": [
+            "center"
+          ],
+          "lowTom": [
+            "center",
+            "rimshot"
+          ],
+          "openHat": [
+            "center"
+          ],
+          "ride": [
+            "center",
+            "bell"
+          ],
+          "snare": [
+            "center",
+            "rimshot",
+            "sideStick",
+            "brush"
+          ]
+        },
+        "id": "orchestral",
+        "name": "Orchestral · resonant",
+        "voices": [
+          "kick",
+          "snare",
+          "closedHat",
+          "openHat",
+          "lowTom",
+          "highTom",
+          "clap",
+          "ride",
+          "crash"
+        ]
+      }
+    ],
+    "drumPresets": [
+      {
+        "id": "Empty",
+        "name": "Empty",
+        "pattern": {
+          "bars": 1,
+          "bpm": 110,
+          "humanize": 0,
+          "kit": "acoustic",
+          "lanes": {},
+          "masterGain": 0.8,
+          "name": "Drum loop",
+          "steps": [],
+          "stepsPerBeat": 4,
+          "swing": 0
+        }
+      },
+      {
+        "id": "Backbeat",
+        "name": "Backbeat",
+        "pattern": {
+          "bars": 1,
+          "bpm": 110,
+          "humanize": 0,
+          "kit": "acoustic",
+          "lanes": {},
+          "masterGain": 0.8,
+          "name": "Backbeat",
+          "steps": [
+            {
+              "index": 0,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 8,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 10,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 4,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "snare"
+            },
+            {
+              "index": 12,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "snare"
+            },
+            {
+              "index": 0,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.62,
+              "voice": "closedHat"
+            },
+            {
+              "index": 2,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.62,
+              "voice": "closedHat"
+            },
+            {
+              "index": 4,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.62,
+              "voice": "closedHat"
+            },
+            {
+              "index": 6,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.62,
+              "voice": "closedHat"
+            },
+            {
+              "index": 8,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.62,
+              "voice": "closedHat"
+            },
+            {
+              "index": 10,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.62,
+              "voice": "closedHat"
+            },
+            {
+              "index": 12,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.62,
+              "voice": "closedHat"
+            },
+            {
+              "index": 14,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.62,
+              "voice": "closedHat"
+            }
+          ],
+          "stepsPerBeat": 4,
+          "swing": 0
+        }
+      },
+      {
+        "id": "Four on the floor",
+        "name": "Four on the floor",
+        "pattern": {
+          "bars": 1,
+          "bpm": 110,
+          "humanize": 0,
+          "kit": "acoustic",
+          "lanes": {},
+          "masterGain": 0.8,
+          "name": "Four on the floor",
+          "steps": [
+            {
+              "index": 0,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 4,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 8,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 12,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 4,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "clap"
+            },
+            {
+              "index": 12,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "clap"
+            },
+            {
+              "index": 2,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.56,
+              "voice": "openHat"
+            },
+            {
+              "index": 6,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.56,
+              "voice": "openHat"
+            },
+            {
+              "index": 10,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.56,
+              "voice": "openHat"
+            },
+            {
+              "index": 14,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.56,
+              "voice": "openHat"
+            }
+          ],
+          "stepsPerBeat": 4,
+          "swing": 0
+        }
+      },
+      {
+        "id": "Breakbeat",
+        "name": "Breakbeat",
+        "pattern": {
+          "bars": 1,
+          "bpm": 110,
+          "humanize": 0,
+          "kit": "acoustic",
+          "lanes": {},
+          "masterGain": 0.8,
+          "name": "Breakbeat",
+          "steps": [
+            {
+              "index": 0,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 6,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 10,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 4,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "snare"
+            },
+            {
+              "index": 12,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "snare"
+            },
+            {
+              "index": 7,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.3,
+              "voice": "snare"
+            },
+            {
+              "index": 15,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.3,
+              "voice": "snare"
+            },
+            {
+              "index": 0,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 1,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 2,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 3,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 4,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 5,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 6,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 7,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 8,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 9,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 10,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 11,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 12,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 13,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 14,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            },
+            {
+              "index": 15,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.48,
+              "voice": "closedHat"
+            }
+          ],
+          "stepsPerBeat": 4,
+          "swing": 0
+        }
+      },
+      {
+        "id": "Half-time",
+        "name": "Half-time",
+        "pattern": {
+          "bars": 1,
+          "bpm": 110,
+          "humanize": 0,
+          "kit": "acoustic",
+          "lanes": {},
+          "masterGain": 0.8,
+          "name": "Half-time",
+          "steps": [
+            {
+              "index": 0,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 7,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 10,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "kick"
+            },
+            {
+              "index": 8,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.85,
+              "voice": "snare"
+            },
+            {
+              "index": 0,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.58,
+              "voice": "closedHat"
+            },
+            {
+              "index": 2,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.58,
+              "voice": "closedHat"
+            },
+            {
+              "index": 4,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.58,
+              "voice": "closedHat"
+            },
+            {
+              "index": 6,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.58,
+              "voice": "closedHat"
+            },
+            {
+              "index": 10,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.58,
+              "voice": "closedHat"
+            },
+            {
+              "index": 12,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.58,
+              "voice": "closedHat"
+            },
+            {
+              "index": 14,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.58,
+              "voice": "closedHat"
+            },
+            {
+              "index": 15,
+              "pan": 0,
+              "probability": 1,
+              "velocity": 0.45,
+              "voice": "openHat"
+            }
+          ],
+          "stepsPerBeat": 4,
+          "swing": 0
+        }
+      }
+    ],
+    "editorOperations": [
+      "clips.combine",
+      "designer.allNotesOff",
+      "designer.commit",
+      "designer.configure",
+      "designer.controller",
+      "designer.midiConnect",
+      "designer.midiSources",
+      "designer.noteOff",
+      "designer.noteOn",
+      "designer.preview",
+      "designer.stop",
+      "devices.refresh",
+      "drums.commit",
+      "drums.export",
+      "drums.preview",
+      "drums.stop",
+      "effects.apply",
+      "effects.preview",
+      "jobs.cancel",
+      "master.analyze",
+      "master.applyProposal",
+      "master.proposal",
+      "media.cleanup",
+      "meters.subscribe",
+      "pitch.analyze",
+      "pitch.apply",
+      "pitch.manualApply",
+      "pitch.render",
+      "pitch.targets",
+      "project.export",
+      "project.new",
+      "recording.settings",
+      "server.revokeWebCredential",
+      "server.shutdown",
+      "server.webClients",
+      "server.webPairing",
+      "session.timing",
+      "take.preview",
+      "take.stop",
+      "transport.audition",
+      "transport.finishRecording",
+      "transport.pause",
+      "transport.play",
+      "transport.record",
+      "transport.stop",
+      "transport.toggle"
+    ],
+    "effects": [
+      {
+        "factoryPresets": [
+          {
+            "name": "Quiet by 6 dB",
+            "values": {
+              "gain": -6
+            }
+          },
+          {
+            "name": "Boost by 3 dB",
+            "values": {
+              "gain": 3
+            }
+          }
+        ],
+        "id": "gain",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Gain",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "gain",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 24,
+            "minimum": -24,
+            "name": "Gain",
+            "unit": "dB"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Soften",
+            "values": {
+              "frequency": 6500,
+              "resonance": 0.707
+            }
+          },
+          {
+            "name": "Telephone top",
+            "values": {
+              "frequency": 3200,
+              "resonance": 0.707
+            }
+          },
+          {
+            "name": "Resonant sweep",
+            "values": {
+              "frequency": 1800,
+              "resonance": 3
+            }
+          }
+        ],
+        "id": "lowPass",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Low-pass filter",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 4000,
+            "id": "frequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 30,
+            "name": "Cutoff",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.707,
+            "id": "resonance",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 8,
+            "minimum": 0.5,
+            "name": "Resonance",
+            "unit": "Q"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Remove rumble",
+            "values": {
+              "frequency": 80,
+              "resonance": 0.707
+            }
+          },
+          {
+            "name": "Voice cleanup",
+            "values": {
+              "frequency": 140,
+              "resonance": 0.707
+            }
+          },
+          {
+            "name": "Telephone bottom",
+            "values": {
+              "frequency": 500,
+              "resonance": 0.707
+            }
+          }
+        ],
+        "id": "highPass",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "High-pass filter",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 100,
+            "id": "frequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 12000,
+            "minimum": 20,
+            "name": "Cutoff",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.707,
+            "id": "resonance",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 8,
+            "minimum": 0.5,
+            "name": "Resonance",
+            "unit": "Q"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Slapback",
+            "values": {
+              "damping": 12000,
+              "feedback": 0.12,
+              "mix": 0.2,
+              "time": 95
+            }
+          },
+          {
+            "name": "Wide repeats",
+            "values": {
+              "damping": 5000,
+              "feedback": 0.55,
+              "mix": 0.35,
+              "time": 420
+            }
+          }
+        ],
+        "id": "echo",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Echo",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 250,
+            "id": "time",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 2000,
+            "minimum": 1,
+            "name": "Delay",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.4,
+            "id": "feedback",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0.95,
+            "minimum": 0,
+            "name": "Feedback",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.25,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 12000,
+            "id": "damping",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 200,
+            "name": "Tone",
+            "unit": "Hz"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Gentle tape",
+            "values": {
+              "bias": 0.25,
+              "character": 0,
+              "drive": 3,
+              "emphasis": 0,
+              "match": 0,
+              "mix": 0.6,
+              "output": 0,
+              "tone": 12000
+            }
+          },
+          {
+            "name": "Heavy drive",
+            "values": {
+              "bias": 0.25,
+              "character": 0,
+              "drive": 24,
+              "emphasis": 0,
+              "match": 0,
+              "mix": 0.8,
+              "output": -6,
+              "tone": 3500
+            }
+          },
+          {
+            "name": "Tape cohesion",
+            "values": {
+              "bias": 0.25,
+              "character": 1,
+              "drive": 6,
+              "emphasis": 0,
+              "match": 1,
+              "mix": 1,
+              "output": 0,
+              "tone": 14000
+            }
+          },
+          {
+            "name": "Tube vocal",
+            "values": {
+              "bias": 0.45,
+              "character": 2,
+              "drive": 8,
+              "emphasis": 0,
+              "match": 1,
+              "mix": 0.7,
+              "output": 0,
+              "tone": 12000
+            }
+          },
+          {
+            "name": "Console punch",
+            "values": {
+              "bias": 0.25,
+              "character": 3,
+              "drive": 5,
+              "emphasis": 2,
+              "match": 1,
+              "mix": 1,
+              "output": 0,
+              "tone": 12000
+            }
+          },
+          {
+            "name": "Diode grit",
+            "values": {
+              "bias": 0.6,
+              "character": 4,
+              "drive": 16,
+              "emphasis": 0,
+              "match": 1,
+              "mix": 0.45,
+              "output": 0,
+              "tone": 8000
+            }
+          }
+        ],
+        "id": "warmth",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Warmth",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 9,
+            "id": "drive",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 30,
+            "minimum": 0,
+            "name": "Drive",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 12000,
+            "id": "tone",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 200,
+            "name": "Tone",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "output",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -24,
+            "name": "Output",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Off",
+              "On"
+            ],
+            "defaultValue": 0,
+            "id": "match",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Level match",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Classic",
+              "Tape",
+              "Tube",
+              "Console",
+              "Diode"
+            ],
+            "defaultValue": 0,
+            "id": "character",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 4,
+            "minimum": 0,
+            "name": "Character",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.25,
+            "id": "bias",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Asymmetry",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "emphasis",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -12,
+            "name": "Presence",
+            "unit": "dB"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Voice leveling",
+            "values": {
+              "attack": 5,
+              "knee": 6,
+              "makeup": 3,
+              "mix": 1,
+              "ratio": 3,
+              "release": 160,
+              "threshold": -24
+            }
+          },
+          {
+            "name": "Punch",
+            "values": {
+              "attack": 30,
+              "knee": 6,
+              "makeup": 0,
+              "mix": 1,
+              "ratio": 6,
+              "release": 80,
+              "threshold": -16
+            }
+          },
+          {
+            "name": "Parallel",
+            "values": {
+              "attack": 10,
+              "knee": 6,
+              "makeup": 6,
+              "mix": 0.5,
+              "ratio": 8,
+              "release": 100,
+              "threshold": -32
+            }
+          }
+        ],
+        "id": "compressor",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Compressor",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -18,
+            "id": "threshold",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -60,
+            "name": "Threshold",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 4,
+            "id": "ratio",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 20,
+            "minimum": 1,
+            "name": "Ratio",
+            "unit": ":1"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 10,
+            "id": "attack",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 200,
+            "minimum": 0.1,
+            "name": "Attack",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 100,
+            "id": "release",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 2000,
+            "minimum": 10,
+            "name": "Release",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 6,
+            "id": "knee",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 24,
+            "minimum": 0,
+            "name": "Soft knee",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "makeup",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 24,
+            "minimum": -12,
+            "name": "Makeup",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Small room",
+            "values": {
+              "character": 1,
+              "damping": 6000,
+              "decay": 0.5,
+              "diffusion": 0.8,
+              "early": 0.45,
+              "lowCut": 120,
+              "mix": 0.18,
+              "output": 0,
+              "predelay": 5,
+              "width": 1
+            }
+          },
+          {
+            "name": "Vocal chamber",
+            "values": {
+              "character": 1,
+              "damping": 6500,
+              "decay": 1.7,
+              "diffusion": 0.8,
+              "early": 0.3,
+              "lowCut": 180,
+              "mix": 0.22,
+              "output": 0,
+              "predelay": 28,
+              "width": 1
+            }
+          },
+          {
+            "name": "Drum studio",
+            "values": {
+              "character": 1,
+              "damping": 6000,
+              "decay": 0.7,
+              "diffusion": 0.6,
+              "early": 0.55,
+              "lowCut": 220,
+              "mix": 0.18,
+              "output": 0,
+              "predelay": 8,
+              "width": 1
+            }
+          },
+          {
+            "name": "Hall",
+            "values": {
+              "character": 1,
+              "damping": 6000,
+              "decay": 3.5,
+              "diffusion": 0.8,
+              "early": 0.18,
+              "lowCut": 120,
+              "mix": 0.3,
+              "output": 0,
+              "predelay": 35,
+              "width": 1
+            }
+          },
+          {
+            "name": "Glass cathedral",
+            "values": {
+              "character": 1,
+              "damping": 4200,
+              "decay": 6.5,
+              "diffusion": 1,
+              "early": 0.12,
+              "lowCut": 240,
+              "mix": 0.35,
+              "output": 0,
+              "predelay": 45,
+              "width": 1
+            }
+          },
+          {
+            "name": "Dark ambience",
+            "values": {
+              "character": 1,
+              "damping": 1800,
+              "decay": 5,
+              "diffusion": 0.8,
+              "early": 0.12,
+              "lowCut": 280,
+              "mix": 0.4,
+              "output": 0,
+              "predelay": 12,
+              "width": 1
+            }
+          }
+        ],
+        "id": "room",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Room reverb",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1.4,
+            "id": "decay",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 10,
+            "minimum": 0.1,
+            "name": "Decay",
+            "unit": "s"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 12,
+            "id": "predelay",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 200,
+            "minimum": 0,
+            "name": "Pre-delay",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 6000,
+            "id": "damping",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 200,
+            "name": "Tone",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.2,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Classic",
+              "Dense stereo"
+            ],
+            "defaultValue": 0,
+            "id": "character",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Character",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 120,
+            "id": "lowCut",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1000,
+            "minimum": 0,
+            "name": "Low-cut",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.8,
+            "id": "diffusion",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Diffusion",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "width",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Stereo width",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.25,
+            "id": "early",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Early reflections",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "output",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -24,
+            "name": "Output",
+            "unit": "dB"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Voice clarity",
+            "values": {
+              "band4Frequency": 400,
+              "band4Gain": 0,
+              "band4Q": 1,
+              "band4Range": 0,
+              "band4Threshold": -24,
+              "band5Frequency": 2000,
+              "band5Gain": 0,
+              "band5Q": 1,
+              "band5Range": 0,
+              "band5Threshold": -24,
+              "band6Frequency": 6000,
+              "band6Gain": 0,
+              "band6Q": 1,
+              "band6Range": 0,
+              "band6Threshold": -24,
+              "dynamicAttack": 10,
+              "dynamicRelease": 150,
+              "highFrequency": 8000,
+              "highGain": 2,
+              "highPassEnabled": 1,
+              "highPassFrequency": 80,
+              "highQ": 0.707,
+              "highShape": 0,
+              "lowFrequency": 100,
+              "lowGain": -3,
+              "lowPassEnabled": 0,
+              "lowPassFrequency": 16000,
+              "lowQ": 0.707,
+              "lowShape": 0,
+              "midFrequency": 2500,
+              "midGain": 3,
+              "midQ": 1,
+              "output": 0
+            }
+          },
+          {
+            "name": "Warm",
+            "values": {
+              "band4Frequency": 400,
+              "band4Gain": 0,
+              "band4Q": 1,
+              "band4Range": 0,
+              "band4Threshold": -24,
+              "band5Frequency": 2000,
+              "band5Gain": 0,
+              "band5Q": 1,
+              "band5Range": 0,
+              "band5Threshold": -24,
+              "band6Frequency": 6000,
+              "band6Gain": 0,
+              "band6Q": 1,
+              "band6Range": 0,
+              "band6Threshold": -24,
+              "dynamicAttack": 10,
+              "dynamicRelease": 150,
+              "highFrequency": 8000,
+              "highGain": -3,
+              "highPassEnabled": 0,
+              "highPassFrequency": 60,
+              "highQ": 0.707,
+              "highShape": 1,
+              "lowFrequency": 100,
+              "lowGain": 3,
+              "lowPassEnabled": 0,
+              "lowPassFrequency": 16000,
+              "lowQ": 0.707,
+              "lowShape": 1,
+              "midFrequency": 3500,
+              "midGain": -2,
+              "midQ": 1,
+              "output": 0
+            }
+          },
+          {
+            "name": "Vocal presence",
+            "values": {
+              "band4Frequency": 400,
+              "band4Gain": 0,
+              "band4Q": 1,
+              "band4Range": 0,
+              "band4Threshold": -24,
+              "band5Frequency": 2000,
+              "band5Gain": 0,
+              "band5Q": 1,
+              "band5Range": 0,
+              "band5Threshold": -24,
+              "band6Frequency": 6000,
+              "band6Gain": 0,
+              "band6Q": 1,
+              "band6Range": 0,
+              "band6Threshold": -24,
+              "dynamicAttack": 10,
+              "dynamicRelease": 150,
+              "highFrequency": 10000,
+              "highGain": 2,
+              "highPassEnabled": 1,
+              "highPassFrequency": 90,
+              "highQ": 0.707,
+              "highShape": 1,
+              "lowFrequency": 280,
+              "lowGain": -3,
+              "lowPassEnabled": 0,
+              "lowPassFrequency": 16000,
+              "lowQ": 1.2,
+              "lowShape": 0,
+              "midFrequency": 3200,
+              "midGain": 2,
+              "midQ": 0.8,
+              "output": 0
+            }
+          },
+          {
+            "name": "Bass definition",
+            "values": {
+              "band4Frequency": 400,
+              "band4Gain": 0,
+              "band4Q": 1,
+              "band4Range": 0,
+              "band4Threshold": -24,
+              "band5Frequency": 2000,
+              "band5Gain": 0,
+              "band5Q": 1,
+              "band5Range": 0,
+              "band5Threshold": -24,
+              "band6Frequency": 6000,
+              "band6Gain": 0,
+              "band6Q": 1,
+              "band6Range": 0,
+              "band6Threshold": -24,
+              "dynamicAttack": 10,
+              "dynamicRelease": 150,
+              "highFrequency": 2500,
+              "highGain": 2,
+              "highPassEnabled": 1,
+              "highPassFrequency": 30,
+              "highQ": 0.707,
+              "highShape": 1,
+              "lowFrequency": 80,
+              "lowGain": 2,
+              "lowPassEnabled": 0,
+              "lowPassFrequency": 16000,
+              "lowQ": 0.707,
+              "lowShape": 1,
+              "midFrequency": 350,
+              "midGain": -4,
+              "midQ": 1.2,
+              "output": 0
+            }
+          },
+          {
+            "name": "Dark guitar",
+            "values": {
+              "band4Frequency": 400,
+              "band4Gain": 0,
+              "band4Q": 1,
+              "band4Range": 0,
+              "band4Threshold": -24,
+              "band5Frequency": 2000,
+              "band5Gain": 0,
+              "band5Q": 1,
+              "band5Range": 0,
+              "band5Threshold": -24,
+              "band6Frequency": 6000,
+              "band6Gain": 0,
+              "band6Q": 1,
+              "band6Range": 0,
+              "band6Threshold": -24,
+              "dynamicAttack": 10,
+              "dynamicRelease": 150,
+              "highFrequency": 8000,
+              "highGain": 0,
+              "highPassEnabled": 1,
+              "highPassFrequency": 100,
+              "highQ": 0.707,
+              "highShape": 0,
+              "lowFrequency": 100,
+              "lowGain": 0,
+              "lowPassEnabled": 1,
+              "lowPassFrequency": 6500,
+              "lowQ": 0.707,
+              "lowShape": 0,
+              "midFrequency": 2200,
+              "midGain": 2,
+              "midQ": 0.8,
+              "output": 0
+            }
+          },
+          {
+            "name": "Air & weight",
+            "values": {
+              "band4Frequency": 400,
+              "band4Gain": 0,
+              "band4Q": 1,
+              "band4Range": 0,
+              "band4Threshold": -24,
+              "band5Frequency": 2000,
+              "band5Gain": 0,
+              "band5Q": 1,
+              "band5Range": 0,
+              "band5Threshold": -24,
+              "band6Frequency": 6000,
+              "band6Gain": 0,
+              "band6Q": 1,
+              "band6Range": 0,
+              "band6Threshold": -24,
+              "dynamicAttack": 10,
+              "dynamicRelease": 150,
+              "highFrequency": 12000,
+              "highGain": 2,
+              "highPassEnabled": 1,
+              "highPassFrequency": 25,
+              "highQ": 0.707,
+              "highShape": 1,
+              "lowFrequency": 90,
+              "lowGain": 1.5,
+              "lowPassEnabled": 0,
+              "lowPassFrequency": 16000,
+              "lowQ": 0.707,
+              "lowShape": 1,
+              "midFrequency": 1000,
+              "midGain": 0,
+              "midQ": 1,
+              "output": 0
+            }
+          }
+        ],
+        "id": "equalizer",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Channel EQ",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "lowGain",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 18,
+            "minimum": -18,
+            "name": "Low gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1000,
+            "id": "midFrequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 10000,
+            "minimum": 150,
+            "name": "Mid frequency",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "midGain",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 18,
+            "minimum": -18,
+            "name": "Mid gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "midQ",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 8,
+            "minimum": 0.3,
+            "name": "Mid width",
+            "unit": "Q"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "highGain",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 18,
+            "minimum": -18,
+            "name": "High gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "output",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -24,
+            "name": "Output",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 100,
+            "id": "lowFrequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 1000,
+            "minimum": 20,
+            "name": "Low frequency",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.707,
+            "id": "lowQ",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 8,
+            "minimum": 0.3,
+            "name": "Low width",
+            "unit": "Q"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Bell",
+              "Shelf"
+            ],
+            "defaultValue": 0,
+            "id": "lowShape",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Low shape",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 8000,
+            "id": "highFrequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 1000,
+            "name": "High frequency",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.707,
+            "id": "highQ",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 8,
+            "minimum": 0.3,
+            "name": "High width",
+            "unit": "Q"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Bell",
+              "Shelf"
+            ],
+            "defaultValue": 0,
+            "id": "highShape",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "High shape",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 60,
+            "id": "highPassFrequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 1000,
+            "minimum": 20,
+            "name": "High-pass cutoff",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Off",
+              "On"
+            ],
+            "defaultValue": 0,
+            "id": "highPassEnabled",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "High-pass",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 16000,
+            "id": "lowPassFrequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 1000,
+            "name": "Low-pass cutoff",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Off",
+              "On"
+            ],
+            "defaultValue": 0,
+            "id": "lowPassEnabled",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Low-pass",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 400,
+            "id": "band4Frequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 20,
+            "name": "Band 4 frequency",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "band4Gain",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 18,
+            "minimum": -18,
+            "name": "Band 4 gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "band4Q",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 12,
+            "minimum": 0.3,
+            "name": "Band 4 width",
+            "unit": "Q"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -24,
+            "id": "band4Threshold",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -60,
+            "name": "Band 4 threshold",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "band4Range",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -18,
+            "name": "Band 4 dynamic cut",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 2000,
+            "id": "band5Frequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 20,
+            "name": "Band 5 frequency",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "band5Gain",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 18,
+            "minimum": -18,
+            "name": "Band 5 gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "band5Q",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 12,
+            "minimum": 0.3,
+            "name": "Band 5 width",
+            "unit": "Q"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -24,
+            "id": "band5Threshold",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -60,
+            "name": "Band 5 threshold",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "band5Range",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -18,
+            "name": "Band 5 dynamic cut",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 6000,
+            "id": "band6Frequency",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 20,
+            "name": "Band 6 frequency",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "band6Gain",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 18,
+            "minimum": -18,
+            "name": "Band 6 gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "band6Q",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 12,
+            "minimum": 0.3,
+            "name": "Band 6 width",
+            "unit": "Q"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -24,
+            "id": "band6Threshold",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -60,
+            "name": "Band 6 threshold",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "band6Range",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -18,
+            "name": "Band 6 dynamic cut",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 10,
+            "id": "dynamicAttack",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 200,
+            "minimum": 0.1,
+            "name": "Dynamic attack",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 150,
+            "id": "dynamicRelease",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 2000,
+            "minimum": 10,
+            "name": "Dynamic release",
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Subtle double",
+            "values": {
+              "delay": 16,
+              "depth": 1.5,
+              "feedback": 0,
+              "mix": 0.2,
+              "rate": 0.4,
+              "width": 0.7
+            }
+          },
+          {
+            "name": "Wide ensemble",
+            "values": {
+              "delay": 16,
+              "depth": 6,
+              "feedback": 0.1,
+              "mix": 0.5,
+              "rate": 1.2,
+              "width": 1
+            }
+          },
+          {
+            "name": "Slow shimmer",
+            "values": {
+              "delay": 22,
+              "depth": 10,
+              "feedback": 0.1,
+              "mix": 0.4,
+              "rate": 0.2,
+              "width": 0.7
+            }
+          }
+        ],
+        "id": "chorus",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Chorus",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.8,
+            "id": "rate",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 8,
+            "minimum": 0.05,
+            "name": "Rate",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 3,
+            "id": "depth",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 20,
+            "minimum": 0,
+            "name": "Depth",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 16,
+            "id": "delay",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 40,
+            "minimum": 1,
+            "name": "Base delay",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.7,
+            "id": "width",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Stereo width",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.1,
+            "id": "feedback",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0.85,
+            "minimum": 0,
+            "name": "Feedback",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.35,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "24-bit TPDF",
+            "values": {
+              "amount": 1,
+              "bits": 24,
+              "quantize": 0
+            }
+          },
+          {
+            "name": "16-bit TPDF",
+            "values": {
+              "amount": 1,
+              "bits": 16,
+              "quantize": 0
+            }
+          },
+          {
+            "name": "16-bit reduction",
+            "values": {
+              "amount": 1,
+              "bits": 16,
+              "quantize": 1
+            }
+          }
+        ],
+        "id": "dither",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Dither",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "8-bit",
+              "9-bit",
+              "10-bit",
+              "11-bit",
+              "12-bit",
+              "13-bit",
+              "14-bit",
+              "15-bit",
+              "16-bit",
+              "17-bit",
+              "18-bit",
+              "19-bit",
+              "20-bit",
+              "21-bit",
+              "22-bit",
+              "23-bit",
+              "24-bit"
+            ],
+            "defaultValue": 24,
+            "id": "bits",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 24,
+            "minimum": 8,
+            "name": "Target depth",
+            "unit": "bits"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "amount",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Noise level",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Dither only",
+              "Dither + quantize"
+            ],
+            "defaultValue": 0,
+            "id": "quantize",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Processing",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Natural voice",
+            "values": {
+              "formant": 0,
+              "humanize": 0.5,
+              "key": 0,
+              "manualTarget": -1,
+              "mask": 4095,
+              "mix": 1,
+              "reference": 440,
+              "retune": 60,
+              "scale": 0,
+              "strength": 1,
+              "tolerance": 10,
+              "vibrato": 0.8
+            }
+          },
+          {
+            "name": "Hard tune",
+            "values": {
+              "formant": 0,
+              "humanize": 0,
+              "key": 0,
+              "manualTarget": -1,
+              "mask": 4095,
+              "mix": 1,
+              "reference": 440,
+              "retune": 0,
+              "scale": 0,
+              "strength": 1,
+              "tolerance": 0,
+              "vibrato": 0
+            }
+          },
+          {
+            "name": "Subtle correction",
+            "values": {
+              "formant": 0,
+              "humanize": 0.7,
+              "key": 0,
+              "manualTarget": -1,
+              "mask": 4095,
+              "mix": 1,
+              "reference": 440,
+              "retune": 120,
+              "scale": 0,
+              "strength": 0.6,
+              "tolerance": 15,
+              "vibrato": 1
+            }
+          },
+          {
+            "name": "Robot · A only",
+            "values": {
+              "formant": -3,
+              "humanize": 0,
+              "key": 0,
+              "manualTarget": -1,
+              "mask": 512,
+              "mix": 1,
+              "reference": 440,
+              "retune": 0,
+              "scale": 3,
+              "strength": 1,
+              "tolerance": 0,
+              "vibrato": 0
+            }
+          }
+        ],
+        "id": "pitchCorrection",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Pitch correction",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "C",
+              "C♯",
+              "D",
+              "D♯",
+              "E",
+              "F",
+              "F♯",
+              "G",
+              "G♯",
+              "A",
+              "A♯",
+              "B"
+            ],
+            "defaultValue": 0,
+            "id": "key",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 11,
+            "minimum": 0,
+            "name": "Key",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Chromatic",
+              "Major",
+              "Natural minor",
+              "Custom"
+            ],
+            "defaultValue": 0,
+            "id": "scale",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 3,
+            "minimum": 0,
+            "name": "Scale",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 4095,
+            "id": "mask",
+            "integer": true,
+            "logarithmic": false,
+            "maximum": 4095,
+            "minimum": 0,
+            "name": "Target notes",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 440,
+            "id": "reference",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 460,
+            "minimum": 420,
+            "name": "A reference",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 40,
+            "id": "retune",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 500,
+            "minimum": 0,
+            "name": "Retune time",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "strength",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Correction",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.35,
+            "id": "humanize",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Humanize",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 5,
+            "id": "tolerance",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 100,
+            "minimum": 0,
+            "name": "In-tune tolerance",
+            "unit": "cents"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.5,
+            "id": "vibrato",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Preserve vibrato",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "formant",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -12,
+            "name": "Formant shift",
+            "unit": "st"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -1,
+            "id": "manualTarget",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 95,
+            "minimum": -1,
+            "name": "Manual target",
+            "unit": "MIDI"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Transparent master",
+            "values": {
+              "ceiling": -1,
+              "input": 0,
+              "release": 150,
+              "style": 1,
+              "truePeak": 1
+            }
+          },
+          {
+            "name": "Drum peaks",
+            "values": {
+              "ceiling": -1,
+              "input": 0,
+              "release": 65,
+              "style": 0,
+              "truePeak": 1
+            }
+          },
+          {
+            "name": "Loud & controlled",
+            "values": {
+              "ceiling": -1,
+              "input": 5,
+              "release": 220,
+              "style": 1,
+              "truePeak": 1
+            }
+          },
+          {
+            "name": "Conservative delivery",
+            "values": {
+              "ceiling": -2,
+              "input": 0,
+              "release": 250,
+              "style": 1,
+              "truePeak": 1
+            }
+          }
+        ],
+        "id": "limiter",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Master limiter",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "input",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 24,
+            "minimum": -12,
+            "name": "Input gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -1,
+            "id": "ceiling",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -12,
+            "name": "Ceiling",
+            "unit": "dBTP"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 150,
+            "id": "release",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 1000,
+            "minimum": 20,
+            "name": "Release",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Fixed",
+              "Adaptive"
+            ],
+            "defaultValue": 1,
+            "id": "style",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Recovery",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Sample peak",
+              "True peak · 4×"
+            ],
+            "defaultValue": 1,
+            "id": "truePeak",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Peak protection",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Vocal smoothness",
+            "values": {
+              "attack": 12,
+              "delta": 0,
+              "depth": 5,
+              "high": 10000,
+              "low": 900,
+              "mix": 1,
+              "release": 160,
+              "sensitivity": 0.5,
+              "sharpness": 0.6,
+              "transients": 0.6
+            }
+          },
+          {
+            "name": "Guitar edge",
+            "values": {
+              "attack": 12,
+              "delta": 0,
+              "depth": 8,
+              "high": 8500,
+              "low": 1800,
+              "mix": 1,
+              "release": 160,
+              "sensitivity": 0.65,
+              "sharpness": 0.6,
+              "transients": 0.7
+            }
+          },
+          {
+            "name": "Cymbal polish",
+            "values": {
+              "attack": 12,
+              "delta": 0,
+              "depth": 4,
+              "high": 18000,
+              "low": 4000,
+              "mix": 1,
+              "release": 160,
+              "sensitivity": 0.5,
+              "sharpness": 0.6,
+              "transients": 0.9
+            }
+          },
+          {
+            "name": "Gentle mix",
+            "values": {
+              "attack": 12,
+              "delta": 0,
+              "depth": 3,
+              "high": 16000,
+              "low": 300,
+              "mix": 1,
+              "release": 250,
+              "sensitivity": 0.35,
+              "sharpness": 0.6,
+              "transients": 0.7
+            }
+          }
+        ],
+        "id": "resonance",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Resonance control",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 6,
+            "id": "depth",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 18,
+            "minimum": 0,
+            "name": "Maximum reduction",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.5,
+            "id": "sensitivity",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Sensitivity",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.6,
+            "id": "sharpness",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Selectivity",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 500,
+            "id": "low",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 8000,
+            "minimum": 80,
+            "name": "Lower boundary",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 16000,
+            "id": "high",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 1000,
+            "name": "Upper boundary",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 12,
+            "id": "attack",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 100,
+            "minimum": 1,
+            "name": "Attack",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 160,
+            "id": "release",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 1000,
+            "minimum": 20,
+            "name": "Release",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.7,
+            "id": "transients",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Preserve attacks",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Processed",
+              "Removed signal"
+            ],
+            "defaultValue": 0,
+            "id": "delta",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Listen",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Natural vocal",
+            "values": {
+              "air": 0.2,
+              "body": 0,
+              "clarity": 0.45,
+              "cleanup": 0.45,
+              "deEss": 0.5,
+              "dynamics": 0.45,
+              "mix": 1,
+              "output": 0,
+              "warmth": 0.2
+            }
+          },
+          {
+            "name": "Intimate & warm",
+            "values": {
+              "air": 0.1,
+              "body": 1.5,
+              "clarity": 0.25,
+              "cleanup": 0.45,
+              "deEss": 0.55,
+              "dynamics": 0.35,
+              "mix": 1,
+              "output": 0,
+              "warmth": 0.35
+            }
+          },
+          {
+            "name": "Lead presence",
+            "values": {
+              "air": 0.4,
+              "body": -0.5,
+              "clarity": 0.65,
+              "cleanup": 0.45,
+              "deEss": 0.65,
+              "dynamics": 0.65,
+              "mix": 1,
+              "output": 0,
+              "warmth": 0.2
+            }
+          },
+          {
+            "name": "Spoken clarity",
+            "values": {
+              "air": 0.1,
+              "body": 0,
+              "clarity": 0.55,
+              "cleanup": 0.7,
+              "deEss": 0.65,
+              "dynamics": 0.6,
+              "mix": 1,
+              "output": 0,
+              "warmth": 0.1
+            }
+          },
+          {
+            "name": "Gentle rescue",
+            "values": {
+              "air": 0.05,
+              "body": 0,
+              "clarity": 0.3,
+              "cleanup": 0.8,
+              "deEss": 0.8,
+              "dynamics": 0.25,
+              "mix": 1,
+              "output": 0,
+              "warmth": 0.05
+            }
+          }
+        ],
+        "id": "vocalEnhancer",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Vocal enhancer",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.45,
+            "id": "cleanup",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Cleanup",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "body",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 6,
+            "minimum": -6,
+            "name": "Body",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.45,
+            "id": "clarity",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Clarity",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.5,
+            "id": "deEss",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "De-ess",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.45,
+            "id": "dynamics",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Level & dynamics",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.2,
+            "id": "air",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Air",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.2,
+            "id": "warmth",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Warmth",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "output",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -12,
+            "name": "Output",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Light noise cleanup",
+            "values": {
+              "high": 20000,
+              "listen": 0,
+              "low": 20,
+              "mix": 1,
+              "mode": 0,
+              "noiseFloor": -65,
+              "strength": 0.55
+            }
+          },
+          {
+            "name": "Strong noise cleanup",
+            "values": {
+              "high": 20000,
+              "listen": 0,
+              "low": 20,
+              "mix": 1,
+              "mode": 0,
+              "noiseFloor": -50,
+              "strength": 0.95
+            }
+          },
+          {
+            "name": "Sustained notes",
+            "values": {
+              "high": 20000,
+              "listen": 0,
+              "low": 20,
+              "mix": 1,
+              "mode": 1,
+              "noiseFloor": -55,
+              "strength": 0.9
+            }
+          },
+          {
+            "name": "Percussive attacks",
+            "values": {
+              "high": 20000,
+              "listen": 0,
+              "low": 20,
+              "mix": 1,
+              "mode": 2,
+              "noiseFloor": -55,
+              "strength": 0.9
+            }
+          },
+          {
+            "name": "Center focus",
+            "values": {
+              "high": 10000,
+              "listen": 0,
+              "low": 150,
+              "mix": 1,
+              "mode": 3,
+              "noiseFloor": -55,
+              "strength": 1
+            }
+          },
+          {
+            "name": "Stereo ambience",
+            "values": {
+              "high": 20000,
+              "listen": 0,
+              "low": 20,
+              "mix": 1,
+              "mode": 4,
+              "noiseFloor": -55,
+              "strength": 1
+            }
+          }
+        ],
+        "id": "sourceIsolator",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Source isolator",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Noise cleanup",
+              "Harmonic",
+              "Percussive",
+              "Stereo center",
+              "Stereo sides"
+            ],
+            "defaultValue": 0,
+            "id": "mode",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 4,
+            "minimum": 0,
+            "name": "Focus",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.75,
+            "id": "strength",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Strength",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -55,
+            "id": "noiseFloor",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": -20,
+            "minimum": -90,
+            "name": "Noise floor",
+            "unit": "dBFS"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 20,
+            "id": "low",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 12000,
+            "minimum": 20,
+            "name": "Lower boundary",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 20000,
+            "id": "high",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 20000,
+            "minimum": 200,
+            "name": "Upper boundary",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Retained",
+              "Removed signal"
+            ],
+            "defaultValue": 0,
+            "id": "listen",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Listen",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Deep 300",
+            "values": {
+              "coupling": 0.075,
+              "curve": 1.2,
+              "decay": 1.8,
+              "drive": 0,
+              "end": 560,
+              "excite": 0,
+              "exciteAt": 145,
+              "intensity": 0.7,
+              "mix": 0.4,
+              "output": 0,
+              "spread": 85,
+              "start": 95,
+              "variationSeed": 1234,
+              "width": 22,
+              "wild": 160,
+              "wildMode": 0
+            }
+          },
+          {
+            "name": "Glass threads",
+            "values": {
+              "coupling": 0.04,
+              "curve": 0.7,
+              "decay": 2.6,
+              "drive": 0,
+              "end": 1500,
+              "excite": 1,
+              "exciteAt": 145,
+              "intensity": 0.7,
+              "mix": 0.45,
+              "output": 0,
+              "spread": 85,
+              "start": 220,
+              "variationSeed": 1234,
+              "width": 22,
+              "wild": 160,
+              "wildMode": 0
+            }
+          },
+          {
+            "name": "Soft metal",
+            "values": {
+              "coupling": 0.2,
+              "curve": 1.2,
+              "decay": 3,
+              "drive": 3,
+              "end": 420,
+              "excite": 1,
+              "exciteAt": 145,
+              "intensity": 0.7,
+              "mix": 0.3,
+              "output": 0,
+              "spread": 85,
+              "start": 70,
+              "variationSeed": 1234,
+              "width": 36,
+              "wild": 160,
+              "wildMode": 3
+            }
+          },
+          {
+            "name": "Absorbing cloud",
+            "values": {
+              "coupling": 0.1,
+              "curve": 1.2,
+              "decay": 4.5,
+              "drive": 0,
+              "end": 750,
+              "excite": 2,
+              "exciteAt": 145,
+              "intensity": 0.9,
+              "mix": 0.55,
+              "output": 0,
+              "spread": 85,
+              "start": 80,
+              "variationSeed": 1234,
+              "width": 55,
+              "wild": 160,
+              "wildMode": 2
+            }
+          },
+          {
+            "name": "Phase fold",
+            "values": {
+              "coupling": 0.075,
+              "curve": 1.2,
+              "decay": 1.2,
+              "drive": 0,
+              "end": 560,
+              "excite": 0,
+              "exciteAt": 160,
+              "intensity": 1,
+              "mix": 0.45,
+              "output": 0,
+              "spread": 85,
+              "start": 95,
+              "variationSeed": 1234,
+              "width": 45,
+              "wild": 160,
+              "wildMode": 1
+            }
+          }
+        ],
+        "id": "soundPutty",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Sound Putty · Deep 300",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 95,
+            "id": "start",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 800,
+            "minimum": 45,
+            "name": "Start frequency",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 560,
+            "id": "end",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 1600,
+            "minimum": 45,
+            "name": "End frequency",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1.2,
+            "id": "curve",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 4,
+            "minimum": 0.2,
+            "name": "Interpolation",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 160,
+            "id": "wild",
+            "integer": true,
+            "logarithmic": false,
+            "maximum": 299,
+            "minimum": 0,
+            "name": "Wildcard lane",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 22,
+            "id": "width",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 90,
+            "minimum": 1,
+            "name": "Wildcard width",
+            "unit": "lanes"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.7,
+            "id": "intensity",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wildcard intensity",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Detune",
+              "Invert phase",
+              "Absorb energy",
+              "Scatter"
+            ],
+            "defaultValue": 0,
+            "id": "wildMode",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 3,
+            "minimum": 0,
+            "name": "Wildcard behavior",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Pluck",
+              "Strike",
+              "Blow"
+            ],
+            "defaultValue": 0,
+            "id": "excite",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 2,
+            "minimum": 0,
+            "name": "Excitation",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 145,
+            "id": "exciteAt",
+            "integer": true,
+            "logarithmic": false,
+            "maximum": 299,
+            "minimum": 0,
+            "name": "Excitation lane",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 85,
+            "id": "spread",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 150,
+            "minimum": 1,
+            "name": "Excitation spread",
+            "unit": "lanes"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.075,
+            "id": "coupling",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0.3,
+            "minimum": 0,
+            "name": "Cross-lane coupling",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1.8,
+            "id": "decay",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 5,
+            "minimum": 0.1,
+            "name": "Decay time",
+            "unit": "s"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "drive",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 24,
+            "minimum": -12,
+            "name": "Input drive",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.4,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Wet mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "output",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -24,
+            "name": "Wet output",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1234,
+            "id": "variationSeed",
+            "integer": true,
+            "logarithmic": false,
+            "maximum": 16777215,
+            "minimum": 0,
+            "name": "Variation seed",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Gentle vocal cleanup",
+            "values": {
+              "attack": 1,
+              "hold": 80,
+              "hysteresis": 4,
+              "range": 18,
+              "ratio": 2,
+              "release": 220,
+              "threshold": -40
+            }
+          },
+          {
+            "name": "Tight drums",
+            "values": {
+              "attack": 1,
+              "hold": 25,
+              "hysteresis": 4,
+              "range": 60,
+              "ratio": 20,
+              "release": 80,
+              "threshold": -30
+            }
+          }
+        ],
+        "id": "gate",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Gate / Expander",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -40,
+            "id": "threshold",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0,
+            "minimum": -90,
+            "name": "Threshold",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 4,
+            "id": "ratio",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 20,
+            "minimum": 1,
+            "name": "Expansion ratio",
+            "unit": ":1"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 60,
+            "id": "range",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 96,
+            "minimum": 0,
+            "name": "Maximum reduction",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "attack",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 100,
+            "minimum": 0.1,
+            "name": "Attack",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 50,
+            "id": "hold",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1000,
+            "minimum": 0,
+            "name": "Hold",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 150,
+            "id": "release",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 3000,
+            "minimum": 5,
+            "name": "Release",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 4,
+            "id": "hysteresis",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 24,
+            "minimum": 0,
+            "name": "Hysteresis",
+            "unit": "dB"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "Mono check",
+            "values": {
+              "delayL": 0,
+              "delayR": 0,
+              "gain": 0,
+              "mono": 1,
+              "polarityL": 0,
+              "polarityR": 0,
+              "swap": 0,
+              "width": 1
+            }
+          },
+          {
+            "name": "Invert both channels",
+            "values": {
+              "delayL": 0,
+              "delayR": 0,
+              "gain": 0,
+              "mono": 0,
+              "polarityL": 1,
+              "polarityR": 1,
+              "swap": 0,
+              "width": 1
+            }
+          },
+          {
+            "name": "Narrow stereo",
+            "values": {
+              "delayL": 0,
+              "delayR": 0,
+              "gain": 0,
+              "mono": 0,
+              "polarityL": 0,
+              "polarityR": 0,
+              "swap": 0,
+              "width": 0.5
+            }
+          }
+        ],
+        "id": "utility",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Utility / Alignment",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "gain",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 24,
+            "minimum": -24,
+            "name": "Gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Normal",
+              "Invert"
+            ],
+            "defaultValue": 0,
+            "id": "polarityL",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Left polarity",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Normal",
+              "Invert"
+            ],
+            "defaultValue": 0,
+            "id": "polarityR",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Right polarity",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Normal",
+              "Swap L/R"
+            ],
+            "defaultValue": 0,
+            "id": "swap",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Channels",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Off",
+              "On"
+            ],
+            "defaultValue": 0,
+            "id": "mono",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Mono",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "width",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 2,
+            "minimum": 0,
+            "name": "Stereo width",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "delayL",
+            "integer": true,
+            "logarithmic": false,
+            "maximum": 4800,
+            "minimum": 0,
+            "name": "Left delay",
+            "unit": "samples"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "delayR",
+            "integer": true,
+            "logarithmic": false,
+            "maximum": 4800,
+            "minimum": 0,
+            "name": "Right delay",
+            "unit": "samples"
+          }
+        ]
+      },
+      {
+        "factoryPresets": [
+          {
+            "name": "American glass · black-panel clean",
+            "values": {
+              "amp": 1,
+              "ampDrive": 3,
+              "bass": 1,
+              "cabinet": 1,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -1,
+              "mic": 0.35,
+              "mid": -2,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 0,
+              "pedalDrive": 12,
+              "pedalLevel": 0,
+              "pedalTone": 4500,
+              "presence": 1,
+              "reverbDecay": 1.4,
+              "reverbMix": 0.12,
+              "sag": 0.2,
+              "treble": 2
+            }
+          },
+          {
+            "name": "British jangle · top-boost chime",
+            "values": {
+              "amp": 2,
+              "ampDrive": 12,
+              "bass": -2,
+              "cabinet": 2,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -5,
+              "mic": 0.55,
+              "mid": 1,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 0,
+              "pedalDrive": 12,
+              "pedalLevel": 0,
+              "pedalTone": 4500,
+              "presence": 0,
+              "reverbDecay": 1.4,
+              "reverbMix": 0.1,
+              "sag": 0.2,
+              "treble": 2
+            }
+          },
+          {
+            "name": "British 800 · classic crunch",
+            "values": {
+              "amp": 3,
+              "ampDrive": 17,
+              "bass": 1,
+              "cabinet": 3,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -7,
+              "mic": 0.35,
+              "mid": 3,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 0,
+              "pedalDrive": 12,
+              "pedalLevel": 0,
+              "pedalTone": 4500,
+              "presence": 0,
+              "reverbDecay": 1.4,
+              "reverbMix": 0.06,
+              "sag": 0.2,
+              "treble": -1
+            }
+          },
+          {
+            "name": "Green blues · mid-boost drive",
+            "values": {
+              "amp": 1,
+              "ampDrive": 7,
+              "bass": 0,
+              "cabinet": 1,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -5,
+              "mic": 0.35,
+              "mid": 1,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 1,
+              "pedalDrive": 8,
+              "pedalLevel": -3,
+              "pedalTone": 4800,
+              "presence": 0,
+              "reverbDecay": 1.4,
+              "reverbMix": 0.1,
+              "sag": 0.2,
+              "treble": 0
+            }
+          },
+          {
+            "name": "Triangle wall · sustaining fuzz",
+            "values": {
+              "amp": 1,
+              "ampDrive": 4,
+              "bass": 0,
+              "cabinet": 3,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -7,
+              "mic": 0.35,
+              "mid": -4,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 3,
+              "pedalDrive": 22,
+              "pedalLevel": -8,
+              "pedalTone": 3500,
+              "presence": 0,
+              "reverbDecay": 1.4,
+              "reverbMix": 0.06,
+              "sag": 0.2,
+              "treble": 0
+            }
+          },
+          {
+            "name": "Modern tight · high-gain rhythm",
+            "values": {
+              "amp": 4,
+              "ampDrive": 24,
+              "bass": 2,
+              "cabinet": 4,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -55,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -9,
+              "mic": 0.5,
+              "mid": -2,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 1,
+              "pedalDrive": 0,
+              "pedalLevel": -2,
+              "pedalTone": 4500,
+              "presence": 1,
+              "reverbDecay": 1.4,
+              "reverbMix": 0,
+              "sag": 0.08,
+              "treble": 1
+            }
+          },
+          {
+            "name": "Wide clean · eighties chorus",
+            "values": {
+              "amp": 1,
+              "ampDrive": 2,
+              "bass": 0,
+              "cabinet": 1,
+              "delayFeedback": 0.3,
+              "delayMix": 0.13,
+              "delayTime": 310,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -3,
+              "mic": 0.35,
+              "mid": 0,
+              "mix": 1,
+              "modDepth": 0.6,
+              "modMix": 0.35,
+              "modRate": 0.7,
+              "modulation": 1,
+              "output": 0,
+              "pedal": 0,
+              "pedalDrive": 12,
+              "pedalLevel": 0,
+              "pedalTone": 4500,
+              "presence": 0,
+              "reverbDecay": 1.4,
+              "reverbMix": 0.16,
+              "sag": 0.2,
+              "treble": 0
+            }
+          },
+          {
+            "name": "Surf pulse · tremolo combo",
+            "values": {
+              "amp": 1,
+              "ampDrive": 4,
+              "bass": 0,
+              "cabinet": 1,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -3,
+              "mic": 0.35,
+              "mid": 0,
+              "mix": 1,
+              "modDepth": 0.65,
+              "modMix": 1,
+              "modRate": 4.2,
+              "modulation": 2,
+              "output": 0,
+              "pedal": 0,
+              "pedalDrive": 12,
+              "pedalLevel": 0,
+              "pedalTone": 4500,
+              "presence": 0,
+              "reverbDecay": 2.4,
+              "reverbMix": 0.22,
+              "sag": 0.2,
+              "treble": 0
+            }
+          },
+          {
+            "name": "Dotted-eighth · ambient chime",
+            "values": {
+              "amp": 2,
+              "ampDrive": 6,
+              "bass": 0,
+              "cabinet": 2,
+              "delayFeedback": 0.52,
+              "delayMix": 0.32,
+              "delayTime": 375,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": -6,
+              "mic": 0.35,
+              "mid": 0,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 0,
+              "pedalDrive": 12,
+              "pedalLevel": 0,
+              "pedalTone": 4500,
+              "presence": 0,
+              "reverbDecay": 3.2,
+              "reverbMix": 0.24,
+              "sag": 0.2,
+              "treble": 0
+            }
+          },
+          {
+            "name": "Pedalboard only · no amp or cab",
+            "values": {
+              "amp": 0,
+              "ampDrive": 9,
+              "bass": 0,
+              "cabinet": 0,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -75,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": 0,
+              "mic": 0.35,
+              "mid": 0,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 1,
+              "pedalDrive": 6,
+              "pedalLevel": -3,
+              "pedalTone": 4500,
+              "presence": 0,
+              "reverbDecay": 1.4,
+              "reverbMix": 0,
+              "sag": 0.2,
+              "treble": 0
+            }
+          },
+          {
+            "name": "Empty rig · build from direct",
+            "values": {
+              "amp": 0,
+              "ampDrive": 9,
+              "bass": 0,
+              "cabinet": 0,
+              "delayFeedback": 0.3,
+              "delayMix": 0,
+              "delayTime": 380,
+              "delayTone": 4500,
+              "gate": -90,
+              "highCut": 8000,
+              "input": 0,
+              "lowCut": 60,
+              "master": 0,
+              "mic": 0.35,
+              "mid": 0,
+              "mix": 1,
+              "modDepth": 0.35,
+              "modMix": 0.25,
+              "modRate": 0.9,
+              "modulation": 0,
+              "output": 0,
+              "pedal": 0,
+              "pedalDrive": 12,
+              "pedalLevel": 0,
+              "pedalTone": 4500,
+              "presence": 0,
+              "reverbDecay": 1.4,
+              "reverbMix": 0,
+              "sag": 0.2,
+              "treble": 0
+            }
+          }
+        ],
+        "id": "guitarRig",
+        "modes": [
+          "realtime",
+          "applyToAudio"
+        ],
+        "name": "Guitar rig",
+        "parameters": [
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "input",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 18,
+            "minimum": -24,
+            "name": "Input",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -75,
+            "id": "gate",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": -20,
+            "minimum": -90,
+            "name": "Noise gate",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Bypass",
+              "Green overdrive",
+              "Hard distortion",
+              "Triangle fuzz"
+            ],
+            "defaultValue": 0,
+            "id": "pedal",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 3,
+            "minimum": 0,
+            "name": "Drive pedal",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 12,
+            "id": "pedalDrive",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 30,
+            "minimum": 0,
+            "name": "Pedal drive",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 4500,
+            "id": "pedalTone",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 12000,
+            "minimum": 400,
+            "name": "Pedal tone",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "pedalLevel",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -18,
+            "name": "Pedal level",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Direct / bypass",
+              "American clean",
+              "British chime",
+              "British crunch",
+              "Modern high gain"
+            ],
+            "defaultValue": 1,
+            "id": "amp",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 4,
+            "minimum": 0,
+            "name": "Amplifier",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 9,
+            "id": "ampDrive",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 36,
+            "minimum": 0,
+            "name": "Amp gain",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "bass",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -12,
+            "name": "Bass",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "mid",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -12,
+            "name": "Mid",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "treble",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -12,
+            "name": "Treble",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "presence",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -12,
+            "name": "Presence",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.2,
+            "id": "sag",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Power sag",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": -3,
+            "id": "master",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 6,
+            "minimum": -24,
+            "name": "Amp master",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Direct / bypass",
+              "Open 1×12",
+              "Chime 2×12",
+              "Vintage 4×12",
+              "Modern 4×12"
+            ],
+            "defaultValue": 1,
+            "id": "cabinet",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 4,
+            "minimum": 0,
+            "name": "Cabinet",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.35,
+            "id": "mic",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Mic position",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 60,
+            "id": "lowCut",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 200,
+            "minimum": 20,
+            "name": "Cab low-cut",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 8000,
+            "id": "highCut",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 16000,
+            "minimum": 2000,
+            "name": "Cab high-cut",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "choices": [
+              "Off",
+              "Stereo chorus",
+              "Tremolo"
+            ],
+            "defaultValue": 0,
+            "id": "modulation",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 2,
+            "minimum": 0,
+            "name": "Modulation",
+            "unit": ""
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.9,
+            "id": "modRate",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 8,
+            "minimum": 0.05,
+            "name": "Mod rate",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.35,
+            "id": "modDepth",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Mod depth",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.25,
+            "id": "modMix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Mod mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 4500,
+            "id": "delayTone",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 12000,
+            "minimum": 800,
+            "name": "Delay tone",
+            "unit": "Hz"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 380,
+            "id": "delayTime",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 1200,
+            "minimum": 20,
+            "name": "Delay time",
+            "unit": "ms"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.3,
+            "id": "delayFeedback",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0.7,
+            "minimum": 0,
+            "name": "Delay feedback",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "delayMix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0.6,
+            "minimum": 0,
+            "name": "Delay mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1.4,
+            "id": "reverbDecay",
+            "integer": false,
+            "logarithmic": true,
+            "maximum": 5,
+            "minimum": 0.2,
+            "name": "Room decay",
+            "unit": "s"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0.08,
+            "id": "reverbMix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 0.5,
+            "minimum": 0,
+            "name": "Room mix",
+            "unit": "%"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 0,
+            "id": "output",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 12,
+            "minimum": -24,
+            "name": "Rig output",
+            "unit": "dB"
+          },
+          {
+            "automationUnit": "normalized",
+            "defaultValue": 1,
+            "id": "mix",
+            "integer": false,
+            "logarithmic": false,
+            "maximum": 1,
+            "minimum": 0,
+            "name": "Dry / rig mix",
+            "unit": "%"
+          }
+        ]
+      }
+    ],
+    "features": [],
+    "instruments": [
+      {
+        "characterLabel": "Character",
+        "id": "synthesizer",
+        "name": "Analog synthesizer"
+      },
+      {
+        "characterLabel": "Hammer hardness",
+        "id": "studioPiano",
+        "name": "Studio piano"
+      },
+      {
+        "characterLabel": "Tine bite",
+        "id": "tinePiano",
+        "name": "Tine electric piano"
+      },
+      {
+        "characterLabel": "Pick position",
+        "id": "nylonStrings",
+        "name": "Nylon plucked strings"
+      },
+      {
+        "characterLabel": "Mallet hardness",
+        "id": "marimba",
+        "name": "Concert marimba"
+      },
+      {
+        "characterLabel": "Bell color",
+        "id": "glassBells",
+        "name": "Glass bells"
+      },
+      {
+        "characterLabel": "Drawbar color",
+        "id": "tonewheelOrgan",
+        "name": "Tonewheel organ"
+      },
+      {
+        "characterLabel": "Ensemble spread",
+        "id": "stringEnsemble",
+        "name": "String ensemble"
+      },
+      {
+        "characterLabel": "Pickup position",
+        "id": "electricGuitar",
+        "name": "Electric guitar"
+      },
+      {
+        "characterLabel": "Pick hardness",
+        "id": "pickedBass",
+        "name": "Picked bass"
+      },
+      {
+        "characterLabel": "Vowel color",
+        "id": "vocalEnsemble",
+        "name": "Vocal ensemble"
+      }
+    ],
+    "maxFrameBytes": 8388608,
+    "maxTimelineFrame": 4147200000,
+    "maxUploadBytes": 2147483648,
+    "maxUploadChunkBytes": 262144,
+    "projectVersions": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "protocolVersions": [
+      2,
+      3
+    ],
+    "sampleRate": 48000,
+    "selectionEffects": [
+      {
+        "id": "normalize",
+        "name": "Normalize",
+        "realtime": false
+      },
+      {
+        "id": "gain",
+        "name": "Gain",
+        "realtime": true
+      },
+      {
+        "id": "fadeIn",
+        "name": "Fade in",
+        "realtime": false
+      },
+      {
+        "id": "fadeOut",
+        "name": "Fade out",
+        "realtime": false
+      },
+      {
+        "id": "reverse",
+        "name": "Reverse",
+        "realtime": false
+      },
+      {
+        "id": "echo",
+        "name": "Echo",
+        "realtime": true
+      },
+      {
+        "id": "room",
+        "name": "Room reverb",
+        "realtime": true
+      },
+      {
+        "id": "warmth",
+        "name": "Warmth",
+        "realtime": true
+      },
+      {
+        "id": "lowPass",
+        "name": "Low-pass filter",
+        "realtime": true
+      },
+      {
+        "id": "highPass",
+        "name": "High-pass filter",
+        "realtime": true
+      },
+      {
+        "id": "compressor",
+        "name": "Compressor",
+        "realtime": true
+      },
+      {
+        "id": "equalizer",
+        "name": "Channel EQ",
+        "realtime": true
+      },
+      {
+        "id": "chorus",
+        "name": "Chorus",
+        "realtime": true
+      },
+      {
+        "id": "dither",
+        "name": "Dither",
+        "realtime": true
+      },
+      {
+        "id": "pitchCorrection",
+        "name": "Pitch correction",
+        "realtime": true
+      },
+      {
+        "id": "limiter",
+        "name": "Master limiter",
+        "realtime": true
+      },
+      {
+        "id": "resonance",
+        "name": "Resonance control",
+        "realtime": true
+      },
+      {
+        "id": "vocalEnhancer",
+        "name": "Vocal enhancer",
+        "realtime": true
+      },
+      {
+        "id": "sourceIsolator",
+        "name": "Source isolator",
+        "realtime": true
+      },
+      {
+        "id": "soundPutty",
+        "name": "Sound Putty · Deep 300",
+        "realtime": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate / Expander",
+        "realtime": true
+      },
+      {
+        "id": "utility",
+        "name": "Utility / Alignment",
+        "realtime": true
+      },
+      {
+        "id": "guitarRig",
+        "name": "Guitar rig",
+        "realtime": true
+      }
+    ],
+    "snapshotPagination": false
+  },
+  "kind": "capabilities",
+  "version": 3
+}

@@ -1,0 +1,17 @@
+{
+ "repo": "sgossner/VCSL",
+ "tree": "vcsl-tree.json",
+ "robins": 1,
+ "maxSeconds": 6,
+ "release": 0.5,
+ "sets": [
+  {
+   "prefix": "Idiophones/Struck Idiophones/Vibraphone/Hard Mallets/",
+   "pattern": "Vibes_hard_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>v[23])_rr(?P<rr>\\d)",
+   "layers": [
+    "v2",
+    "v3"
+   ]
+  }
+ ]
+}

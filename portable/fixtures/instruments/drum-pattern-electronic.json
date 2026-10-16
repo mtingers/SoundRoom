@@ -1,0 +1,207 @@
+{
+  "bars" : 1,
+  "bpm" : 285,
+  "humanize" : 0.009,
+  "kit" : "electronic",
+  "lanes" : {
+    "snare" : {
+      "damping" : 0.73,
+      "gain" : 0.74,
+      "kit" : "electronic",
+      "muted" : false,
+      "pan" : 0.1,
+      "tuning" : -2.3
+    }
+  },
+  "masterGain" : 0.8,
+  "name" : "electronic",
+  "steps" : [
+    {
+      "index" : 0,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.85,
+      "voice" : "kick"
+    },
+    {
+      "index" : 6,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.85,
+      "voice" : "kick"
+    },
+    {
+      "index" : 10,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.85,
+      "voice" : "kick"
+    },
+    {
+      "articulation" : "rimshot",
+      "index" : 4,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.85,
+      "voice" : "snare"
+    },
+    {
+      "index" : 12,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.85,
+      "voice" : "snare"
+    },
+    {
+      "index" : 7,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.3,
+      "voice" : "snare"
+    },
+    {
+      "index" : 15,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.3,
+      "voice" : "snare"
+    },
+    {
+      "index" : 0,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 1,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 2,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 3,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 4,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 5,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 6,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 7,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 8,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 9,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 10,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 11,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 12,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 13,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 14,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 15,
+      "pan" : 0,
+      "probability" : 1,
+      "velocity" : 0.48,
+      "voice" : "closedHat"
+    },
+    {
+      "index" : 0,
+      "pan" : 0.42,
+      "probability" : 0.72,
+      "velocity" : 0.63,
+      "voice" : "ride"
+    },
+    {
+      "index" : 3,
+      "pan" : -0.4,
+      "probability" : 0.83,
+      "velocity" : 0.53,
+      "voice" : "openHat"
+    },
+    {
+      "index" : 0,
+      "pan" : 0,
+      "probability" : 0.65,
+      "velocity" : 0.37,
+      "voice" : "crash"
+    }
+  ],
+  "stepsPerBeat" : 4,
+  "swing" : 0.32,
+  "variationCycles" : 2,
+  "velocityHumanize" : 0.12
+}

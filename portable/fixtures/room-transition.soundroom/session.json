@@ -1,0 +1,162 @@
+{
+  "masterTrack" : {
+    "armed" : false,
+    "clips" : [
+
+    ],
+    "color" : 0,
+    "gain" : 0.91,
+    "id" : "E3E58100-5125-4E6F-B985-10AA11000001",
+    "inputChannel" : 0,
+    "mixAutomation" : {
+
+    },
+    "muted" : false,
+    "name" : "Master",
+    "pan" : 0,
+    "realtimeEffects" : [
+      {
+        "amount" : 0.5,
+        "automation" : [
+
+        ],
+        "bakedRanges" : [
+
+        ],
+        "enabled" : true,
+        "id" : "66666666-6666-4666-8666-666666666666",
+        "kind" : "gain",
+        "parameterAutomation" : {
+
+        },
+        "parameters" : {
+          "gain" : -0.8
+        },
+        "pitchEdits" : [
+
+        ],
+        "pitchEditsOnly" : false,
+        "selectedAutomationParameter" : "gain"
+      }
+    ],
+    "recordingTakes" : [
+
+    ],
+    "solo" : false,
+    "stereoInput" : false
+  },
+  "name" : "room-transition",
+  "timing" : {
+    "beatUnit" : 8,
+    "beatsPerBar" : 7,
+    "tempo" : 123
+  },
+  "tracks" : [
+    {
+      "armed" : false,
+      "clips" : [
+        {
+          "assetID" : "11111111-1111-4111-8111-111111111111",
+          "edgeFadeFrames" : 240,
+          "id" : "33333333-3333-4333-8333-333333333333",
+          "length" : 14000,
+          "name" : "Source",
+          "offset" : 0,
+          "start" : 0
+        }
+      ],
+      "color" : 2,
+      "gain" : 0.82,
+      "id" : "22222222-2222-4222-8222-222222222222",
+      "inputChannel" : 0,
+      "mixAutomation" : {
+        "pan" : [
+          {
+            "curve" : "easeOut",
+            "curveEnd" : 1,
+            "curveStart" : 0,
+            "frame" : 1000,
+            "value" : 0.4
+          },
+          {
+            "curve" : "linear",
+            "curveEnd" : 1,
+            "curveStart" : 0,
+            "frame" : 9000,
+            "value" : 0.71
+          }
+        ],
+        "volume" : [
+          {
+            "curve" : "smooth",
+            "curveEnd" : 1,
+            "curveStart" : 0,
+            "frame" : 0,
+            "value" : 0.57
+          },
+          {
+            "curve" : "linear",
+            "curveEnd" : 1,
+            "curveStart" : 0,
+            "frame" : 13000,
+            "value" : 0.31
+          }
+        ]
+      },
+      "muted" : false,
+      "name" : "Parity",
+      "pan" : 0.21,
+      "realtimeEffects" : [
+        {
+          "amount" : 0.5,
+          "automation" : [
+
+          ],
+          "bakedRanges" : [
+
+          ],
+          "enabled" : true,
+          "id" : "55555555-5555-4555-8555-555555555555",
+          "kind" : "room",
+          "parameterAutomation" : {
+            "character" : [
+              {
+                "curve" : "hold",
+                "curveEnd" : 1,
+                "curveStart" : 0,
+                "frame" : 0,
+                "value" : 0
+              },
+              {
+                "curve" : "linear",
+                "curveEnd" : 1,
+                "curveStart" : 0,
+                "frame" : 7000,
+                "value" : 1
+              }
+            ]
+          },
+          "parameters" : {
+            "character" : 0,
+            "damping" : 6100,
+            "decay" : 0.31,
+            "mix" : 0.43,
+            "predelay" : 5.1
+          },
+          "pitchEdits" : [
+
+          ],
+          "pitchEditsOnly" : false,
+          "selectedAutomationParameter" : "decay"
+        }
+      ],
+      "recordingTakes" : [
+
+      ],
+      "solo" : false,
+      "stereoInput" : false,
+      "volumeAutomationScale" : "decibels"
+    }
+  ],
+  "version" : 9
+}

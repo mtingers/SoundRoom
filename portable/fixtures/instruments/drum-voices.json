@@ -1,0 +1,1082 @@
+[
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "acoustic",
+    "robin" : 0,
+    "velocity" : 0.27,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.27,
+    "kit" : "acoustic",
+    "robin" : 1,
+    "velocity" : 0.61,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "acoustic",
+    "robin" : 2,
+    "velocity" : 0.93,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "acoustic",
+    "robin" : 3,
+    "velocity" : 0.27,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "acoustic",
+    "robin" : 4,
+    "velocity" : 0.61,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.75,
+    "kit" : "acoustic",
+    "robin" : 5,
+    "velocity" : 0.93,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "acoustic",
+    "robin" : 6,
+    "velocity" : 0.27,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.15,
+    "kit" : "acoustic",
+    "robin" : 7,
+    "velocity" : 0.61,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "acoustic",
+    "robin" : 8,
+    "velocity" : 0.93,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "electronic",
+    "robin" : 3,
+    "velocity" : 0.61,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "sideStick",
+    "damping" : 0.39,
+    "kit" : "electronic",
+    "robin" : 4,
+    "velocity" : 0.93,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "electronic",
+    "robin" : 5,
+    "velocity" : 0.27,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "electronic",
+    "robin" : 6,
+    "velocity" : 0.61,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.75,
+    "kit" : "electronic",
+    "robin" : 7,
+    "velocity" : 0.93,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "electronic",
+    "robin" : 8,
+    "velocity" : 0.27,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "electronic",
+    "robin" : 9,
+    "velocity" : 0.61,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "electronic",
+    "robin" : 10,
+    "velocity" : 0.93,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.39,
+    "kit" : "electronic",
+    "robin" : 11,
+    "velocity" : 0.27,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "jazzMaple",
+    "robin" : 6,
+    "velocity" : 0.93,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "brush",
+    "damping" : 0.51,
+    "kit" : "jazzMaple",
+    "robin" : 7,
+    "velocity" : 0.27,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "jazzMaple",
+    "robin" : 8,
+    "velocity" : 0.61,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "jazzMaple",
+    "robin" : 9,
+    "velocity" : 0.93,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "jazzMaple",
+    "robin" : 10,
+    "velocity" : 0.27,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.15,
+    "kit" : "jazzMaple",
+    "robin" : 11,
+    "velocity" : 0.61,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "jazzMaple",
+    "robin" : 12,
+    "velocity" : 0.93,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.39,
+    "kit" : "jazzMaple",
+    "robin" : 13,
+    "velocity" : 0.27,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "jazzMaple",
+    "robin" : 14,
+    "velocity" : 0.61,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "rockBirch",
+    "robin" : 9,
+    "velocity" : 0.27,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "rockBirch",
+    "robin" : 10,
+    "velocity" : 0.61,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "rockBirch",
+    "robin" : 11,
+    "velocity" : 0.93,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "rockBirch",
+    "robin" : 12,
+    "velocity" : 0.27,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.15,
+    "kit" : "rockBirch",
+    "robin" : 13,
+    "velocity" : 0.61,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "rockBirch",
+    "robin" : 14,
+    "velocity" : 0.93,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "rockBirch",
+    "robin" : 15,
+    "velocity" : 0.27,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "rockBirch",
+    "robin" : 16,
+    "velocity" : 0.61,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.63,
+    "kit" : "rockBirch",
+    "robin" : 17,
+    "velocity" : 0.93,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "vintageDry",
+    "robin" : 12,
+    "velocity" : 0.61,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.75,
+    "kit" : "vintageDry",
+    "robin" : 13,
+    "velocity" : 0.93,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "vintageDry",
+    "robin" : 14,
+    "velocity" : 0.27,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "vintageDry",
+    "robin" : 15,
+    "velocity" : 0.61,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "vintageDry",
+    "robin" : 16,
+    "velocity" : 0.93,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.39,
+    "kit" : "vintageDry",
+    "robin" : 17,
+    "velocity" : 0.27,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "vintageDry",
+    "robin" : 18,
+    "velocity" : 0.61,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.63,
+    "kit" : "vintageDry",
+    "robin" : 19,
+    "velocity" : 0.93,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "vintageDry",
+    "robin" : 20,
+    "velocity" : 0.27,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "brushed",
+    "robin" : 15,
+    "velocity" : 0.93,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "sideStick",
+    "damping" : 0.87,
+    "kit" : "brushed",
+    "robin" : 16,
+    "velocity" : 0.27,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "brushed",
+    "robin" : 17,
+    "velocity" : 0.61,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "brushed",
+    "robin" : 18,
+    "velocity" : 0.93,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.39,
+    "kit" : "brushed",
+    "robin" : 19,
+    "velocity" : 0.27,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "brushed",
+    "robin" : 20,
+    "velocity" : 0.61,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "brushed",
+    "robin" : 21,
+    "velocity" : 0.93,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "brushed",
+    "robin" : 22,
+    "velocity" : 0.27,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.87,
+    "kit" : "brushed",
+    "robin" : 23,
+    "velocity" : 0.61,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "orchestral",
+    "robin" : 18,
+    "velocity" : 0.27,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "brush",
+    "damping" : 0.15,
+    "kit" : "orchestral",
+    "robin" : 19,
+    "velocity" : 0.61,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "orchestral",
+    "robin" : 20,
+    "velocity" : 0.93,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "orchestral",
+    "robin" : 21,
+    "velocity" : 0.27,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "orchestral",
+    "robin" : 22,
+    "velocity" : 0.61,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.63,
+    "kit" : "orchestral",
+    "robin" : 23,
+    "velocity" : 0.93,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "orchestral",
+    "robin" : 24,
+    "velocity" : 0.27,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.87,
+    "kit" : "orchestral",
+    "robin" : 25,
+    "velocity" : 0.61,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "orchestral",
+    "robin" : 26,
+    "velocity" : 0.93,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "funkTight",
+    "robin" : 21,
+    "velocity" : 0.61,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "funkTight",
+    "robin" : 22,
+    "velocity" : 0.93,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "funkTight",
+    "robin" : 23,
+    "velocity" : 0.27,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "funkTight",
+    "robin" : 24,
+    "velocity" : 0.61,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.63,
+    "kit" : "funkTight",
+    "robin" : 25,
+    "velocity" : 0.93,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "funkTight",
+    "robin" : 26,
+    "velocity" : 0.27,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "funkTight",
+    "robin" : 27,
+    "velocity" : 0.61,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "funkTight",
+    "robin" : 28,
+    "velocity" : 0.93,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.27,
+    "kit" : "funkTight",
+    "robin" : 29,
+    "velocity" : 0.27,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "vintageWarm",
+    "robin" : 24,
+    "velocity" : 0.93,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.39,
+    "kit" : "vintageWarm",
+    "robin" : 25,
+    "velocity" : 0.27,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "vintageWarm",
+    "robin" : 26,
+    "velocity" : 0.61,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "vintageWarm",
+    "robin" : 27,
+    "velocity" : 0.93,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "vintageWarm",
+    "robin" : 28,
+    "velocity" : 0.27,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.87,
+    "kit" : "vintageWarm",
+    "robin" : 29,
+    "velocity" : 0.61,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "vintageWarm",
+    "robin" : 30,
+    "velocity" : 0.93,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.27,
+    "kit" : "vintageWarm",
+    "robin" : 31,
+    "velocity" : 0.27,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "vintageWarm",
+    "robin" : 32,
+    "velocity" : 0.61,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "arenaRock",
+    "robin" : 27,
+    "velocity" : 0.27,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "sideStick",
+    "damping" : 0.51,
+    "kit" : "arenaRock",
+    "robin" : 28,
+    "velocity" : 0.61,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "arenaRock",
+    "robin" : 29,
+    "velocity" : 0.93,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "arenaRock",
+    "robin" : 30,
+    "velocity" : 0.27,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.87,
+    "kit" : "arenaRock",
+    "robin" : 31,
+    "velocity" : 0.61,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "arenaRock",
+    "robin" : 32,
+    "velocity" : 0.93,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "arenaRock",
+    "robin" : 33,
+    "velocity" : 0.27,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "arenaRock",
+    "robin" : 34,
+    "velocity" : 0.61,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.51,
+    "kit" : "arenaRock",
+    "robin" : 35,
+    "velocity" : 0.93,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "machine808",
+    "robin" : 30,
+    "velocity" : 0.61,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "brush",
+    "damping" : 0.63,
+    "kit" : "machine808",
+    "robin" : 31,
+    "velocity" : 0.93,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "machine808",
+    "robin" : 32,
+    "velocity" : 0.27,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "machine808",
+    "robin" : 33,
+    "velocity" : 0.61,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "machine808",
+    "robin" : 34,
+    "velocity" : 0.93,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.27,
+    "kit" : "machine808",
+    "robin" : 35,
+    "velocity" : 0.27,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "machine808",
+    "robin" : 36,
+    "velocity" : 0.61,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.51,
+    "kit" : "machine808",
+    "robin" : 37,
+    "velocity" : 0.93,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "machine808",
+    "robin" : 38,
+    "velocity" : 0.27,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "machine909",
+    "robin" : 33,
+    "velocity" : 0.93,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "machine909",
+    "robin" : 34,
+    "velocity" : 0.27,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "machine909",
+    "robin" : 35,
+    "velocity" : 0.61,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "machine909",
+    "robin" : 36,
+    "velocity" : 0.93,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.27,
+    "kit" : "machine909",
+    "robin" : 37,
+    "velocity" : 0.27,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "machine909",
+    "robin" : 38,
+    "velocity" : 0.61,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "machine909",
+    "robin" : 39,
+    "velocity" : 0.93,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "machine909",
+    "robin" : 40,
+    "velocity" : 0.27,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.75,
+    "kit" : "machine909",
+    "robin" : 41,
+    "velocity" : 0.61,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "lofiDusty",
+    "robin" : 36,
+    "velocity" : 0.27,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.87,
+    "kit" : "lofiDusty",
+    "robin" : 37,
+    "velocity" : 0.61,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "lofiDusty",
+    "robin" : 38,
+    "velocity" : 0.93,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "lofiDusty",
+    "robin" : 39,
+    "velocity" : 0.27,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "lofiDusty",
+    "robin" : 40,
+    "velocity" : 0.61,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.51,
+    "kit" : "lofiDusty",
+    "robin" : 41,
+    "velocity" : 0.93,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "lofiDusty",
+    "robin" : 42,
+    "velocity" : 0.27,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.75,
+    "kit" : "lofiDusty",
+    "robin" : 43,
+    "velocity" : 0.61,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "lofiDusty",
+    "robin" : 44,
+    "velocity" : 0.93,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "trapModern",
+    "robin" : 39,
+    "velocity" : 0.61,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "sideStick",
+    "damping" : 0.15,
+    "kit" : "trapModern",
+    "robin" : 40,
+    "velocity" : 0.93,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "trapModern",
+    "robin" : 41,
+    "velocity" : 0.27,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "trapModern",
+    "robin" : 42,
+    "velocity" : 0.61,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.51,
+    "kit" : "trapModern",
+    "robin" : 43,
+    "velocity" : 0.93,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "trapModern",
+    "robin" : 44,
+    "velocity" : 0.27,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.75,
+    "kit" : "trapModern",
+    "robin" : 45,
+    "velocity" : 0.61,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "trapModern",
+    "robin" : 46,
+    "velocity" : 0.93,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.15,
+    "kit" : "trapModern",
+    "robin" : 47,
+    "velocity" : 0.27,
+    "voice" : "crash"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.15,
+    "kit" : "technoMinimal",
+    "robin" : 42,
+    "velocity" : 0.93,
+    "voice" : "kick"
+  },
+  {
+    "articulation" : "brush",
+    "damping" : 0.27,
+    "kit" : "technoMinimal",
+    "robin" : 43,
+    "velocity" : 0.27,
+    "voice" : "snare"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.39,
+    "kit" : "technoMinimal",
+    "robin" : 44,
+    "velocity" : 0.61,
+    "voice" : "closedHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.51,
+    "kit" : "technoMinimal",
+    "robin" : 45,
+    "velocity" : 0.93,
+    "voice" : "openHat"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.63,
+    "kit" : "technoMinimal",
+    "robin" : 46,
+    "velocity" : 0.27,
+    "voice" : "lowTom"
+  },
+  {
+    "articulation" : "rimshot",
+    "damping" : 0.75,
+    "kit" : "technoMinimal",
+    "robin" : 47,
+    "velocity" : 0.61,
+    "voice" : "highTom"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.87,
+    "kit" : "technoMinimal",
+    "robin" : 48,
+    "velocity" : 0.93,
+    "voice" : "clap"
+  },
+  {
+    "articulation" : "bell",
+    "damping" : 0.15,
+    "kit" : "technoMinimal",
+    "robin" : 49,
+    "velocity" : 0.27,
+    "voice" : "ride"
+  },
+  {
+    "articulation" : "center",
+    "damping" : 0.27,
+    "kit" : "technoMinimal",
+    "robin" : 50,
+    "velocity" : 0.61,
+    "voice" : "crash"
+  }
+]

@@ -1,0 +1,18 @@
+{
+ "repo": "sgossner/VCSL",
+ "tree": "vcsl-tree.json",
+ "robins": 1,
+ "maxSeconds": 9,
+ "release": 0.3,
+ "sets": [
+  {
+   "prefix": "Chordophones/Zithers/Upright Piano, Yamaha/Sustains/",
+   "pattern": "Upright1_Sus_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>vl[1-3])_rr(?P<rr>\\d)",
+   "layers": [
+    "vl1",
+    "vl2",
+    "vl3"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "presets": [
+    {
+      "id": "10000000-0000-0000-0000-000000000001",
+      "name": "Legacy gain fixture",
+      "kind": "gain",
+      "parameters": {},
+      "legacyAmount": 0.75
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000002",
+      "name": "Precision gain fixture",
+      "kind": "gain",
+      "parameters": { "gain": 6 }
+    }
+  ]
+}

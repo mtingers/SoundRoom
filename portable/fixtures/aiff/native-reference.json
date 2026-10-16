@@ -1,0 +1,236 @@
+[
+  {
+    "bits" : 16,
+    "channels" : 2,
+    "float" : false,
+    "little" : false,
+    "name" : "pcm16",
+    "nativeCreated" : true,
+    "nativeReadVerified" : true,
+    "sampleRate" : 48000,
+    "samples" : [
+      [
+        -1,
+        -0.75,
+        -0.125,
+        0,
+        0.125,
+        0.5,
+        0.998992919921875,
+        0.25
+      ],
+      [
+        0.5,
+        0.375,
+        0.0625,
+        0,
+        -0.0625,
+        -0.25,
+        -0.49951171875,
+        -0.125
+      ]
+    ]
+  },
+  {
+    "bits" : 24,
+    "channels" : 2,
+    "float" : false,
+    "little" : false,
+    "name" : "pcm24",
+    "nativeCreated" : true,
+    "nativeReadVerified" : true,
+    "sampleRate" : 44100,
+    "samples" : [
+      [
+        -1,
+        -0.75,
+        -0.125,
+        0,
+        0.125,
+        0.5,
+        0.99900007247924805,
+        0.25
+      ],
+      [
+        0.5,
+        0.375,
+        0.0625,
+        0,
+        -0.0625,
+        -0.25,
+        -0.49950003623962402,
+        -0.125
+      ]
+    ]
+  },
+  {
+    "bits" : 32,
+    "channels" : 4,
+    "float" : false,
+    "little" : false,
+    "name" : "pcm32",
+    "nativeCreated" : true,
+    "nativeReadVerified" : true,
+    "sampleRate" : 96000,
+    "samples" : [
+      [
+        -1,
+        -0.75,
+        -0.125,
+        0,
+        0.125,
+        0.5,
+        0.99900001287460327,
+        0.25
+      ],
+      [
+        0.5,
+        0.375,
+        0.0625,
+        0,
+        -0.0625,
+        -0.25,
+        -0.49950000643730164,
+        -0.125
+      ],
+      [
+        -1,
+        -0.75,
+        -0.125,
+        0,
+        0.125,
+        0.5,
+        0.99900001287460327,
+        0.25
+      ],
+      [
+        0.5,
+        0.375,
+        0.0625,
+        0,
+        -0.0625,
+        -0.25,
+        -0.49950000643730164,
+        -0.125
+      ]
+    ]
+  },
+  {
+    "bits" : 32,
+    "channels" : 2,
+    "float" : true,
+    "little" : false,
+    "name" : "float32",
+    "nativeCreated" : true,
+    "nativeReadVerified" : true,
+    "sampleRate" : 48000,
+    "samples" : [
+      [
+        -1,
+        -0.75,
+        -0.125,
+        0,
+        0.125,
+        0.5,
+        0.99900001287460327,
+        0.25
+      ],
+      [
+        0.5,
+        0.375,
+        0.0625,
+        -0,
+        -0.0625,
+        -0.25,
+        -0.49950000643730164,
+        -0.125
+      ]
+    ]
+  },
+  {
+    "bits" : 64,
+    "channels" : 2,
+    "float" : true,
+    "little" : false,
+    "name" : "float64",
+    "nativeCreated" : true,
+    "nativeReadVerified" : true,
+    "sampleRate" : 192000,
+    "samples" : [
+      [
+        -1,
+        -0.75,
+        -0.125,
+        0,
+        0.125,
+        0.5,
+        0.99900001287460327,
+        0.25
+      ],
+      [
+        0.5,
+        0.375,
+        0.0625,
+        -0,
+        -0.0625,
+        -0.25,
+        -0.49950000643730164,
+        -0.125
+      ]
+    ]
+  },
+  {
+    "bits" : 16,
+    "channels" : 2,
+    "float" : false,
+    "little" : true,
+    "name" : "little16",
+    "nativeCreated" : false,
+    "nativeReadVerified" : true,
+    "sampleRate" : 48000,
+    "samples" : [
+      [
+        -1,
+        -0.75,
+        -0.125,
+        0,
+        0.125,
+        0.5,
+        0.998992919921875,
+        0.25
+      ],
+      [
+        0.5,
+        0.375,
+        0.0625,
+        0,
+        -0.0625,
+        -0.25,
+        -0.49951171875,
+        -0.125
+      ]
+    ]
+  },
+  {
+    "bits" : 16,
+    "channels" : 1,
+    "float" : false,
+    "little" : false,
+    "name" : "fractional",
+    "nativeCreated" : false,
+    "nativeReadVerified" : true,
+    "sampleRate" : 22254.540000000001,
+    "samples" : [
+      [
+        -1,
+        -0.75,
+        -0.125,
+        0,
+        0.125,
+        0.5,
+        0.998992919921875,
+        0.25
+      ]
+    ]
+  }
+]

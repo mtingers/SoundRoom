@@ -1,0 +1,55 @@
+(async()=>{
+ const checks=[],failures=[],sleep=ms=>new Promise(r=>setTimeout(r,ms)),$=id=>document.getElementById(id),assert=(condition,message)=>{if(!condition)throw Error(message);checks.push(message);};
+ const wait=async(fn,message)=>{for(let i=0;i<200;i++){if(fn())return;await sleep(20);}throw Error(message+' · '+$('status').textContent+' · '+fixture.errors.join('; '));};
+ try {
+ await wait(()=>document.querySelector('#timeline canvas'),'Arrangement loaded');
+ $('connection').click();$('endpoint').value='wss://fixture.invalid:49154';$('pairing-code').value='a'.repeat(43);$('connect-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+ await wait(()=>!$('add-track').disabled,'Fixture authentication/snapshot failed');
+ assert($('session-title').textContent.includes('10,000 clips'),'Complete dense session installed through SDK');
+ await sleep(150);
+ assert($('track-controls').children.length<=10,'Mixer creates only visible track rows for 100-track project');
+ const canvas=document.querySelector('#timeline canvas');
+ const first=$('cursor').value;canvas.dispatchEvent(new WheelEvent('wheel',{deltaX:450,deltaY:0,bubbles:true,cancelable:true}));await sleep(80);
+ assert($('follow').getAttribute('aria-pressed')==='false','Horizontal scrolling suspends Follow');
+ assert($('cursor').value===first,'Scrolling leaves private cursor unchanged');
+ const positionBefore=$('scroll').value;$('zoom-in').click();await sleep(30);$('zoom-out').click();await sleep(30);
+ assert(Math.abs(Number($('scroll').value)-Number(positionBefore))<2,'Clickable zoom buttons preserve anchored viewport');
+ canvas.dispatchEvent(new WheelEvent('wheel',{deltaY:5000,bubbles:true,cancelable:true}));await sleep(100);
+ assert($('track-controls').children.length<=10,'Vertical scrolling retains bounded mixer virtualization');
+ assert(![...$('track-controls').querySelectorAll('.track-name')].some(e=>e.textContent==='Track 1'),'Vertical scroll shows later rows');
+ canvas.dispatchEvent(new WheelEvent('wheel',{deltaY:-5000,bubbles:true,cancelable:true}));await sleep(100);
+ const name=document.querySelector('.track-name');name.click();await sleep(100);
+ const before=fixture.requests.filter(r=>r.command.type==='play'||r.command.intent?.operation==='transport.pause').length;
+ $('cursor').focus();$('cursor').dispatchEvent(new KeyboardEvent('keydown',{code:'Space',key:' ',bubbles:true,cancelable:true}));await sleep(20);
+ assert(fixture.requests.filter(r=>r.command.type==='play'||r.command.intent?.operation==='transport.pause').length===before,'Space in a numeric/text field does not trigger transport');$('cursor').blur();
+ const expand=document.querySelector('summary .effect-expand');assert(!!expand,'Effect offers inline Expand');expand.click();await wait(()=>document.querySelector('.effect-dialog[open]'),'Effect workspace did not open');
+ assert(document.querySelector('.full-effect-controls h3').textContent==='Level','Effect controls have native parameter groups');
+ await wait(()=>document.querySelector('.effect-dialog[open] .graph-caption')?.textContent.includes('Settings model'),'Effect settings graph did not draw');
+ assert(document.querySelector('.effect-dialog[open] .graph-caption').textContent.includes('Settings model'),'Effect graph distinguishes settings model from measurement');
+ const gain=document.querySelector('.full-parameter input[type=number]');gain.value='3';gain.dispatchEvent(new Event('change',{bubbles:true}));await wait(()=>fixture.requests.some(r=>r.command.type==='updateTrackControls'&&r.command.controls.realtimeEffects[0].parameters.gain===3),'Effect parameter did not reach server command');
+ [...document.querySelectorAll('.effect-dialog .workspace-toolbar button')].find(b=>b.textContent==='Done').click();await wait(()=>!document.querySelector('.effect-dialog[open]'),'Effect Done did not close');
+ $('record-setup').click();await wait(()=>document.querySelector('.recording-dialog[open]'),'Recording dialog absent');
+ assert(document.querySelector('.recording-routes').textContent.includes('Track 1'),'Recording review lists armed input routes');
+ assert(document.querySelectorAll('.recording-fields input').length===6,'Recording exposes count-in/pre-roll/offset/punch/metronome/monitor');
+ [...document.querySelectorAll('.recording-dialog button')].find(b=>b.textContent==='Cancel').click();
+ $('designer').click();await wait(()=>document.querySelector('.creative-dialog[open]'),'Designer unavailable');
+ assert(document.querySelectorAll('.virtual-keyboard button').length===13,'Designer shows labelled octave keyboard');
+ const requests=fixture.requests.length;document.querySelector('.creative-content canvas').focus();document.querySelector('.creative-dialog').dispatchEvent(new KeyboardEvent('keydown',{code:'Space',key:' ',bubbles:true,cancelable:true}));await wait(()=>fixture.requests.slice(requests).some(r=>r.command.intent?.operation==='designer.preview'),'Designer Space did not preview');
+ assert(!fixture.requests.slice(requests).some(r=>r.command.type==='play'||r.command.intent?.operation==='transport.play'),'Designer Space routes to its own audition');
+ const refresh=[...document.querySelectorAll('[data-server-midi] button')].find(b=>b.textContent==='Refresh sources');refresh.click();await wait(()=>document.querySelector('[data-server-midi] select').options.length===2,'MIDI refresh failed');assert(document.querySelector('[data-server-midi] select').options[1].textContent==='Fixture controller','MIDI source names come from server event');
+ document.querySelector('.creative-toolbar button[aria-label="Close creative workspace"]').click();await wait(()=>!document.querySelector('.creative-dialog[open]'),'Designer did not close');
+ $('beats').click();await wait(()=>document.querySelector('.creative-dialog[open] .beat-grid'),'Beats unavailable');
+ const hit=document.querySelector('.beat-row button[role=gridcell]');hit.click();assert(document.querySelector('.beat-row button[role=gridcell]').getAttribute('aria-pressed')==='true','Step toggle updates visible beat grid');document.querySelector('.creative-toolbar button[aria-label="Close creative workspace"]').click();await sleep(100);
+ assert(fixture.errors.length===0,'No uncaught browser errors across workspaces');
+ const percentile=(values,p)=>{const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.min(sorted.length-1,Math.ceil(sorted.length*p)-1)]??0;};
+ const summarize=values=>({samples:values.length,p50MS:percentile(values,.5),p95MS:percentile(values,.95),p99MS:percentile(values,.99),maxMS:Math.max(0,...values)});
+ const measure=async(durationMS,scroll)=>{const gaps=[],begin=performance.now();let last=begin;await new Promise(resolve=>{const frame=now=>{gaps.push(now-last);last=now;if(now-begin<durationMS){if(scroll)canvas.dispatchEvent(new WheelEvent('wheel',{deltaX:40,bubbles:true,cancelable:true}));requestAnimationFrame(frame);}else resolve();};requestAnimationFrame(frame);});return {...summarize(gaps),durationMS:last-begin,framesPerSecond:gaps.length*1000/(last-begin)};};
+ const baseline=await measure(5000,false),{Timeline}=await import('/timeline.js'),originalDraw=Timeline.prototype.render,drawTimes=[];
+ assert(typeof originalDraw==='function','Timeline render instrumentation is attached');
+ let scrolling;
+ try{Timeline.prototype.render=function(...args){const begin=performance.now();try{return originalDraw.apply(this,args);}finally{drawTimes.push(performance.now()-begin);}};scrolling=await measure(5000,true);}finally{Timeline.prototype.render=originalDraw;}
+ assert(scrolling.framesPerSecond>=30,'WebKit renders interaction frames while scrolling dense project');
+ const drawing=summarize(drawTimes),targetFrameMS=1000/60;
+ window.webkit.messageHandlers.testResult.postMessage({ok:true,checks,frameMeasurement:{baseline,scrolling,timelineDrawing:drawing,targetFrameMS,drawP99WithinFrameBudget:drawing.samples>0&&drawing.p99MS<targetFrameMS,viewport:{width:canvas.clientWidth,height:canvas.clientHeight,pixelRatio:devicePixelRatio},userAgent:navigator.userAgent},note:'Actual WebKit DOM/canvas interactions with explicit test-only mock transport. Frame and draw timings are retained observations, not full UI load/accessibility qualification. Not native WSS, audio, trust or Windows/Linux acceptance.'});
+ }catch(error){failures.push(error.stack??String(error));window.webkit.messageHandlers.testResult.postMessage({ok:false,checks,failures,browserErrors:fixture.errors,socketClosures:fixture.closures,status:$('status')?.textContent});}
+})();

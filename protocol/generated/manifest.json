@@ -1,0 +1,4808 @@
+{
+  "version": 3,
+  "commands": {
+    "snapshot": [],
+    "play": [
+      {
+        "name": "trackOnly",
+        "legacy": "trackOnly",
+        "type": "UUID",
+        "optional": true
+      }
+    ],
+    "stop": [],
+    "seek": [
+      {
+        "name": "frame",
+        "legacy": "frame",
+        "type": "Int",
+        "optional": false
+      }
+    ],
+    "record": [],
+    "takeTransport": [],
+    "setLoop": [
+      {
+        "name": "start",
+        "legacy": "start",
+        "type": "Int",
+        "optional": true
+      },
+      {
+        "name": "end",
+        "legacy": "end",
+        "type": "Int",
+        "optional": true
+      }
+    ],
+    "updateTrackControls": [
+      {
+        "name": "controls",
+        "legacy": "controls",
+        "type": "RemoteTrackControls",
+        "optional": false
+      },
+      {
+        "name": "name",
+        "legacy": "name",
+        "type": "String",
+        "optional": false
+      },
+      {
+        "name": "gestureID",
+        "legacy": "gestureID",
+        "type": "String",
+        "optional": true
+      }
+    ],
+    "setTrackName": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "name",
+        "legacy": "name",
+        "type": "String",
+        "optional": false
+      }
+    ],
+    "setTrackGain": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "gain",
+        "legacy": "gain",
+        "type": "Float",
+        "optional": false
+      }
+    ],
+    "setTrackPan": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "pan",
+        "legacy": "pan",
+        "type": "Float",
+        "optional": false
+      }
+    ],
+    "setTrackMute": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "muted",
+        "legacy": "muted",
+        "type": "Bool",
+        "optional": false
+      }
+    ],
+    "setTrackSolo": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "solo",
+        "legacy": "solo",
+        "type": "Bool",
+        "optional": false
+      }
+    ],
+    "setTrackArm": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "armed",
+        "legacy": "armed",
+        "type": "Bool",
+        "optional": false
+      }
+    ],
+    "setDevices": [
+      {
+        "name": "inputUID",
+        "legacy": "inputID",
+        "type": "String",
+        "optional": true
+      },
+      {
+        "name": "outputUID",
+        "legacy": "outputID",
+        "type": "String",
+        "optional": true
+      }
+    ],
+    "setTrackInput": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "deviceUID",
+        "legacy": "deviceUID",
+        "type": "String",
+        "optional": true
+      },
+      {
+        "name": "channel",
+        "legacy": "channel",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "stereo",
+        "legacy": "stereo",
+        "type": "Bool",
+        "optional": false
+      }
+    ],
+    "addTrack": [
+      {
+        "name": "name",
+        "legacy": "name",
+        "type": "String",
+        "optional": false
+      }
+    ],
+    "removeTrack": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      }
+    ],
+    "splitClip": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "clipID",
+        "legacy": "clipID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "frame",
+        "legacy": "frame",
+        "type": "Int",
+        "optional": false
+      }
+    ],
+    "deleteClips": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "clipIDs",
+        "legacy": "clipIDs",
+        "type": "[UUID]",
+        "optional": false
+      }
+    ],
+    "moveClip": [
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "clipID",
+        "legacy": "clipID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "start",
+        "legacy": "start",
+        "type": "Int",
+        "optional": false
+      }
+    ],
+    "replaceTracks": [
+      {
+        "name": "tracks",
+        "legacy": "tracks",
+        "type": "[Track]",
+        "optional": false
+      },
+      {
+        "name": "name",
+        "legacy": "name",
+        "type": "String",
+        "optional": true
+      },
+      {
+        "name": "gestureID",
+        "legacy": "gestureID",
+        "type": "String",
+        "optional": true
+      }
+    ],
+    "editTracks": [
+      {
+        "name": "edit",
+        "legacy": "_0",
+        "type": "RemoteTrackEdit",
+        "optional": false
+      }
+    ],
+    "editor": [
+      {
+        "name": "intent",
+        "legacy": "_0",
+        "type": "RemoteEditorIntent",
+        "optional": false
+      }
+    ],
+    "undo": [],
+    "redo": [],
+    "listProjects": [],
+    "openProject": [
+      {
+        "name": "id",
+        "legacy": "id",
+        "type": "String",
+        "optional": false
+      }
+    ],
+    "saveProject": [
+      {
+        "name": "name",
+        "legacy": "name",
+        "type": "String",
+        "optional": false
+      },
+      {
+        "name": "replaceExisting",
+        "legacy": "replaceExisting",
+        "type": "Bool",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "legacy": "title",
+        "type": "String",
+        "optional": true
+      }
+    ],
+    "exportMix": [
+      {
+        "name": "name",
+        "legacy": "name",
+        "type": "String",
+        "optional": false
+      }
+    ],
+    "beginUpload": [
+      {
+        "name": "id",
+        "legacy": "id",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "name",
+        "legacy": "name",
+        "type": "String",
+        "optional": false
+      },
+      {
+        "name": "bytes",
+        "legacy": "bytes",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "sha256",
+        "legacy": "sha256",
+        "type": "String",
+        "optional": false
+      }
+    ],
+    "uploadChunk": [
+      {
+        "name": "id",
+        "legacy": "id",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "offset",
+        "legacy": "offset",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "data",
+        "legacy": "data",
+        "type": "Data",
+        "optional": false
+      }
+    ],
+    "finishUpload": [
+      {
+        "name": "id",
+        "legacy": "id",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "trackID",
+        "legacy": "trackID",
+        "type": "UUID",
+        "optional": true
+      },
+      {
+        "name": "frame",
+        "legacy": "frame",
+        "type": "Int",
+        "optional": false
+      }
+    ],
+    "downloadArtifact": [
+      {
+        "name": "id",
+        "legacy": "id",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "offset",
+        "legacy": "offset",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "bytes",
+        "legacy": "bytes",
+        "type": "Int",
+        "optional": false
+      }
+    ],
+    "readArtifact": [
+      {
+        "name": "id",
+        "legacy": "id",
+        "type": "String",
+        "optional": false
+      },
+      {
+        "name": "offset",
+        "legacy": "offset",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "bytes",
+        "legacy": "bytes",
+        "type": "Int",
+        "optional": false
+      }
+    ],
+    "waveform": [
+      {
+        "name": "assetID",
+        "legacy": "assetID",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "start",
+        "legacy": "start",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "end",
+        "legacy": "end",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "points",
+        "legacy": "points",
+        "type": "Int",
+        "optional": false
+      }
+    ],
+    "ping": [
+      {
+        "name": "clientTime",
+        "legacy": "clientTime",
+        "type": "Double",
+        "optional": false
+      }
+    ]
+  },
+  "events": {
+    "snapshot": [
+      {
+        "name": "snapshot",
+        "legacy": "_0",
+        "type": "RemoteSnapshot",
+        "optional": false
+      }
+    ],
+    "delta": [
+      {
+        "name": "delta",
+        "legacy": "_0",
+        "type": "RemoteSessionDelta",
+        "optional": false
+      }
+    ],
+    "transport": [
+      {
+        "name": "transport",
+        "legacy": "_0",
+        "type": "RemoteTransport",
+        "optional": false
+      }
+    ],
+    "meters": [
+      {
+        "name": "left",
+        "legacy": "left",
+        "type": "Float",
+        "optional": false
+      },
+      {
+        "name": "right",
+        "legacy": "right",
+        "type": "Float",
+        "optional": false
+      },
+      {
+        "name": "input",
+        "legacy": "input",
+        "type": "Float",
+        "optional": false
+      }
+    ],
+    "effectMeters": [
+      {
+        "name": "metersByEffect",
+        "legacy": "_0",
+        "type": "[UUID: EffectMeterSnapshot]",
+        "optional": false
+      }
+    ],
+    "audition": [
+      {
+        "name": "kind",
+        "legacy": "kind",
+        "type": "String",
+        "optional": false
+      },
+      {
+        "name": "ownerID",
+        "legacy": "ownerID",
+        "type": "UUID",
+        "optional": true
+      },
+      {
+        "name": "playing",
+        "legacy": "playing",
+        "type": "Bool",
+        "optional": false
+      },
+      {
+        "name": "preparing",
+        "legacy": "preparing",
+        "type": "Bool",
+        "optional": false
+      },
+      {
+        "name": "position",
+        "legacy": "position",
+        "type": "Double",
+        "optional": false
+      }
+    ],
+    "devices": [
+      {
+        "name": "devices",
+        "legacy": "_0",
+        "type": "[RemoteDevice]",
+        "optional": false
+      },
+      {
+        "name": "inputID",
+        "legacy": "inputID",
+        "type": "UInt32",
+        "optional": false
+      },
+      {
+        "name": "outputID",
+        "legacy": "outputID",
+        "type": "UInt32",
+        "optional": false
+      }
+    ],
+    "presence": [
+      {
+        "name": "peers",
+        "legacy": "_0",
+        "type": "[RemotePeer]",
+        "optional": false
+      }
+    ],
+    "midiSources": [
+      {
+        "name": "sources",
+        "legacy": "_0",
+        "type": "[RemoteMIDISource]",
+        "optional": false
+      }
+    ],
+    "midiNote": [
+      {
+        "name": "pitch",
+        "legacy": "pitch",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "velocity",
+        "legacy": "velocity",
+        "type": "Int",
+        "optional": false
+      },
+      {
+        "name": "on",
+        "legacy": "on",
+        "type": "Bool",
+        "optional": false
+      }
+    ],
+    "midiController": [
+      {
+        "name": "kind",
+        "legacy": "kind",
+        "type": "SoundDesignControllerKind",
+        "optional": false
+      },
+      {
+        "name": "value",
+        "legacy": "value",
+        "type": "Double",
+        "optional": false
+      }
+    ],
+    "midiAllNotesOff": [],
+    "history": [
+      {
+        "name": "canUndo",
+        "legacy": "canUndo",
+        "type": "Bool",
+        "optional": false
+      },
+      {
+        "name": "canRedo",
+        "legacy": "canRedo",
+        "type": "Bool",
+        "optional": false
+      },
+      {
+        "name": "undoName",
+        "legacy": "undoName",
+        "type": "String",
+        "optional": true
+      },
+      {
+        "name": "redoName",
+        "legacy": "redoName",
+        "type": "String",
+        "optional": true
+      }
+    ],
+    "status": [
+      {
+        "name": "message",
+        "legacy": "_0",
+        "type": "String",
+        "optional": false
+      }
+    ],
+    "waveform": [
+      {
+        "name": "asset",
+        "legacy": "_0",
+        "type": "RemoteAsset",
+        "optional": false
+      }
+    ],
+    "analysis": [
+      {
+        "name": "analysis",
+        "legacy": "_0",
+        "type": "RemotePitchAnalysis",
+        "optional": false
+      }
+    ],
+    "projects": [
+      {
+        "name": "projects",
+        "legacy": "_0",
+        "type": "[String]",
+        "optional": false
+      }
+    ],
+    "job": [
+      {
+        "name": "id",
+        "legacy": "id",
+        "type": "UUID",
+        "optional": false
+      },
+      {
+        "name": "progress",
+        "legacy": "progress",
+        "type": "Double",
+        "optional": false
+      },
+      {
+        "name": "message",
+        "legacy": "message",
+        "type": "String",
+        "optional": false
+      }
+    ],
+    "automationWrite": [
+      {
+        "name": "update",
+        "legacy": "update",
+        "type": "RemoteAutomationWriteLeaseUpdate",
+        "optional": false
+      }
+    ]
+  },
+  "editorOperations": [
+    "audition.stop",
+    "automation.writeBegin",
+    "automation.writeDraft",
+    "automation.writeEnd",
+    "automation.writeValue",
+    "client.features",
+    "clips.combine",
+    "designer.allNotesOff",
+    "designer.commit",
+    "designer.configure",
+    "designer.controller",
+    "designer.midiConnect",
+    "designer.midiSources",
+    "designer.noteOff",
+    "designer.noteOn",
+    "designer.preview",
+    "designer.stop",
+    "devices.refresh",
+    "drums.commit",
+    "drums.deleteKit",
+    "drums.export",
+    "drums.kits",
+    "drums.preview",
+    "drums.saveKit",
+    "drums.stop",
+    "effects.apply",
+    "effects.preview",
+    "jobs.cancel",
+    "master.analyze",
+    "master.applyProposal",
+    "master.proposal",
+    "media.cleanup",
+    "meters.subscribe",
+    "pitch.analyze",
+    "pitch.apply",
+    "pitch.manualApply",
+    "pitch.render",
+    "pitch.targets",
+    "project.export",
+    "project.new",
+    "project.package",
+    "recording.settings",
+    "server.revokeWebCredential",
+    "server.shutdown",
+    "server.webClients",
+    "server.webPairing",
+    "session.rename",
+    "session.timing",
+    "sources.status",
+    "take.preview",
+    "take.stop",
+    "transport.audition",
+    "transport.finishRecording",
+    "transport.pause",
+    "transport.play",
+    "transport.record",
+    "transport.stop",
+    "transport.toggle"
+  ],
+  "models": {
+    "ClipRenderEnvelope": {
+      "source": "Sources/SoundroomCore/ClipRenderEnvelope.swift",
+      "fields": [
+        {
+          "name": "referenceLength",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "referenceOffset",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "attackFrames",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "releaseFrames",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "boundaryAttackFrames",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "boundaryReleaseFrames",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "crossfadeIn",
+          "type": "Range<Int>",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "crossfadeOut",
+          "type": "Range<Int>",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "cutReferenceOffset",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "cutReferenceLength",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "additionalBoundaries",
+          "type": "[ClipBoundaryEnvelope]",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "ClipBoundaryEnvelope": {
+      "source": "Sources/SoundroomCore/ClipRenderEnvelope.swift",
+      "fields": [
+        {
+          "name": "start",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "length",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "attack",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "release",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "ClipState": {
+      "source": "Sources/SoundroomCore/ClipState.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "operation",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "renderEnvelope",
+          "type": "ClipRenderEnvelope",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "assetID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "offset",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "length",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "soundDesign",
+          "type": "SoundDesignPattern",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "drumPattern",
+          "type": "DrumPattern",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fadeInFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fadeOutFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fadeReferenceOffset",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fadeReferenceLength",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "edgeFadeFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "edgeProtectionDisabled",
+          "type": "Bool",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "cutFadeInFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "cutFadeOutFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "DesignerSoundPreset": {
+      "source": "Sources/SoundroomCore/DesignerSoundPreset.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sound",
+          "type": "SoundDesignPattern",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "DrumStep": {
+      "source": "Sources/SoundroomCore/DrumPattern.swift",
+      "fields": [
+        {
+          "name": "articulation",
+          "type": "DrumArticulation",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "voice",
+          "type": "DrumVoice",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "index",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "velocity",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "pan",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "probability",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "DrumShape": {
+      "source": "Sources/SoundroomCore/DrumPattern.swift",
+      "fields": [
+        {
+          "name": "tension",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "sustain",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "body",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "snap",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "wires",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "tone",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "pitchDrop",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "room",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "roomSize",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "variation",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        }
+      ]
+    },
+    "DrumKitDesign": {
+      "source": "Sources/SoundroomCore/DrumPattern.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "shapes",
+          "type": "[String: DrumShape]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "DrumLane": {
+      "source": "Sources/SoundroomCore/DrumPattern.swift",
+      "fields": [
+        {
+          "name": "kit",
+          "type": "DrumKit",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "damping",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "shape",
+          "type": "DrumShape",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "customKit",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "gain",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "pan",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "tuning",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "muted",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "DrumPattern": {
+      "source": "Sources/SoundroomCore/DrumPattern.swift",
+      "fields": [
+        {
+          "name": "velocityHumanize",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "variationCycles",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "kit",
+          "type": "DrumKit",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "bpm",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "bars",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "stepsPerBeat",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "swing",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "humanize",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "masterGain",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "steps",
+          "type": "[DrumStep]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "lanes",
+          "type": "[String: DrumLane]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "PitchMeterSnapshot": {
+      "source": "Sources/SoundroomCore/EffectMeter.swift",
+      "fields": [
+        {
+          "name": "inputFrequency",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "targetFrequency",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "correctionCents",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "confidence",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "wetBlend",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "referenceFrequency",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sourceFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "EffectMeterSnapshot": {
+      "source": "Sources/SoundroomCore/EffectMeter.swift",
+      "fields": [
+        {
+          "name": "inputPeak",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "outputPeak",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "inputRMS",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "outputRMS",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "gainReductionDB",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "truePeak",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "momentaryLUFS",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "shortTermLUFS",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "resonance",
+          "type": "SpectralReductionSnapshot",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "frameCount",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "pitch",
+          "type": "PitchMeterSnapshot",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "revision",
+          "type": "UInt64",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "MasteringSection": {
+      "source": "Sources/SoundroomCore/MasteringAnalysis.swift",
+      "fields": [
+        {
+          "name": "start",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "end",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "loudness",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "truePeak",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "resonance",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "MasteringAnalysis": {
+      "source": "Sources/SoundroomCore/MasteringAnalysis.swift",
+      "fields": [
+        {
+          "name": "integratedLUFS",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "truePeakDB",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "crestDB",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "bassFraction",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "airFraction",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sections",
+          "type": "[MasteringSection]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "analyzedFrames",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sourceFingerprint",
+          "type": "String",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "SoundDesignInstrumentShape": {
+      "source": "Sources/SoundroomCore/MusicalInstruments.swift",
+      "fields": [
+        {
+          "name": "brightness",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "sustain",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "noise",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "softness",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "stiffness",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "vibrato",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "vibratoRate",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "body",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "detune",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        }
+      ]
+    },
+    "MusicalTiming": {
+      "source": "Sources/SoundroomCore/MusicalTiming.swift",
+      "fields": [
+        {
+          "name": "tempo",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "beatsPerBar",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "beatUnit",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "OrganicSound": {
+      "source": "Sources/SoundroomCore/OrganicSound.swift",
+      "fields": [
+        {
+          "name": "drift",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "timbre",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "breath",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "seed",
+          "type": "UInt64String",
+          "optional": false,
+          "required": false,
+          "nativeType": "UInt64"
+        }
+      ]
+    },
+    "PitchEditPoint": {
+      "source": "Sources/SoundroomCore/PitchEdits.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "frame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "note",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "curve",
+          "type": "AutomationCurve",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "curveStart",
+          "type": "Float",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "curveEnd",
+          "type": "Float",
+          "optional": false,
+          "required": false
+        }
+      ]
+    },
+    "PitchEditRange": {
+      "source": "Sources/SoundroomCore/PitchEdits.swift",
+      "fields": [
+        {
+          "name": "startFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "endFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "PitchEditRegion": {
+      "source": "Sources/SoundroomCore/PitchEdits.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "startFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "endFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "points",
+          "type": "[PitchEditPoint]",
+          "optional": false,
+          "required": false
+        }
+      ]
+    },
+    "AutomationPoint": {
+      "source": "Sources/SoundroomCore/RealtimeEffects.swift",
+      "fields": [
+        {
+          "name": "frame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "curve",
+          "type": "AutomationCurve",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "curveStart",
+          "type": "Float",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "curveEnd",
+          "type": "Float",
+          "optional": false,
+          "required": false
+        }
+      ]
+    },
+    "RealtimeEffect": {
+      "source": "Sources/SoundroomCore/RealtimeEffects.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "kind",
+          "type": "RealtimeEffectKind",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "amount",
+          "type": "Float",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "enabled",
+          "type": "Bool",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "automation",
+          "type": "[AutomationPoint]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "parameters",
+          "type": "[String: Float]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "parameterAutomation",
+          "type": "[String: [AutomationPoint]]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "selectedAutomationParameter",
+          "type": "String",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "pitchEdits",
+          "type": "[PitchEditRegion]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "pitchEditsOnly",
+          "type": "Bool",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "bakedRanges",
+          "type": "[PitchEditRange]",
+          "optional": false,
+          "required": false
+        }
+      ]
+    },
+    "RecordingTake": {
+      "source": "Sources/SoundroomCore/RecordingTake.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "clips",
+          "type": "[Clip]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "SpectralReductionSnapshot": {
+      "source": "Sources/SoundroomCore/ResonanceDSP.swift",
+      "fields": [
+        {
+          "name": "b0",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b1",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b2",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b3",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b4",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b5",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b6",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b7",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b8",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b9",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b10",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "b11",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "Clip": {
+      "source": "Sources/SoundroomCore/Session.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "assetID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "start",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "offset",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "length",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "soundDesign",
+          "type": "SoundDesignPattern",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "drumPattern",
+          "type": "DrumPattern",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "previousStates",
+          "type": "[ClipState]",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "renderEnvelope",
+          "type": "ClipRenderEnvelope",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "edgeFadeFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "edgeProtectionDisabled",
+          "type": "Bool",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "cutFadeInFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "cutFadeOutFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fadeInFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fadeOutFrames",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fadeReferenceOffset",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fadeReferenceLength",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "TrackSend": {
+      "source": "Sources/SoundroomCore/Session.swift",
+      "fields": [
+        {
+          "name": "trackID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "level",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "TrackRouting": {
+      "source": "Sources/SoundroomCore/Session.swift",
+      "fields": [
+        {
+          "name": "role",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "outputID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "sends",
+          "type": "[TrackSend]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sidechainSourceID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "Track": {
+      "source": "Sources/SoundroomCore/Session.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "color",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "clips",
+          "type": "[Clip]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "recordingTakes",
+          "type": "[RecordingTake]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "activeTakeID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "gain",
+          "type": "Float",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "pan",
+          "type": "Float",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "volumeAutomationScale",
+          "type": "AutomationValueScale",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "mixAutomation",
+          "type": "[String: [AutomationPoint]]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "muted",
+          "type": "Bool",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "solo",
+          "type": "Bool",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "armed",
+          "type": "Bool",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "inputDeviceUID",
+          "type": "String",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "inputDeviceName",
+          "type": "String",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "inputChannel",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "stereoInput",
+          "type": "Bool",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "routing",
+          "type": "TrackRouting",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "realtimeEffects",
+          "type": "[RealtimeEffect]",
+          "optional": false,
+          "required": false
+        }
+      ]
+    },
+    "Session": {
+      "source": "Sources/SoundroomCore/Session.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "timing",
+          "type": "MusicalTiming",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "tracks",
+          "type": "[Track]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "masteringAnalysis",
+          "type": "MasteringAnalysis",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "masterTrack",
+          "type": "Track",
+          "optional": false,
+          "required": false
+        }
+      ]
+    },
+    "SoundDesignController": {
+      "source": "Sources/SoundroomCore/SoundDesignPerformance.swift",
+      "fields": [
+        {
+          "name": "kind",
+          "type": "SoundDesignControllerKind",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "beat",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "SoundDesignLayer": {
+      "source": "Sources/SoundroomCore/SoundDesignPerformance.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "preset",
+          "type": "SoundDesignPreset",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "gain",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "pan",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "transpose",
+          "type": "Int",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "minimumVelocity",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "maximumVelocity",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "enabled",
+          "type": "Bool",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "toneOverride",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "attackOverride",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "releaseOverride",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "characterOverride",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "velocityFade",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "fineTune",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "delay",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "lowestPitch",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "highestPitch",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "decayOverride",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "sustainOverride",
+          "type": "Double",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "organicSeed",
+          "type": "UInt64String",
+          "optional": true,
+          "required": false,
+          "nativeType": "UInt64"
+        }
+      ]
+    },
+    "SoundDesignNote": {
+      "source": "Sources/SoundroomCore/SoundDesigner.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "pitch",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "velocity",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "startBeat",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "durationBeats",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "articulation",
+          "type": "SoundDesignArticulation",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "SoundDesignPattern": {
+      "source": "Sources/SoundroomCore/SoundDesigner.swift",
+      "fields": [
+        {
+          "name": "notes",
+          "type": "[SoundDesignNote]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "instrument",
+          "type": "MusicalInstrument",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "character",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "resonance",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "bpm",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "beats",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "waveform",
+          "type": "SoundDesignWaveform",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "tone",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "attack",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "release",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "decay",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "sustain",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "secondWaveform",
+          "type": "SoundDesignWaveform",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "oscillatorMix",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "fineTune",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "detune",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "pulseWidth",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "subLevel",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "noiseLevel",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "drive",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "controllers",
+          "type": "[SoundDesignController]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "layers",
+          "type": "[SoundDesignLayer]",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "organic",
+          "type": "OrganicSound",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "baseGain",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "basePan",
+          "type": "Double",
+          "optional": false,
+          "required": false
+        },
+        {
+          "name": "instrumentShape",
+          "type": "SoundDesignInstrumentShape",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteAutomationWriteTarget": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "kind",
+          "type": "RemoteAutomationWriteTargetKind",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "effectID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "parameterID",
+          "type": "String",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteAutomationWriteBeginRequest": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "target",
+          "type": "RemoteAutomationWriteTarget",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "mode",
+          "type": "RemoteAutomationWriteMode",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteValueRequest": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sequence",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteEndRequest": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "finalSequence",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "cancel",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteDraftRequest": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "draftID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteAutomationWriteMapping": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "minimum",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maximum",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "unit",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "logarithmic",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "integer",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "interpolationScale",
+          "type": "AutomationValueScale",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "errorDomain",
+          "type": "RemoteAutomationWriteErrorDomain",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "errorTolerance",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteLimits": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "maximumLeases",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maximumCaptureSamples",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maximumDurationFrames",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maximumWrittenPoints",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maximumLanePoints",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maximumDraftBytes",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "leaseTimeoutMilliseconds",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "rampFrames",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteStamp": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "transportEpoch",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "outputFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "controlFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "playbackClock",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "latencyOffsetFrames",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteBeginReply": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "target",
+          "type": "RemoteAutomationWriteTarget",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackRevision",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "initialValue",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "mapping",
+          "type": "RemoteAutomationWriteMapping",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "limits",
+          "type": "RemoteAutomationWriteLimits",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "stamp",
+          "type": "RemoteAutomationWriteStamp",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteValueReply": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sequence",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "appliedSequence",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "disposition",
+          "type": "RemoteAutomationWriteValueDisposition",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "targetValue",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "rampStartValue",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "rampFrames",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "stamp",
+          "type": "RemoteAutomationWriteStamp",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteLeaseUpdate": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "phase",
+          "type": "RemoteAutomationWritePhase",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "reason",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "revision",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "lastAppliedSequence",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "stamp",
+          "type": "RemoteAutomationWriteStamp",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "draftID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteAutomationWriteDraftReply": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "draftID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "target",
+          "type": "RemoteAutomationWriteTarget",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "reason",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "appliedValueCount",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "firstStamp",
+          "type": "RemoteAutomationWriteStamp",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "lastStamp",
+          "type": "RemoteAutomationWriteStamp",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "mapping",
+          "type": "RemoteAutomationWriteMapping",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "expiresInSeconds",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "artifact",
+          "type": "RemoteArtifact",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteCapturedRamp": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "sequence",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "restoring",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "stamp",
+          "type": "RemoteAutomationWriteStamp",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "startValue",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "targetValue",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "rampFrames",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteAutomationWriteCapturedRelease": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "stamp",
+          "type": "RemoteAutomationWriteStamp",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "lastControlFrame",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "lastValue",
+          "type": "Float",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteAutomationWriteDraftContent": {
+      "source": "Sources/SoundroomRemote/RemoteAutomationWrite.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "gestureID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "target",
+          "type": "RemoteAutomationWriteTarget",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackRevision",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "baseline",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "mapping",
+          "type": "RemoteAutomationWriteMapping",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "reason",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "originalPoints",
+          "type": "[AutomationPoint]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "capturedRamps",
+          "type": "[RemoteAutomationWriteCapturedRamp]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "terminal",
+          "type": "RemoteAutomationWriteCapturedRelease",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteCapabilities": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "protocolVersions",
+          "type": "[Int]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "projectVersions",
+          "type": "[Int]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "commands",
+          "type": "[String]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "editorOperations",
+          "type": "[String]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sampleRate",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "deviceBackends",
+          "type": "[String]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "codecs",
+          "type": "[String]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "snapshotPagination",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maxFrameBytes",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maxUploadChunkBytes",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maxUploadBytes",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maxTimelineFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "features",
+          "type": "[String]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "effects",
+          "type": "[RemoteEffectMetadata]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "selectionEffects",
+          "type": "[RemoteSelectionEffectMetadata]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "instruments",
+          "type": "[RemoteInstrumentMetadata]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "designerPresets",
+          "type": "[RemoteDesignerPresetMetadata]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "drumKits",
+          "type": "[RemoteDrumKitMetadata]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "drumPresets",
+          "type": "[RemoteDrumPresetMetadata]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteEffectMetadata": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "parameters",
+          "type": "[RemoteParameterMetadata]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "factoryPresets",
+          "type": "[RemoteEffectPresetMetadata]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "modes",
+          "type": "[String]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteParameterMetadata": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "minimum",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "maximum",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "defaultValue",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "unit",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "logarithmic",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "integer",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "choices",
+          "type": "[String]",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "automationUnit",
+          "type": "String",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteEffectPresetMetadata": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "values",
+          "type": "[String: Float]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteSelectionEffectMetadata": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "realtime",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteInstrumentMetadata": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "characterLabel",
+          "type": "String",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteDesignerPresetMetadata": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "category",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sound",
+          "type": "SoundDesignPattern",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteDrumKitMetadata": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "voices",
+          "type": "[String]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "articulations",
+          "type": "[String: [String]]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteDrumPresetMetadata": {
+      "source": "Sources/SoundroomRemote/RemoteCapabilities.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "pattern",
+          "type": "DrumPattern",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteCredential": {
+      "source": "Sources/SoundroomRemote/RemoteCredential.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "serverID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "clientID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "secret",
+          "type": "Data",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "clientSecret",
+          "type": "Data",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "role",
+          "type": "RemoteRole",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemotePeer": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "role",
+          "type": "RemoteRole",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteDevice": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UInt32",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "uid",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "inputChannels",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "outputChannels",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteTransport": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "frame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "isPlaying",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "isRecording",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "isPreparing",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "loopStart",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "loopEnd",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "hostTime",
+          "type": "Double",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "operatorID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "recordingStartFrame",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteAsset": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "frames",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "channels",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "peaks",
+          "type": "[Float]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "channelPeaks",
+          "type": "[[Float]]",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "waveformStartFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "framesPerBin",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteSnapshot": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "serverID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "serverName",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "session",
+          "type": "Session",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "revision",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackRevisions",
+          "type": "[UUID: Int]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "transport",
+          "type": "RemoteTransport",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "devices",
+          "type": "[RemoteDevice]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "inputDeviceID",
+          "type": "UInt32",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "outputDeviceID",
+          "type": "UInt32",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "assets",
+          "type": "[RemoteAsset]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "status",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "projectName",
+          "type": "String",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "projectID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "peers",
+          "type": "[RemotePeer]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemotePitchPoint": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "frame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "frequency",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "confidence",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemotePitchAnalysis": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "points",
+          "type": "[RemotePitchPoint]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "regions",
+          "type": "[PitchEditRegion]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "isOutput",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "targetsAreDraft",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "error",
+          "type": "String",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteTrackControls": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "trackID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "color",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "gain",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "pan",
+          "type": "Float",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "muted",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "solo",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "armed",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "inputDeviceUID",
+          "type": "String",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "inputDeviceName",
+          "type": "String",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "inputChannel",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "stereoInput",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "volumeAutomationScale",
+          "type": "AutomationValueScale",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "mixAutomation",
+          "type": "[String: [AutomationPoint]]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "routing",
+          "type": "TrackRouting",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "realtimeEffects",
+          "type": "[RealtimeEffect]",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteTrackControlPatch": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "trackID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "gain",
+          "type": "Float",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "pan",
+          "type": "Float",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "muted",
+          "type": "Bool",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "solo",
+          "type": "Bool",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "armed",
+          "type": "Bool",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteSessionDelta": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "revision",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "tracks",
+          "type": "[Track]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "controls",
+          "type": "[RemoteTrackControls]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "controlPatches",
+          "type": "[RemoteTrackControlPatch]",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "removedTrackIDs",
+          "type": "[UUID]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackOrder",
+          "type": "[UUID]",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "trackRevisions",
+          "type": "[UUID: Int]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "masteringAnalysis",
+          "type": "MasteringAnalysis",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "metadataUpdated",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "timing",
+          "type": "MusicalTiming",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "sessionVersion",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "assets",
+          "type": "[RemoteAsset]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "status",
+          "type": "String",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteEditorContext": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "trackID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "clipID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "clipIDs",
+          "type": "[UUID]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "cursorFrame",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "rangeStart",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "rangeEnd",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "effectID",
+          "type": "UUID",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "automationTarget",
+          "type": "String",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteEditorIntent": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "operation",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "RemoteEditorContext",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "integers",
+          "type": "[String: Int]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "numbers",
+          "type": "[String: Double]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "strings",
+          "type": "[String: String]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "flags",
+          "type": "[String: Bool]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "payload",
+          "type": "Data",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteTrackEdit": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "tracks",
+          "type": "[Track]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "removedTrackIDs",
+          "type": "[UUID]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "trackOrder",
+          "type": "[UUID]",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "gestureID",
+          "type": "String",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteArtifact": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "bytes",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "sha256",
+          "type": "String",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteArtifactChunk": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "offset",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "data",
+          "type": "Data",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "complete",
+          "type": "Bool",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteMIDISource": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UInt32",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteRequest": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "clientID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "expectedRevision",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "expectedTrackRevisions",
+          "type": "[UUID: Int]",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "command",
+          "type": "RemoteCommand",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteReply": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "requestID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "status",
+          "type": "RemoteReplyStatus",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "revision",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "message",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "payload",
+          "type": "Data",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteChallenge": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "serverID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "nonce",
+          "type": "Data",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteHello": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "serverID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "peer",
+          "type": "RemotePeer",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "credentialID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "proof",
+          "type": "String",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteWelcome": {
+      "source": "Sources/SoundroomRemote/RemoteProtocol.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "serverID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "role",
+          "type": "RemoteRole",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteSnapshotPage": {
+      "source": "Sources/SoundroomRemote/RemoteSnapshotPages.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "kind",
+          "type": "Kind",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "transferID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "revision",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "totalBytes",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "sha256",
+          "type": "String",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "offset",
+          "type": "Int",
+          "optional": true,
+          "required": false
+        },
+        {
+          "name": "data",
+          "type": "Data",
+          "optional": true,
+          "required": false
+        }
+      ]
+    },
+    "RemoteBrowserCredential": {
+      "source": "Sources/SoundroomRemote/RemoteWebPairing.swift",
+      "fields": [
+        {
+          "name": "version",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "serverID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "credentialID",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "clientSecret",
+          "type": "Data",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "role",
+          "type": "RemoteRole",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteWebPairingGrant": {
+      "source": "Sources/SoundroomRemote/RemoteWebPairing.swift",
+      "fields": [
+        {
+          "name": "code",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "role",
+          "type": "RemoteRole",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "expiresInSeconds",
+          "type": "Int",
+          "optional": false,
+          "required": true
+        }
+      ]
+    },
+    "RemoteWebClientRecord": {
+      "source": "Sources/SoundroomRemote/RemoteWebPairing.swift",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "required": true
+        },
+        {
+          "name": "role",
+          "type": "RemoteRole",
+          "optional": false,
+          "required": true
+        }
+      ]
+    }
+  },
+  "enums": {
+    "AutomationCurve": [
+      "linear",
+      "smooth",
+      "easeIn",
+      "easeOut",
+      "hold"
+    ],
+    "AutomationValueScale": [
+      "linear",
+      "decibels"
+    ],
+    "DrumKit": [
+      "acoustic",
+      "electronic",
+      "jazzMaple",
+      "rockBirch",
+      "vintageDry",
+      "brushed",
+      "orchestral",
+      "funkTight",
+      "vintageWarm",
+      "arenaRock",
+      "machine808",
+      "machine909",
+      "lofiDusty",
+      "trapModern",
+      "technoMinimal",
+      "studioNatural",
+      "studioTight",
+      "studioRoom",
+      "studioVintage",
+      "studioModeled"
+    ],
+    "DrumArticulation": [
+      "center",
+      "rimshot",
+      "sideStick",
+      "brush",
+      "bell"
+    ],
+    "DrumVoice": [
+      "kick",
+      "snare",
+      "closedHat",
+      "openHat",
+      "lowTom",
+      "highTom",
+      "clap",
+      "ride",
+      "crash"
+    ],
+    "MusicalInstrument": [
+      "synthesizer",
+      "studioPiano",
+      "tinePiano",
+      "nylonStrings",
+      "marimba",
+      "glassBells",
+      "tonewheelOrgan",
+      "stringEnsemble",
+      "electricGuitar",
+      "pickedBass",
+      "vocalEnsemble",
+      "uprightPiano",
+      "acousticGuitar",
+      "uprightBass",
+      "vibraphone",
+      "woodenFlute",
+      "soloCello",
+      "concertHarp",
+      "kalimba"
+    ],
+    "TimelineTimebase": [
+      "Time",
+      "Beats"
+    ],
+    "RealtimeEffectKind": [
+      "gain",
+      "lowPass",
+      "highPass",
+      "echo",
+      "warmth",
+      "compressor",
+      "room",
+      "equalizer",
+      "chorus",
+      "dither",
+      "pitchCorrection",
+      "limiter",
+      "resonance",
+      "vocalEnhancer",
+      "sourceIsolator",
+      "soundPutty",
+      "gate",
+      "utility",
+      "guitarRig"
+    ],
+    "SoundDesignArticulation": [
+      "normal",
+      "staccato",
+      "tenuto",
+      "accent"
+    ],
+    "SoundDesignControllerKind": [
+      "sustain",
+      "modulation",
+      "expression",
+      "pitchBend"
+    ],
+    "SoundDesignWaveform": [
+      "sine",
+      "triangle",
+      "saw",
+      "pulse"
+    ],
+    "SoundDesignPreset": [
+      "Warm keys",
+      "Glass pluck",
+      "Round bass",
+      "Wide pad",
+      "Bright lead",
+      "Soft drum",
+      "Studio piano",
+      "Tine electric piano",
+      "Nylon plucked strings",
+      "Concert marimba",
+      "Glass bells",
+      "Tonewheel organ",
+      "String ensemble",
+      "Electric guitar",
+      "Picked bass",
+      "Vocal ensemble",
+      "Felt upright piano",
+      "Steel acoustic guitar",
+      "Upright bass",
+      "Vibraphone",
+      "Wooden flute",
+      "Solo cello",
+      "Concert harp",
+      "Kalimba"
+    ],
+    "RemoteAutomationWriteTargetKind": [
+      "volume",
+      "pan",
+      "effectAmount",
+      "effectParameter"
+    ],
+    "RemoteAutomationWriteMode": [
+      "touch"
+    ],
+    "RemoteAutomationWriteValueDisposition": [
+      "applied",
+      "superseded"
+    ],
+    "RemoteAutomationWritePhase": [
+      "writing",
+      "finalizing",
+      "committed",
+      "cancelled",
+      "conflict",
+      "expired",
+      "disconnected",
+      "failed"
+    ],
+    "RemoteAutomationWriteErrorDomain": [
+      "physical",
+      "decibels",
+      "logarithmic"
+    ],
+    "RemoteRole": [
+      "viewer",
+      "editor",
+      "operator"
+    ],
+    "RemoteReplyStatus": [
+      "accepted",
+      "rejected",
+      "conflict",
+      "busy"
+    ],
+    "Kind": [
+      "snapshotBegin",
+      "snapshotPage",
+      "snapshotEnd"
+    ]
+  },
+  "limits": {
+    "safeInteger": 9007199254740991,
+    "maxFrameBytes": 8388608,
+    "maxQueueBytes": 33554432,
+    "maxUploadChunkBytes": 262144,
+    "maxUploadBytes": 2147483648,
+    "maxClients": 16,
+    "maxPendingRequests": 64,
+    "snapshotPageBytes": 524288
+  }
+}

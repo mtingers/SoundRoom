@@ -1,0 +1,17 @@
+{
+ "repo": "sgossner/VCSL",
+ "tree": "vcsl-tree.json",
+ "robins": 1,
+ "maxSeconds": 6,
+ "release": 0.6,
+ "sets": [
+  {
+   "prefix": "Chordophones/Composite Chordophones/Concert Harp/",
+   "pattern": "KSHarp_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>mf|f)(?P<rr>1)\\.wav",
+   "layers": [
+    "mf",
+    "f"
+   ]
+  }
+ ]
+}

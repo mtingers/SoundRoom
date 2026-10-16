@@ -1,0 +1,14 @@
+{
+  "version": 3,
+  "kind": "request",
+  "id": "12345678-1234-4234-8234-123456789abc",
+  "clientID": "12345678-1234-4234-8234-123456789abc",
+  "expectedRevision": 7,
+  "expectedTrackRevisions": {
+    "12345678-1234-4234-8234-123456789abc": 4
+  },
+  "command": {
+    "type": "seek",
+    "frame": 48000
+  }
+}

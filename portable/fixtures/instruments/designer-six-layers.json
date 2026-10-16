@@ -1,0 +1,185 @@
+{
+  "attack" : 0.01,
+  "baseGain" : 0.2,
+  "basePan" : 0,
+  "beats" : 2,
+  "bpm" : 287,
+  "character" : 0.5,
+  "controllers" : [
+    {
+      "beat" : 0,
+      "kind" : "expression",
+      "value" : 0.87
+    },
+    {
+      "beat" : 0.2,
+      "kind" : "pitchBend",
+      "value" : 0.61
+    },
+    {
+      "beat" : 0.37,
+      "kind" : "modulation",
+      "value" : 0.68
+    },
+    {
+      "beat" : 0.32,
+      "kind" : "sustain",
+      "value" : 1
+    },
+    {
+      "beat" : 1.2,
+      "kind" : "expression",
+      "value" : 0.73
+    },
+    {
+      "beat" : 1.71,
+      "kind" : "sustain",
+      "value" : 0
+    }
+  ],
+  "decay" : 0.1,
+  "detune" : 0,
+  "drive" : 1,
+  "fineTune" : -8,
+  "instrument" : "synthesizer",
+  "layers" : [
+    {
+      "decayOverride" : 0.19,
+      "delay" : 0,
+      "enabled" : true,
+      "fineTune" : -8,
+      "gain" : 0.12,
+      "highestPitch" : 69,
+      "id" : "138899D1-7244-404C-A9E1-8DF237F845BD",
+      "lowestPitch" : 48,
+      "maximumVelocity" : 1,
+      "minimumVelocity" : 0,
+      "pan" : -0.8,
+      "preset" : "Felt upright piano",
+      "sustainOverride" : 0.6,
+      "transpose" : 0
+    },
+    {
+      "decayOverride" : 0.19,
+      "delay" : 0.07,
+      "enabled" : true,
+      "fineTune" : -5,
+      "gain" : 0.12,
+      "highestPitch" : 69,
+      "id" : "0FC00E99-E862-478B-9628-B596C8762331",
+      "lowestPitch" : 48,
+      "maximumVelocity" : 1,
+      "minimumVelocity" : 0,
+      "pan" : -0.46666666666666673,
+      "preset" : "Steel acoustic guitar",
+      "sustainOverride" : 0.6,
+      "transpose" : 0
+    },
+    {
+      "decayOverride" : 0.19,
+      "delay" : 0.14,
+      "enabled" : true,
+      "fineTune" : -2,
+      "gain" : 0.12,
+      "highestPitch" : 69,
+      "id" : "B842EB39-E32A-46A6-BF4F-F9BECDA0FD14",
+      "lowestPitch" : 48,
+      "maximumVelocity" : 1,
+      "minimumVelocity" : 0,
+      "pan" : -0.13333333333333341,
+      "preset" : "Upright bass",
+      "sustainOverride" : 0.6,
+      "transpose" : 0
+    },
+    {
+      "decayOverride" : 0.19,
+      "delay" : 0.21000000000000002,
+      "enabled" : true,
+      "fineTune" : 1,
+      "gain" : 0.12,
+      "highestPitch" : 69,
+      "id" : "8963C669-B0FC-44C8-87CE-91F1EA47C58D",
+      "lowestPitch" : 48,
+      "maximumVelocity" : 1,
+      "minimumVelocity" : 0,
+      "pan" : 0.19999999999999996,
+      "preset" : "Vibraphone",
+      "sustainOverride" : 0.6,
+      "transpose" : 0
+    },
+    {
+      "decayOverride" : 0.19,
+      "delay" : 0.28,
+      "enabled" : true,
+      "fineTune" : 4,
+      "gain" : 0.12,
+      "highestPitch" : 69,
+      "id" : "50FAC95C-21EE-474F-BFE6-F97AED237CB3",
+      "lowestPitch" : 48,
+      "maximumVelocity" : 1,
+      "minimumVelocity" : 0,
+      "pan" : 0.5333333333333332,
+      "preset" : "Wooden flute",
+      "sustainOverride" : 0.6,
+      "transpose" : 0
+    },
+    {
+      "decayOverride" : 0.19,
+      "delay" : 0.35000000000000003,
+      "enabled" : true,
+      "fineTune" : 7,
+      "gain" : 0.12,
+      "highestPitch" : 69,
+      "id" : "4D16F5CC-D979-48D0-B6DD-F23D8E658074",
+      "lowestPitch" : 48,
+      "maximumVelocity" : 1,
+      "minimumVelocity" : 0,
+      "pan" : 0.8666666666666667,
+      "preset" : "Solo cello",
+      "sustainOverride" : 0.6,
+      "transpose" : 0
+    }
+  ],
+  "noiseLevel" : 0,
+  "notes" : [
+    {
+      "articulation" : "accent",
+      "durationBeats" : 0.43,
+      "id" : "47EBCE4F-E5C6-4C5E-BD77-F76221948CB6",
+      "pitch" : 48,
+      "startBeat" : 0,
+      "velocity" : 0.73
+    },
+    {
+      "articulation" : "staccato",
+      "durationBeats" : 0.71,
+      "id" : "A3AF6E1A-0E5C-49A0-ABA8-CA18F970A581",
+      "pitch" : 67,
+      "startBeat" : 0.64,
+      "velocity" : 0.54
+    },
+    {
+      "articulation" : "tenuto",
+      "durationBeats" : 0.4,
+      "id" : "7FF77AF5-52EE-4ED6-AD61-6C1105CA2EAD",
+      "pitch" : 72,
+      "startBeat" : 1.03,
+      "velocity" : 0.93
+    }
+  ],
+  "organic" : {
+    "breath" : 0.61,
+    "drift" : 0.34,
+    "seed" : 18446744073709551613,
+    "timbre" : 0.46
+  },
+  "oscillatorMix" : 0,
+  "pulseWidth" : 0.5,
+  "release" : 0.15,
+  "resonance" : 0.5,
+  "secondWaveform" : "saw",
+  "subLevel" : 0,
+  "sustain" : 1,
+  "tone" : 0.65,
+  "waveform" : "triangle"
+}

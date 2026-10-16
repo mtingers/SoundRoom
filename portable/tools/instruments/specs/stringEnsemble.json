@@ -1,0 +1,46 @@
+{
+ "repo": "sgossner/VSCO-2-CE",
+ "tree": "vsco-tree.json",
+ "robins": 1,
+ "loop": true,
+ "release": 0.4,
+ "sets": [
+  {
+   "prefix": "Strings/Cello Section/susvib/",
+   "pattern": "^susvib_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>v[1-3])_(?P<rr>1)",
+   "layers": [
+    "v1",
+    "v2",
+    "v3"
+   ],
+   "keys": [
+    24,
+    55
+   ]
+  },
+  {
+   "prefix": "Strings/Viola Section/susvib/",
+   "pattern": "ViolaEns_susvib_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>v[12])_(?P<rr>1)",
+   "layers": [
+    "v1",
+    "v2"
+   ],
+   "keys": [
+    56,
+    67
+   ]
+  },
+  {
+   "prefix": "Strings/Violin Section/susVib/",
+   "pattern": "VlnEns_susVib_(?P<note>[A-G][#b]?-?\\d+)_(?P<layer>v[12])",
+   "layers": [
+    "v1",
+    "v2"
+   ],
+   "keys": [
+    68,
+    103
+   ]
+  }
+ ]
+}

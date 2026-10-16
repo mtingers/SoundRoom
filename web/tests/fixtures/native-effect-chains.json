@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "chains": [
+    {
+      "id": "20000000-0000-0000-0000-000000000001",
+      "name": "Native chain fixture",
+      "includesAutomation": true,
+      "effects": [
+        {
+          "id": "20000000-0000-0000-0000-000000000002",
+          "kind": "gain",
+          "enabled": true,
+          "amount": 0.75,
+          "parameters": {},
+          "automation": [{ "frame": 0, "value": 0.75, "curve": "smooth", "curveStart": 0.2, "curveEnd": 0.8 }],
+          "parameterAutomation": {},
+          "pitchEdits": [],
+          "pitchEditsOnly": false,
+          "bakedRanges": [{ "startFrame": 0, "endFrame": 48000 }]
+        }
+      ]
+    }
+  ]
+}

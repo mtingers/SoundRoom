@@ -1,0 +1,13 @@
+{
+ "repo": "sgossner/VCSL",
+ "tree": "vcsl-tree.json",
+ "robins": 2,
+ "maxSeconds": 5,
+ "release": 0.4,
+ "sets": [
+  {
+   "prefix": "Idiophones/Plucked Idiophones/Kalimba, Kenya/",
+   "pattern": "MainSpirit_(?P<note>[A-G][#b]?-?\\d+)_k\\d+_vl3"
+  }
+ ]
+}
