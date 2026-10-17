@@ -7,7 +7,9 @@ public struct RecordingTake: Codable, Equatable, Identifiable, Sendable {
     public var name: String
     public var clips: [Clip]
     public init(id: UUID = UUID(), name: String, clips: [Clip]) {
-        self.id = id; self.name = name; self.clips = clips
+        self.id = id
+        self.name = name
+        self.clips = clips
     }
     public var range: Range<Int>? {
         guard let first = clips.map(\.start).min(), let last = clips.map(\.end).max(), first < last else { return nil }
@@ -22,13 +24,19 @@ public struct RecordingPlan: Equatable, Sendable {
     public let countInFrames: Int
     public var inputLeadFrames: Int { countInFrames + targetStart - playbackStart }
     public var punchFrameCount: Int? { targetEnd.map { max(0, $0 - targetStart) } }
-    public init(playhead: Int, punch: Range<Int>? = nil, preRollSeconds: Double = 0, countInBars: Int = 0, tempo: Double = 120, beatsPerBar: Int = 4, beatUnit: Int = 4) {
+    public init(
+        playhead: Int, punch: Range<Int>? = nil, preRollSeconds: Double = 0, countInBars: Int = 0, tempo: Double = 120,
+        beatsPerBar: Int = 4, beatUnit: Int = 4
+    ) {
         targetStart = max(0, punch?.lowerBound ?? playhead)
         targetEnd = punch.flatMap { $0.isEmpty ? nil : $0.upperBound }
         let tempo = tempo.isFinite ? min(300, max(20, tempo)) : 120
         let preRoll = preRollSeconds.isFinite ? min(30, max(0, preRollSeconds)) : 0
         playbackStart = max(0, targetStart - Int(preRoll * sessionRate))
-        countInFrames = Int((Double(min(4, max(0, countInBars))) * MusicalTiming(tempo: tempo, beatsPerBar: beatsPerBar, beatUnit: beatUnit).valid.quarterNotesPerBar * 60 / tempo * sessionRate).rounded())
+        countInFrames = Int(
+            (Double(min(4, max(0, countInBars)))
+                * MusicalTiming(tempo: tempo, beatsPerBar: beatsPerBar, beatUnit: beatUnit).valid.quarterNotesPerBar
+                * 60 / tempo * sessionRate).rounded())
     }
     public func elapsedCaptureFrames(transportElapsedFrames: Int) -> Int {
         let elapsed = max(0, transportElapsedFrames - inputLeadFrames)
@@ -57,11 +65,17 @@ public struct RecordingMetronome: Sendable {
     public var enabled: Bool
     public var countInStart: Int
     public var countInEnd: Int
-    public init(tempo: Double = 120, enabled: Bool = false, countInStart: Int = 0, countInEnd: Int = 0, beatsPerBar: Int = 4, beatUnit: Int = 4) {
+    public init(
+        tempo: Double = 120, enabled: Bool = false, countInStart: Int = 0, countInEnd: Int = 0, beatsPerBar: Int = 4,
+        beatUnit: Int = 4
+    ) {
         self.tempo = tempo.isFinite ? min(300, max(20, tempo)) : 120
         let timing = MusicalTiming(tempo: self.tempo, beatsPerBar: beatsPerBar, beatUnit: beatUnit).valid
-        self.beatsPerBar = timing.beatsPerBar; self.beatUnit = timing.beatUnit
-        self.enabled = enabled; self.countInStart = countInStart; self.countInEnd = countInEnd
+        self.beatsPerBar = timing.beatsPerBar
+        self.beatUnit = timing.beatUnit
+        self.enabled = enabled
+        self.countInStart = countInStart
+        self.countInEnd = countInEnd
     }
     public func sample(at frame: Int) -> Float {
         let inCount = frame >= countInStart && frame < countInEnd

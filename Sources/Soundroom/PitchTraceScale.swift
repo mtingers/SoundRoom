@@ -16,17 +16,23 @@ struct PitchTraceScale: Equatable {
         guard let low = finite.min(), let high = finite.max() else { return }
         let center = ((low + high) / 2).rounded()
         let half = max(12, ceil(max(center - low, high - center) + 2))
-        lower = center - half; upper = center + half; initialized = true
+        lower = center - half
+        upper = center + half
+        initialized = true
     }
     mutating func zoom(_ factor: Float) {
         guard factor.isFinite, factor > 0 else { return }
         let center = (lower + upper) / 2
         let half = max(2, min(48, span * factor / 2))
-        lower = center - half; upper = center + half; initialized = true
+        lower = center - half
+        upper = center + half
+        initialized = true
     }
     mutating func move(semitones: Float) {
         guard semitones.isFinite else { return }
-        lower += semitones; upper += semitones; initialized = true
+        lower += semitones
+        upper += semitones
+        initialized = true
     }
     func contains(_ note: Float) -> Bool { note >= lower && note <= upper }
 }

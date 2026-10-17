@@ -8,7 +8,8 @@ struct RemotePendingRequests<Value> {
     var count: Int { items.count }
 
     mutating func insert(_ value: Value, for id: UUID, command: RemoteCommand) throws {
-        let limit = RemoteProtocol.maximumPendingRequests
+        let limit =
+            RemoteProtocol.maximumPendingRequests
             - (command.isInterrupt ? 0 : RemoteProtocol.reservedPendingInterruptRequests)
         guard items.count < limit, items[id] == nil else { throw RemoteError.queueFull }
         items[id] = value

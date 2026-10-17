@@ -7,8 +7,8 @@ pub mod pitch;
 pub mod professional;
 pub mod resonance;
 pub mod room;
-pub mod warmth;
-pub mod vocal;
 pub mod sound_putty;
+pub mod vocal;
+pub mod warmth;
 
 pub mod guitar_rig;

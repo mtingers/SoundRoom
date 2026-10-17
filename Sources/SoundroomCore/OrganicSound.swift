@@ -8,15 +8,19 @@ public struct OrganicSound: Codable, Equatable, Sendable {
     public var breath: Double = 0
     public var seed: UInt64 = 17
     public init(drift: Double = 0, timbre: Double = 0, breath: Double = 0, seed: UInt64 = 17) {
-        self.drift = safe(drift); self.timbre = safe(timbre); self.breath = safe(breath); self.seed = seed
+        self.drift = safe(drift)
+        self.timbre = safe(timbre)
+        self.breath = safe(breath)
+        self.seed = seed
     }
     private enum CodingKeys: String, CodingKey { case drift, timbre, breath, seed }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        self.init(drift: try c.decodeIfPresent(Double.self, forKey: .drift) ?? 0,
-                  timbre: try c.decodeIfPresent(Double.self, forKey: .timbre) ?? 0,
-                  breath: try c.decodeIfPresent(Double.self, forKey: .breath) ?? 0,
-                  seed: try c.decodeIfPresent(UInt64.self, forKey: .seed) ?? 17)
+        self.init(
+            drift: try c.decodeIfPresent(Double.self, forKey: .drift) ?? 0,
+            timbre: try c.decodeIfPresent(Double.self, forKey: .timbre) ?? 0,
+            breath: try c.decodeIfPresent(Double.self, forKey: .breath) ?? 0,
+            seed: try c.decodeIfPresent(UInt64.self, forKey: .seed) ?? 17)
     }
     public var isActive: Bool { drift > 0 || timbre > 0 || breath > 0 }
     func variation(pitch: Int, beat: Double) -> Double {
@@ -45,7 +49,8 @@ struct OrganicMotion {
     private var age = 0
     private(set) var ratio = 1.0, gain = 1.0
     init(settings: OrganicSound, pitch: Int, beat: Double, rate: Double) {
-        drift = safe(settings.drift); breath = safe(settings.breath)
+        drift = safe(settings.drift)
+        breath = safe(settings.breath)
         phase = settings.variation(pitch: pitch, beat: beat) * .pi
         self.rate = rate
         update()
@@ -67,8 +72,16 @@ private func safe(_ value: Double) -> Double { value.isFinite ? max(0, min(1, va
 
 /// Curated combinations, rather than a randomizer. All preserve the played sequence.
 public enum OrganicPatch: String, CaseIterable, Identifiable, Sendable {
-    case feltGlass = "Felt & glass", cathedral = "Cathedral breath", copperGarden = "Copper garden", duskStrings = "Dusk strings"
-    case firesideGuitar = "Fireside guitar", midnightUpright = "Midnight upright", chamberCello = "Chamber cello", forestFlute = "Forest flute", lateNightVibes = "Late-night vibes", kalimbaRain = "Kalimba rain"
+    case feltGlass = "Felt & glass"
+    case cathedral = "Cathedral breath"
+    case copperGarden = "Copper garden"
+    case duskStrings = "Dusk strings"
+    case firesideGuitar = "Fireside guitar"
+    case midnightUpright = "Midnight upright"
+    case chamberCello = "Chamber cello"
+    case forestFlute = "Forest flute"
+    case lateNightVibes = "Late-night vibes"
+    case kalimbaRain = "Kalimba rain"
     public var id: Self { self }
     public var detail: String {
         switch self {
@@ -86,7 +99,11 @@ public enum OrganicPatch: String, CaseIterable, Identifiable, Sendable {
     }
     public func applying(to source: SoundDesignPattern) -> SoundDesignPattern {
         let preset: SoundDesignPreset
-        switch self { case .feltGlass: preset = .studioPiano; case .cathedral: preset = .vocalEnsemble; case .copperGarden: preset = .nylonStrings; case .duskStrings: preset = .widePad
+        switch self {
+        case .feltGlass: preset = .studioPiano
+        case .cathedral: preset = .vocalEnsemble
+        case .copperGarden: preset = .nylonStrings
+        case .duskStrings: preset = .widePad
         case .firesideGuitar: preset = .acousticGuitar
         case .midnightUpright: preset = .feltUpright
         case .chamberCello: preset = .stringEnsemble
@@ -94,46 +111,67 @@ public enum OrganicPatch: String, CaseIterable, Identifiable, Sendable {
         case .lateNightVibes: preset = .vibraphone
         case .kalimbaRain: preset = .kalimba
         }
-        var p = preset.applying(to: source); p.controllers = source.controllers
-        p.baseGain = 0.68; p.organic = OrganicSound(drift: 0.3, timbre: 0.4, breath: 0.25)
-        func layer(_ preset: SoundDesignPreset, _ gain: Double, _ pan: Double, _ transpose: Int = 0) -> SoundDesignLayer {
-            var l = SoundDesignLayer(preset: preset); l.gain = gain; l.pan = pan; l.transpose = transpose; return l
+        var p = preset.applying(to: source)
+        p.controllers = source.controllers
+        p.baseGain = 0.68
+        p.organic = OrganicSound(drift: 0.3, timbre: 0.4, breath: 0.25)
+        func layer(_ preset: SoundDesignPreset, _ gain: Double, _ pan: Double, _ transpose: Int = 0) -> SoundDesignLayer
+        {
+            var l = SoundDesignLayer(preset: preset)
+            l.gain = gain
+            l.pan = pan
+            l.transpose = transpose
+            return l
         }
         switch self {
         case .firesideGuitar:
             p.layers = [layer(.nylonStrings, 0.16, -0.3), layer(.concertHarp, 0.08, 0.35)]
-            p.layers[1].delay = 0.012; p.layers[1].fineTune = 3
+            p.layers[1].delay = 0.012
+            p.layers[1].fineTune = 3
         case .midnightUpright:
             p.layers = [layer(.uprightBass, 0.38, -0.12)]
             p.layers[0].highestPitch = 51
         case .chamberCello:
             p.layers = [layer(.soloCello, 0.34, -0.25, -12), layer(.soloCello, 0.18, 0.3)]
-            p.layers[0].delay = 0.018; p.layers[0].fineTune = -4
-            p.layers[1].delay = 0.009; p.layers[1].fineTune = 3
+            p.layers[0].delay = 0.018
+            p.layers[0].fineTune = -4
+            p.layers[1].delay = 0.009
+            p.layers[1].fineTune = 3
         case .forestFlute:
             p.layers = [layer(.woodenFlute, 0.14, 0.45, 12)]
-            p.layers[0].delay = 0.035; p.layers[0].fineTune = -5
+            p.layers[0].delay = 0.035
+            p.layers[0].fineTune = -5
         case .lateNightVibes:
             p.layers = [layer(.feltUpright, 0.2, -0.25)]
             p.layers[0].delay = 0.008
         case .kalimbaRain:
             p.layers = [layer(.kalimba, 0.26, -0.5), layer(.kalimba, 0.14, 0.5, 12)]
-            p.layers[0].delay = 0.18; p.layers[0].fineTune = -3
-            p.layers[1].delay = 0.36; p.layers[1].fineTune = 4
+            p.layers[0].delay = 0.18
+            p.layers[0].fineTune = -3
+            p.layers[1].delay = 0.36
+            p.layers[1].fineTune = 4
         case .feltGlass:
-            p.tone = 0.65; p.character = 0.25
+            p.tone = 0.65
+            p.character = 0.25
             p.layers = [layer(.glassBells, 0.14, 0.45, 12), layer(.tinePiano, 0.24, -0.4)]
-            p.layers[0].minimumVelocity = 0.35; p.layers[0].velocityFade = 0.25
+            p.layers[0].minimumVelocity = 0.35
+            p.layers[0].velocityFade = 0.25
         case .cathedral:
-            p.character = 0.18; p.tone = 0.62; p.attack = 0.2; p.release = 0.8
+            p.character = 0.18
+            p.tone = 0.62
+            p.attack = 0.2
+            p.release = 0.8
             p.layers = [layer(.stringEnsemble, 0.3, -0.35), layer(.tonewheelOrgan, 0.15, 0.35, -12)]
         case .copperGarden:
-            p.tone = 0.72; p.character = 0.35
+            p.tone = 0.72
+            p.character = 0.35
             p.layers = [layer(.marimba, 0.24, -0.3), layer(.electricGuitar, 0.18, 0.45, 12)]
-            p.layers[1].minimumVelocity = 0.3; p.layers[1].velocityFade = 0.25
+            p.layers[1].minimumVelocity = 0.3
+            p.layers[1].velocityFade = 0.25
         case .duskStrings:
             p.layers = [layer(.stringEnsemble, 0.32, -0.5), layer(.vocalEnsemble, 0.22, 0.5, 12)]
-            p.organic.drift = 0.55; p.organic.breath = 0.45
+            p.organic.drift = 0.55
+            p.organic.breath = 0.45
         }
         // Separate seeds give layers independent movement while retaining repeatability.
         for i in p.layers.indices { p.layers[i].organicSeed = UInt64(97 + i * 131) }

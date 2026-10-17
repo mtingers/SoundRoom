@@ -1261,9 +1261,20 @@ impl Voice {
         let tone = bounded(tone, 0., 1., 0.65);
         let cutoff = (250. * 64_f64.powf(tone)).min(rate * 0.45);
         // Alternate takes follow the note's position in the pattern.
-        let robin = ((beat.max(0.) * 4.).round() as u64).wrapping_mul(31).wrapping_add(pitch as u64);
+        let robin = ((beat.max(0.) * 4.).round() as u64)
+            .wrapping_mul(31)
+            .wrapping_add(pitch as u64);
         let generated = match (synth, p.instrument_shape) {
-            (false, Some(shape)) => crate::measured_instruments::ModelNote::new(p.instrument, pitch, velocity, robin, tune, rate, shape, true),
+            (false, Some(shape)) => crate::measured_instruments::ModelNote::new(
+                p.instrument,
+                pitch,
+                velocity,
+                robin,
+                tune,
+                rate,
+                shape,
+                true,
+            ),
             _ => None,
         };
         let sampled = if synth || generated.is_some() {
@@ -1271,7 +1282,10 @@ impl Voice {
         } else {
             crate::sampled_instruments::Note::new(p.instrument, pitch, velocity, robin, tune, rate)
         };
-        let recorded_release = sampled.as_ref().map(|n| n.release).or(generated.as_ref().map(|n| n.release));
+        let recorded_release = sampled
+            .as_ref()
+            .map(|n| n.release)
+            .or(generated.as_ref().map(|n| n.release));
         Self {
             pre_delay: 0,
             pending_note_off: false,
@@ -1696,12 +1710,17 @@ impl Pattern {
         );
         // Recorded and generated instruments release over their own measured
         // time; size the tail for it so no note is cut off mid-release.
-        let probe = (self.instrument != Instrument::Synthesizer).then(|| Voice::new(60, 0.8, self, rate, 0.));
-        let tail = probe.as_ref().map_or(tail, |voice| tail.max(voice.release_seconds()));
+        let probe = (self.instrument != Instrument::Synthesizer)
+            .then(|| Voice::new(60, 0.8, self, rate, 0.));
+        let tail = probe
+            .as_ref()
+            .map_or(tail, |voice| tail.max(voice.release_seconds()));
         // Recorded and generated instruments get a real instrument's polyphony
         // (a strummed chord rings under the next); the modeled voices keep the
         // eight voices the Swift engine renders with.
-        let realistic = probe.as_ref().is_some_and(|voice| voice.sampled.is_some() || voice.generated.is_some());
+        let realistic = probe
+            .as_ref()
+            .is_some_and(|voice| voice.sampled.is_some() || voice.generated.is_some());
         let polyphony = if realistic { 32 } else { 8 };
         let frames = ((length * 60. / tempo + tail) * rate).round() as usize;
         if frames > crate::drums::MAX_RENDER_FRAMES {

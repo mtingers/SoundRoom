@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import SoundroomCore
 
 /// Signal-level regressions for vowel boundaries and consonants; these are not a
@@ -6,7 +7,10 @@ import XCTest
 final class PitchArtifactRefinementTests: XCTestCase {
     private func hardTune() -> PitchCorrectionParameters {
         var p = PitchCorrectionParameters()
-        p.retune = 0; p.humanize = 0; p.vibrato = 0; p.tolerance = 0
+        p.retune = 0
+        p.humanize = 0
+        p.vibrato = 0
+        p.tolerance = 0
         return p
     }
     private func render(_ input: [Float], _ p: PitchCorrectionParameters) -> [Float] {
@@ -14,7 +18,8 @@ final class PitchArtifactRefinementTests: XCTestCase {
         return input.map { state.process(left: $0, right: -0.5 * $0, parameters: p).0 }
     }
     func testUnvoicedConsonantAfterVowelDoesNotLoseItsTransient() {
-        let count = 36_000, boundary = 18_000
+        let count = 36_000
+        let boundary = 18_000
         var random: UInt64 = 937
         var input = [Float](repeating: 0, count: count)
         for i in 0..<boundary {
@@ -32,10 +37,12 @@ final class PitchArtifactRefinementTests: XCTestCase {
         let output = render(input, hardTune())
         let offset = PitchCorrectionState.latencyFrames
         XCTAssertEqual(output[transient + offset], input[transient], accuracy: 0.025)
-        var error: Double = 0, energy: Double = 0
+        var error: Double = 0
+        var energy: Double = 0
         for i in (boundary + 1500)..<(boundary + 4000) {
             let d = Double(output[i + offset] - input[i])
-            error += d * d; energy += Double(input[i] * input[i])
+            error += d * d
+            energy += Double(input[i] * input[i])
         }
         XCTAssertLessThan(sqrt(error / energy), 0.005)
     }
@@ -45,30 +52,38 @@ final class PitchArtifactRefinementTests: XCTestCase {
             let phase = Double(i) * 2 * .pi * 450 / 48_000
             // Fundamental remains fixed while vocal-like harmonic balance moves.
             let vowel = 0.5 + 0.5 * sin(Double(i) * 2 * .pi * 3 / 48_000)
-            return Float(0.2 * sin(phase) + (0.03 + 0.15 * vowel) * sin(2 * phase + 0.2) +
-                (0.16 - 0.13 * vowel) * sin(3 * phase + 0.8))
+            return Float(
+                0.2 * sin(phase) + (0.03 + 0.15 * vowel) * sin(2 * phase + 0.2) + (0.16 - 0.13 * vowel)
+                    * sin(3 * phase + 0.8))
         }
         let output = render(input, hardTune())
-        var leastRatio = Double.infinity, greatestRatio: Double = 0
+        var leastRatio = Double.infinity
+        var greatestRatio: Double = 0
         for source in stride(from: 6000, to: 50_000, by: 1000) {
-            var dry: Double = 0, wet: Double = 0
+            var dry: Double = 0
+            var wet: Double = 0
             for i in source..<(source + 1000) {
                 dry += Double(input[i] * input[i])
                 let value = output[i + PitchCorrectionState.latencyFrames]
                 wet += Double(value * value)
             }
             let ratio = sqrt(wet / dry)
-            leastRatio = min(leastRatio, ratio); greatestRatio = max(greatestRatio, ratio)
+            leastRatio = min(leastRatio, ratio)
+            greatestRatio = max(greatestRatio, ratio)
         }
         XCTAssertGreaterThan(leastRatio, 0.8)
         XCTAssertLessThan(greatestRatio, 1.15)
         XCTAssertTrue(output.allSatisfy { $0.isFinite && abs($0) < 0.8 })
         let dryStep = (6001..<50_000).map { abs(input[$0] - input[$0 - 1]) }.max()!
-        let wetStep = (6001..<50_000).map { abs(output[$0 + PitchCorrectionState.latencyFrames] - output[$0 + PitchCorrectionState.latencyFrames - 1]) }.max()!
-        XCTAssertLessThan(wetStep, dryStep * 1.35, "A changing harmonic envelope must not introduce an extra pulse discontinuity")
+        let wetStep = (6001..<50_000).map {
+            abs(output[$0 + PitchCorrectionState.latencyFrames] - output[$0 + PitchCorrectionState.latencyFrames - 1])
+        }.max()!
+        XCTAssertLessThan(
+            wetStep, dryStep * 1.35, "A changing harmonic envelope must not introduce an extra pulse discontinuity")
     }
     func testNoteBoundaryDoesNotChatterOnSmallDetectorVariation() {
-        let state = PitchCorrectionState(), p = hardTune()
+        let state = PitchCorrectionState()
+        let p = hardTune()
         var phase: Double = 0
         var targets: [Float] = []
         for i in 0..<48_000 {
@@ -80,10 +95,12 @@ final class PitchArtifactRefinementTests: XCTestCase {
             _ = state.process(left: value, right: value, parameters: p)
             if i >= 16_000 && i % 256 == 0 { targets.append(state.targetFrequency) }
         }
-        XCTAssertTrue(targets.allSatisfy { abs($0 - 440) < 0.1 }, "Repeated target flips introduce semitone jumps: \(targets)")
+        XCTAssertTrue(
+            targets.allSatisfy { abs($0 - 440) < 0.1 }, "Repeated target flips introduce semitone jumps: \(targets)")
     }
     func testNewVoicedPhraseResetsPreviousNoteCorrectionAndMeterIsSourceAligned() {
-        let state = PitchCorrectionState(), p = hardTune()
+        let state = PitchCorrectionState()
+        let p = hardTune()
         var lastMeter = PitchMeterSnapshot()
         for i in 0..<38_000 {
             let value: Float

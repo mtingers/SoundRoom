@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import SoundroomCore
 
 final class EffectTransitionStageTests: XCTestCase {
@@ -14,7 +15,8 @@ final class EffectTransitionStageTests: XCTestCase {
     func testRemovedLegacyDelayPreservesStoredEcho() {
         let processor = EffectProcessor(effect: RealtimeEffect(kind: .echo, amount: 1))
         let stage = EffectTransitionStage(processor: processor)
-        var impulse = [Float](repeating: 0, count: 1000); impulse[0] = 0.5
+        var impulse = [Float](repeating: 0, count: 1000)
+        impulse[0] = 0.5
         _ = render(stage, input: impulse, position: 0)
         stage.beginRetirement()
         let output = render(stage, input: [Float](repeating: 0, count: 12_000), position: 1000)
@@ -22,9 +24,11 @@ final class EffectTransitionStageTests: XCTestCase {
         XCTAssertGreaterThan(stage.remainingFrames, 0)
     }
     func testRetiredParallelDelayPreservesDryAndRemainingWet() {
-        let effect = RealtimeEffect(kind: .echo, parameters: ["time": 20, "feedback": 0.5, "mix": 0.7, "damping": 20_000])
+        let effect = RealtimeEffect(
+            kind: .echo, parameters: ["time": 20, "feedback": 0.5, "mix": 0.7, "damping": 20_000])
         let stage = EffectTransitionStage(processor: EffectProcessor(effect: effect))
-        var impulse = [Float](repeating: 0, count: 500); impulse[0] = 0.5
+        var impulse = [Float](repeating: 0, count: 500)
+        impulse[0] = 0.5
         _ = render(stage, input: impulse, position: 0)
         stage.beginRetirement()
         let output = render(stage, input: [Float](repeating: 0.1, count: 1400), position: 500)
@@ -33,14 +37,24 @@ final class EffectTransitionStageTests: XCTestCase {
         XCTAssertLessThan(output[1300], 0.13)
     }
     private func render(_ stage: EffectTransitionStage, input: [Float], position: Int) -> [Float] {
-        var left = input, right = input
-        var originalL = [Float](repeating: 0, count: input.count), originalR = originalL, gains = originalL
-        left.withUnsafeMutableBufferPointer { l in right.withUnsafeMutableBufferPointer { r in
-            originalL.withUnsafeMutableBufferPointer { ol in originalR.withUnsafeMutableBufferPointer { or in gains.withUnsafeMutableBufferPointer { g in
-                stage.process(left: l.baseAddress!, right: r.baseAddress!, count: l.count, position: position,
-                    originalLeft: ol.baseAddress!, originalRight: or.baseAddress!, gains: g.baseAddress!)
-            } } }
-        } }
+        var left = input
+        var right = input
+        var originalL = [Float](repeating: 0, count: input.count)
+        var originalR = originalL
+        var gains = originalL
+        left.withUnsafeMutableBufferPointer { l in
+            right.withUnsafeMutableBufferPointer { r in
+                originalL.withUnsafeMutableBufferPointer { ol in
+                    originalR.withUnsafeMutableBufferPointer { or in
+                        gains.withUnsafeMutableBufferPointer { g in
+                            stage.process(
+                                left: l.baseAddress!, right: r.baseAddress!, count: l.count, position: position,
+                                originalLeft: ol.baseAddress!, originalRight: or.baseAddress!, gains: g.baseAddress!)
+                        }
+                    }
+                }
+            }
+        }
         return left
     }
 }

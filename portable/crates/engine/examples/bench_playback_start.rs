@@ -3,7 +3,10 @@
 //! nearest checkpoint), store a checkpoint, page in the sources.
 //!
 //! bench_playback_start <project.soundroom> [seconds...]
-use soundroom_engine::{project::Project, render::{CheckpointCache, PreparedGraph}};
+use soundroom_engine::{
+    project::Project,
+    render::{CheckpointCache, PreparedGraph},
+};
 use std::{sync::atomic::AtomicBool, time::Instant};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -11,12 +14,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cancel = AtomicBool::new(false);
     let t = Instant::now();
     let project = Project::open(std::path::Path::new(&args[1]))?;
-    println!("open project            {:7.0} ms", t.elapsed().as_secs_f64() * 1e3);
+    println!(
+        "open project            {:7.0} ms",
+        t.elapsed().as_secs_f64() * 1e3
+    );
     let t = Instant::now();
-    let (graph, mut loader) = PreparedGraph::prepare_paged(&project, 32 * 1024 * 1024, &cancel, None)?;
-    println!("prepare graph           {:7.0} ms", t.elapsed().as_secs_f64() * 1e3);
-    println!("effect tail             {:7.1} s", graph.tail_frames() as f64 / 48000.);
-    println!("checkpoint size needed  {:7.1} MB (cache 32 MB)", graph.checkpoint_storage_budget() as f64 / 1e6);
+    let (graph, mut loader) =
+        PreparedGraph::prepare_paged(&project, 32 * 1024 * 1024, &cancel, None)?;
+    println!(
+        "prepare graph           {:7.0} ms",
+        t.elapsed().as_secs_f64() * 1e3
+    );
+    println!(
+        "effect tail             {:7.1} s",
+        graph.tail_frames() as f64 / 48000.
+    );
+    println!(
+        "checkpoint size needed  {:7.1} MB (cache 32 MB)",
+        graph.checkpoint_storage_budget() as f64 / 1e6
+    );
     let mut cache = CheckpointCache::new(32 * 1024 * 1024);
     let positions: Vec<f64> = args[2..].iter().map(|s| s.parse().unwrap()).collect();
     for seconds in positions {

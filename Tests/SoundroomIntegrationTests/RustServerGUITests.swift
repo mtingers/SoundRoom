@@ -1,7 +1,8 @@
-import XCTest
 import CoreMIDI
 import SoundroomCore
 import SoundroomRemote
+import XCTest
+
 @testable import Soundroom
 
 /// The native GUI client driving the portable Rust host over verified loopback
@@ -17,7 +18,8 @@ import SoundroomRemote
             throw XCTSkip("Set SOUNDROOM_RUST_SERVER to run native GUI ↔ Rust host acceptance")
         }
         let environment = ProcessInfo.processInfo.environment
-        directory = environment["SOUNDROOM_RUST_TEST_DIRECTORY"].map { URL(fileURLWithPath: $0) }
+        directory =
+            environment["SOUNDROOM_RUST_TEST_DIRECTORY"].map { URL(fileURLWithPath: $0) }
             ?? FileManager.default.temporaryDirectory.appendingPathComponent("SoundroomRust-\(UUID().uuidString)")
         let port = environment["SOUNDROOM_RUST_TEST_PORT"].flatMap(UInt16.init) ?? UInt16.random(in: 50_000...59_000)
         // Hardware tests open the real default output (silent unless a test plays audio).
@@ -31,30 +33,45 @@ import SoundroomRemote
         if hardware && environment["SOUNDROOM_RUST_HARDWARE"] != "1" {
             throw XCTSkip("Set SOUNDROOM_RUST_HARDWARE=1 to open real Core Audio devices")
         }
-        let configuration = ServerLaunchConfiguration(arguments: ["Soundroom", "--rust-server", server,
-            "--rust-data-directory", directory.path, "--rust-port", String(port)] + (hardware ? [] : ["--rust-server-flag", "--simulated-callback"]))
+        let configuration = ServerLaunchConfiguration(
+            arguments: [
+                "Soundroom", "--rust-server", server,
+                "--rust-data-directory", directory.path, "--rust-port", String(port),
+            ] + (hardware ? [] : ["--rust-server-flag", "--simulated-callback"]))
         store = SessionStore(headless: true)
-        remote = try await ServerBootstrap.connectRust(store: store, configuration: configuration, executable: URL(fileURLWithPath: server))
+        remote = try await ServerBootstrap.connectRust(
+            store: store, configuration: configuration, executable: URL(fileURLWithPath: server))
         try await until("authenticated snapshot") { self.remote.connected && self.remote.authoritativeSession != nil }
     }
     override func tearDown() async throws {
         if let remote {
             if store.isPlaying || store.isRecording { remote.route(.init(operation: "transport.stop")) }
             remote.route(.init(operation: "server.shutdown"))
-            let port = remote.port, deadline = Date().addingTimeInterval(3)
-            while ServerBootstrap.loopbackAccepts(port: port) && Date() < deadline { try? await Task.sleep(for: .milliseconds(50)) }
+            let port = remote.port
+            let deadline = Date().addingTimeInterval(3)
+            while ServerBootstrap.loopbackAccepts(port: port) && Date() < deadline {
+                try? await Task.sleep(for: .milliseconds(50))
+            }
             remote.disconnect()
             // A host that refused or missed the shutdown never outlives its test.
-            if let child = ServerBootstrap.launchedRustServer, child.isRunning { child.terminate(); child.waitUntilExit() }
+            if let child = ServerBootstrap.launchedRustServer, child.isRunning {
+                child.terminate()
+                child.waitUntilExit()
+            }
         }
-        if let directory, ProcessInfo.processInfo.environment["SOUNDROOM_RUST_TEST_DIRECTORY"] == nil { try? FileManager.default.removeItem(at: directory) }
+        if let directory, ProcessInfo.processInfo.environment["SOUNDROOM_RUST_TEST_DIRECTORY"] == nil {
+            try? FileManager.default.removeItem(at: directory)
+        }
     }
     private func until(_ label: String, timeout: Double = 10, _ done: @escaping () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(timeout)
         while !done() {
             guard Date() < deadline else {
-                let log = (try? String(contentsOf: directory.appendingPathComponent("server.log"), encoding: .utf8)) ?? ""
-                XCTFail("Timed out: \(label) · devices \(store.devices.count) out \(store.outputDevice) · status: \(store.status) · state: \(String(describing: remote?.state)) connected=\(remote?.connected == true) session=\(remote?.authoritativeSession != nil) · error: \(remote?.lastError ?? "") · tracks: \(remote?.authoritativeSession?.tracks.map { "\($0.name)=\($0.gain)" } ?? []) · canUndo: \(remote?.canUndo as Any) · log: \(log.suffix(800))")
+                let log =
+                    (try? String(contentsOf: directory.appendingPathComponent("server.log"), encoding: .utf8)) ?? ""
+                XCTFail(
+                    "Timed out: \(label) · devices \(store.devices.count) out \(store.outputDevice) · status: \(store.status) · state: \(String(describing: remote?.state)) connected=\(remote?.connected == true) session=\(remote?.authoritativeSession != nil) · error: \(remote?.lastError ?? "") · tracks: \(remote?.authoritativeSession?.tracks.map { "\($0.name)=\($0.gain)" } ?? []) · canUndo: \(remote?.canUndo as Any) · log: \(log.suffix(800))"
+                )
                 throw XCTSkip(label)
             }
             try await Task.sleep(for: .milliseconds(10))
@@ -89,19 +106,25 @@ import SoundroomRemote
         try await until("track") { self.remote.authoritativeSession?.tracks.count == 1 }
         store.selectedTrack = store.session.tracks.first?.id
         remote.importAudio(urls: [wav])
-        try await until("imported clip", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
+        try await until("imported clip", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 1
+        }
         let id = try XCTUnwrap(store.session.tracks.first?.id)
         store.renameTrack(id, to: "Kept")
         try await until("rename") { self.remote.authoritativeSession?.tracks.first?.name == "Kept" }
-        try await Task.sleep(for: .milliseconds(1500)) // debounced autosave
+        try await Task.sleep(for: .milliseconds(1500))  // debounced autosave
         remote.route(.init(operation: "server.shutdown"))
         try await until("server stopped") { !ServerBootstrap.loopbackAccepts(port: self.remote.port) }
         remote.disconnect()
         let server = try XCTUnwrap(ProcessInfo.processInfo.environment["SOUNDROOM_RUST_SERVER"])
-        let configuration = ServerLaunchConfiguration(arguments: ["Soundroom", "--rust-server", server,
-            "--rust-data-directory", directory.path, "--rust-port", String(remote.port), "--rust-server-flag", "--simulated-callback"])
+        let configuration = ServerLaunchConfiguration(arguments: [
+            "Soundroom", "--rust-server", server,
+            "--rust-data-directory", directory.path, "--rust-port", String(remote.port), "--rust-server-flag",
+            "--simulated-callback",
+        ])
         store = SessionStore(headless: true)
-        remote = try await ServerBootstrap.connectRust(store: store, configuration: configuration, executable: URL(fileURLWithPath: server))
+        remote = try await ServerBootstrap.connectRust(
+            store: store, configuration: configuration, executable: URL(fileURLWithPath: server))
         try await until("restored snapshot") { self.remote.authoritativeSession?.tracks.first?.name == "Kept" }
         let clip = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
         XCTAssertEqual(clip.length, 48_000)
@@ -112,15 +135,21 @@ import SoundroomRemote
 
     func testCompressedAndResampledImportIsDecodedByTheRustHost() async throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let wav = directory.appendingPathComponent("tone44.wav"), m4a = directory.appendingPathComponent("tone.m4a")
+        let wav = directory.appendingPathComponent("tone44.wav")
+        let m4a = directory.appendingPathComponent("tone.m4a")
         // One second, resampled to 44.1 kHz AAC by the system tool.
         let tone = AudioSamples(channels: [(0..<48_000).map { Float(sin(Double($0) * 0.05)) * 0.2 }])
         try WaveFile.encode(tone, float: true).write(to: wav)
-        let convert = Process(); convert.executableURL = URL(fileURLWithPath: "/usr/bin/afconvert")
-        convert.arguments = ["-f", "m4af", "-d", "aac@44100", wav.path, m4a.path]; try convert.run(); convert.waitUntilExit()
+        let convert = Process()
+        convert.executableURL = URL(fileURLWithPath: "/usr/bin/afconvert")
+        convert.arguments = ["-f", "m4af", "-d", "aac@44100", wav.path, m4a.path]
+        try convert.run()
+        convert.waitUntilExit()
         XCTAssertEqual(convert.terminationStatus, 0)
         remote.importAudio(urls: [m4a])
-        try await until("decoded import", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
+        try await until("decoded import", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 1
+        }
         let clip = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
         // ≈ one second at 48 kHz (AAC priming/padding allowed).
         XCTAssertEqual(Double(clip.length), 48_000, accuracy: 3_000)
@@ -129,18 +158,24 @@ import SoundroomRemote
     func testLoopPlaybackStaysInsideTheCycleAndWraps() async throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let wav = directory.appendingPathComponent("loop.wav")
-        try WaveFile.encode(AudioSamples(channels: [(0..<96_000).map { Float(sin(Double($0) * 0.05)) * 0.2 }]), float: true).write(to: wav)
+        try WaveFile.encode(
+            AudioSamples(channels: [(0..<96_000).map { Float(sin(Double($0) * 0.05)) * 0.2 }]), float: true
+        ).write(to: wav)
         remote.importAudio(urls: [wav])
         try await until("clip", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
         store.setLoopRange(12_000..<24_000)
         store.togglePlay()
         try await until("playing") { self.store.isPlaying }
         var frames: [Int] = []
-        for _ in 0..<150 { frames.append(store.playbackPosition.frame); try await Task.sleep(for: .milliseconds(10)) }
+        for _ in 0..<150 {
+            frames.append(store.playbackPosition.frame)
+            try await Task.sleep(for: .milliseconds(10))
+        }
         store.togglePlay()
         let moving = frames.filter { $0 > 0 }
         XCTAssertFalse(moving.isEmpty)
-        XCTAssertTrue(moving.allSatisfy { (12_000..<24_000).contains($0) }, "\(moving.min() ?? -1)...\(moving.max() ?? -1)")
+        XCTAssertTrue(
+            moving.allSatisfy { (12_000..<24_000).contains($0) }, "\(moving.min() ?? -1)...\(moving.max() ?? -1)")
         XCTAssertTrue(zip(moving, moving.dropFirst()).contains { $1 < $0 }, "a quarter-second cycle wraps within 1.5 s")
     }
 
@@ -158,9 +193,14 @@ import SoundroomRemote
         // Exercise the same toggle used by the toolbar and R shortcut.
         let stopRequested = ProcessInfo.processInfo.systemUptime
         store.record()
-        try await until("recording stop visible before take publication", timeout: 2) { !self.store.isRecording && !self.store.isPlaying }
-        XCTAssertLessThan(ProcessInfo.processInfo.systemUptime - stopRequested, 1, "Stop must not wait for archive finalization")
-        try await until("take committed", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
+        try await until("recording stop visible before take publication", timeout: 2) {
+            !self.store.isRecording && !self.store.isPlaying
+        }
+        XCTAssertLessThan(
+            ProcessInfo.processInfo.systemUptime - stopRequested, 1, "Stop must not wait for archive finalization")
+        try await until("take committed", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 1
+        }
         try await until("transport stopped") { !self.store.isRecording && !self.store.isPlaying }
         let clip = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
         // About 1.2 s of the simulated 440 Hz input, placed near the record start.
@@ -175,9 +215,13 @@ import SoundroomRemote
     private func importTone(frames: Int = 48_000) async throws -> UUID {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let wav = directory.appendingPathComponent("tone-\(UUID().uuidString).wav")
-        try WaveFile.encode(AudioSamples(channels: [(0..<frames).map { Float(sin(Double($0) * 0.05)) * 0.2 }]), float: true).write(to: wav)
+        try WaveFile.encode(
+            AudioSamples(channels: [(0..<frames).map { Float(sin(Double($0) * 0.05)) * 0.2 }]), float: true
+        ).write(to: wav)
         remote.importAudio(urls: [wav])
-        try await until("imported clip", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
+        try await until("imported clip", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 1
+        }
         return try XCTUnwrap(remote.authoritativeSession?.tracks.first?.id)
     }
 
@@ -185,33 +229,47 @@ import SoundroomRemote
         let track = try await importTone()
         store.selectedTrack = track
         store.selection = EditSelection(trackID: track, range: 12_000..<24_000)
-        store.effect = .reverse; store.effectParameters = [:]
+        store.effect = .reverse
+        store.effectParameters = [:]
         store.applyEffect()
-        try await until("reversed selection", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 3 }
+        try await until("reversed selection", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 3
+        }
         let clips = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips).sorted { $0.start < $1.start }
         XCTAssertEqual(clips.map(\.start), [0, 12_000, 24_000])
         XCTAssertEqual(clips.map(\.length), [12_000, 12_000, 24_000])
         XCTAssertTrue(clips[1].name.hasSuffix("Reverse"), clips[1].name)
         // A parameterized realtime effect with its tail extends past the selection.
         store.selection = EditSelection(trackID: track, range: 30_000..<36_000)
-        store.effect = .echo; store.effectParameters = ["time": 100, "feedback": 0.3, "mix": 0.5, "damping": 12_000]
+        store.effect = .echo
+        store.effectParameters = ["time": 100, "feedback": 0.3, "mix": 0.5, "damping": 12_000]
         store.includeEffectTail = true
         store.applyEffect()
-        try await until("echo", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.contains { $0.name.hasSuffix("Echo") } == true }
+        try await until("echo", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.contains { $0.name.hasSuffix("Echo") } == true
+        }
         let echo = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first { $0.name.hasSuffix("Echo") })
-        XCTAssertEqual(echo.start, 30_000); XCTAssertGreaterThan(echo.length, 6_000)
+        XCTAssertEqual(echo.start, 30_000)
+        XCTAssertGreaterThan(echo.length, 6_000)
         store.undo()
         try await until("undo echo") { self.remote.authoritativeSession?.tracks.first?.clips.count == 3 }
         // Replacing a whole clip remembers it; a span across clips keeps its dry render.
-        let reversed = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first { $0.name.hasSuffix("Reverse") })
+        let reversed = try XCTUnwrap(
+            remote.authoritativeSession?.tracks.first?.clips.first { $0.name.hasSuffix("Reverse") })
         XCTAssertEqual(reversed.previousStates?.last?.operation, "Reverse")
         store.selection = EditSelection(trackID: track, range: 6_000..<18_000)
-        store.effect = .gain; store.effectParameters = [:]; store.includeEffectTail = false
+        store.effect = .gain
+        store.effectParameters = [:]
+        store.includeEffectTail = false
         store.applyEffect()
-        try await until("gain across clips", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.contains { $0.name.hasSuffix("Gain") } == true }
-        let spanning = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first { $0.name.hasSuffix("Gain") })
+        try await until("gain across clips", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.contains { $0.name.hasSuffix("Gain") } == true
+        }
+        let spanning = try XCTUnwrap(
+            remote.authoritativeSession?.tracks.first?.clips.first { $0.name.hasSuffix("Gain") })
         let original = try XCTUnwrap(spanning.previousStates?.last)
-        XCTAssertEqual(original.name, "Original selection"); XCTAssertEqual(original.length, 12_000)
+        XCTAssertEqual(original.name, "Original selection")
+        XCTAssertEqual(original.length, 12_000)
         store.undo()
         try await until("undo gain") { self.remote.authoritativeSession?.tracks.first?.clips.count == 3 }
         store.selection = nil
@@ -219,7 +277,8 @@ import SoundroomRemote
         store.combineClips()
         try await until("combined", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
         let combined = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
-        XCTAssertEqual(combined.start, 0); XCTAssertEqual(combined.length, 48_000)
+        XCTAssertEqual(combined.start, 0)
+        XCTAssertEqual(combined.length, 48_000)
         XCTAssertFalse(combined.previousStates?.isEmpty ?? true)
         store.undo()
         try await until("undo combine") { self.remote.authoritativeSession?.tracks.first?.clips.count == 3 }
@@ -233,26 +292,35 @@ import SoundroomRemote
         editor.analyze()
         try await until("contour", timeout: 20) { !editor.before.isEmpty }
         XCTAssertTrue(editor.before.contains(where: \.isVoiced), editor.error ?? "")
-        XCTAssertFalse(editor.visibleRegions.isEmpty); XCTAssertTrue(editor.targetsAreDraft)
+        XCTAssertFalse(editor.visibleRegions.isEmpty)
+        XCTAssertTrue(editor.targetsAreDraft)
         // Choosing a preset authors an edits-only pitch insert through ordinary track edits.
         editor.resetTargets(.tight)
         try await until("authored targets", timeout: 20) {
-            self.remote.authoritativeSession?.tracks.first?.realtimeEffects.first { $0.kind == .pitchCorrection }?.pitchEdits.isEmpty == false
+            self.remote.authoritativeSession?.tracks.first?.realtimeEffects.first { $0.kind == .pitchCorrection }?
+                .pitchEdits.isEmpty == false
         }
         let effect = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.realtimeEffects.first)
-        editor.synchronize(track: store.session.tracks.first, effectID: effect.id, range: 0..<48_000, assets: store.assets)
+        editor.synchronize(
+            track: store.session.tracks.first, effectID: effect.id, range: 0..<48_000, assets: store.assets)
         editor.render(preview: false)
         try await until("measured output", timeout: 20) { editor.after != nil }
         editor.bake()
-        try await until("baked", timeout: 30) { self.remote.authoritativeSession?.tracks.first?.realtimeEffects.isEmpty == true }
+        try await until("baked", timeout: 30) {
+            self.remote.authoritativeSession?.tracks.first?.realtimeEffects.isEmpty == true
+        }
         XCTAssertTrue(remote.authoritativeSession?.tracks.first?.clips.contains { $0.name.hasSuffix("Pitch") } == true)
         store.undo()
         try await until("undo bake") { self.remote.authoritativeSession?.tracks.first?.realtimeEffects.count == 1 }
         store.selection = EditSelection(trackID: track, range: 0..<48_000)
-        store.applyManualPitchTune(trackID: track, selectionRange: 0..<48_000, region: 12_000..<24_000, target: 67, parameters: [:])
-        try await until("manual tune", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.contains { $0.name.hasSuffix("Tuned") } == true }
+        store.applyManualPitchTune(
+            trackID: track, selectionRange: 0..<48_000, region: 12_000..<24_000, target: 67, parameters: [:])
+        try await until("manual tune", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.contains { $0.name.hasSuffix("Tuned") } == true
+        }
         let tuned = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first { $0.name.hasSuffix("Tuned") })
-        XCTAssertEqual(tuned.start, 12_000); XCTAssertEqual(tuned.length, 12_000)
+        XCTAssertEqual(tuned.start, 12_000)
+        XCTAssertEqual(tuned.length, 12_000)
     }
 
     private func reply(_ intent: RemoteEditorIntent) async throws -> RemoteReply {
@@ -274,7 +342,8 @@ import SoundroomRemote
         store.previewSoundDesign(pattern)
         try await until("designer previewing", timeout: 15) { self.store.designerPreviewing }
         let data = try JSONEncoder().encode(pattern)
-        let on = try await reply(.init(operation: "designer.noteOn", integers: ["pitch": 64], numbers: ["velocity": 0.9], payload: data))
+        let on = try await reply(
+            .init(operation: "designer.noteOn", integers: ["pitch": 64], numbers: ["velocity": 0.9], payload: data))
         XCTAssertTrue(on.accepted, on.message ?? "")
         let off = try await reply(.init(operation: "designer.noteOff", integers: ["pitch": 64]))
         XCTAssertTrue(off.accepted, off.message ?? "")
@@ -282,12 +351,18 @@ import SoundroomRemote
         try await until("designer stopped") { !self.store.designerPreviewing }
         // Selection effect preview renders and plays without authoring anything.
         let revision = remote.revision
-        store.selectedTrack = track; store.selection = EditSelection(trackID: track, range: 0..<24_000)
-        let effect = try await reply(.init(operation: "effects.preview", context: store.remoteContext, numbers: ["amount": 0.5], strings: ["kind": "reverse"]))
+        store.selectedTrack = track
+        store.selection = EditSelection(trackID: track, range: 0..<24_000)
+        let effect = try await reply(
+            .init(
+                operation: "effects.preview", context: store.remoteContext, numbers: ["amount": 0.5],
+                strings: ["kind": "reverse"]))
         XCTAssertTrue(effect.accepted, effect.message ?? "")
         XCTAssertEqual(remote.revision, revision)
         // Single-track audition runs the transport with only that track audible.
-        let audition = try await reply(.init(operation: "transport.audition", context: store.remoteContext, strings: ["trackID": track.uuidString]))
+        let audition = try await reply(
+            .init(operation: "transport.audition", context: store.remoteContext, strings: ["trackID": track.uuidString])
+        )
         XCTAssertTrue(audition.accepted, audition.message ?? "")
         try await until("auditioning") { self.store.isPlaying }
         store.togglePlay()
@@ -297,15 +372,19 @@ import SoundroomRemote
     func testMasteringReviewAnalyzesProposesAppliesAndUndoesThroughTheRustHost() async throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let wav = directory.appendingPathComponent("master.wav")
-        let tone = AudioSamples(channels: [(0..<96_000).map { Float(sin(Double($0) * 0.05)) * 0.3 },
-                                           (0..<96_000).map { Float(sin(Double($0) * 0.31)) * 0.1 }])
+        let tone = AudioSamples(channels: [
+            (0..<96_000).map { Float(sin(Double($0) * 0.05)) * 0.3 },
+            (0..<96_000).map { Float(sin(Double($0) * 0.31)) * 0.1 },
+        ])
         try WaveFile.encode(tone, float: true).write(to: wav)
         remote.importAudio(urls: [wav])
         try await until("clip", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
         // The Master assistant's own review controller, exactly as the GUI drives it.
         let review = MasteringReviewController(owner: store)
         review.analyze()
-        try await until("analysis", timeout: 30) { self.remote.authoritativeSession?.masteringAnalysis != nil && !review.working }
+        try await until("analysis", timeout: 30) {
+            self.remote.authoritativeSession?.masteringAnalysis != nil && !review.working
+        }
         await review.waitForSourceVerification()
         try await until("verified review") { review.ready }
         let document = try XCTUnwrap(remote.authoritativeSession)
@@ -318,13 +397,25 @@ import SoundroomRemote
         XCTAssertGreaterThan(report.integratedLUFS, -40)
         // The host's proposal is the native proposal for the stored analysis.
         var reply: RemoteReply?
-        remote.route(.init(operation: "master.proposal", numbers: ["targetLUFS": -14, "intensity": 0.65])) { reply = $0 }
+        remote.route(.init(operation: "master.proposal", numbers: ["targetLUFS": -14, "intensity": 0.65])) {
+            reply = $0
+        }
         try await until("proposal") { reply != nil }
         XCTAssertEqual(reply?.accepted, true, reply?.message ?? "")
         let proposal = try JSONDecoder().decode([RealtimeEffect].self, from: XCTUnwrap(reply?.payload))
         let local = report.proposal(targetLUFS: -14, intensity: 0.65)
         let neutral = UUID()
-        XCTAssertEqual(proposal.map { var e = $0; e.id = neutral; return e }, local.map { var e = $0; e.id = neutral; return e })
+        XCTAssertEqual(
+            proposal.map {
+                var e = $0
+                e.id = neutral
+                return e
+            },
+            local.map {
+                var e = $0
+                e.id = neutral
+                return e
+            })
         XCTAssertEqual(proposal.map(\.kind), [.equalizer, .resonance, .warmth, .limiter])
         let opening = document.masterTrack.realtimeEffects
         review.apply()
@@ -378,7 +469,10 @@ import SoundroomRemote
         try await until("armed") { self.remote.authoritativeSession?.tracks.first?.armed == true }
         store.selectedTrack = id
         store.selection = EditSelection(trackID: id, range: 24_000..<48_000)
-        store.punchRecording = true; store.preRollSeconds = 0.25; store.countInBars = 1; store.recordingMetronome = true
+        store.punchRecording = true
+        store.preRollSeconds = 0.25
+        store.countInBars = 1
+        store.recordingMetronome = true
         store.record()
         // One 4/4 bar at 120 BPM of count-in, a quarter second of pre-roll, then
         // the half-second punch; the host stops and commits on its own.
@@ -398,8 +492,11 @@ import SoundroomRemote
         try await until("insert") { self.remote.authoritativeSession?.tracks.first?.realtimeEffects.count == 1 }
         let id = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.realtimeEffects.first?.id)
         store.changeRealtimeEffect(id, name: "Threshold") { $0.parameters["threshold"] = -40 }
-        try await until("threshold") { self.remote.authoritativeSession?.tracks.first?.realtimeEffects.first?.parameters["threshold"] == -40 }
-        store.selectedRealtimeEffect = nil; store.selectedRealtimeEffect = id
+        try await until("threshold") {
+            self.remote.authoritativeSession?.tracks.first?.realtimeEffects.first?.parameters["threshold"] == -40
+        }
+        store.selectedRealtimeEffect = nil
+        store.selectedRealtimeEffect = id
         store.togglePlay()
         try await until("playing") { self.store.isPlaying }
         try await until("insert meters", timeout: 5) { (self.remote.effectMeters[id]?.outputPeak ?? 0) > 0 }
@@ -412,7 +509,8 @@ import SoundroomRemote
         store.addRealtimeEffect(.limiter)
         try await until("limiter") { self.remote.authoritativeSession?.tracks.first?.realtimeEffects.count == 2 }
         let limiter = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.realtimeEffects.last?.id)
-        store.selectedRealtimeEffect = nil; store.selectedRealtimeEffect = limiter
+        store.selectedRealtimeEffect = nil
+        store.selectedRealtimeEffect = limiter
         store.togglePlay()
         try await until("loudness", timeout: 5) { (self.remote.effectMeters[limiter]?.momentaryLUFS ?? -120) > -60 }
         let reading = try XCTUnwrap(remote.effectMeters[limiter])
@@ -432,27 +530,38 @@ import SoundroomRemote
         let package = directory.appendingPathComponent("Local Song.soundroom")
         _ = try ProjectPersistence.saveSynchronously(session: session, assets: [asset: audio], to: package)
         remote.openProject(url: package)
-        try await until("opened package", timeout: 30) { self.remote.authoritativeSession?.tracks.first?.name == "From disk" }
+        try await until("opened package", timeout: 30) {
+            self.remote.authoritativeSession?.tracks.first?.name == "From disk"
+        }
         let clip = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
-        XCTAssertEqual(clip.start, 4_800); XCTAssertEqual(clip.length, 24_000)
+        XCTAssertEqual(clip.start, 4_800)
+        XCTAssertEqual(clip.length, 24_000)
         store.togglePlay()
         try await until("opened media plays") { self.store.isPlaying }
         store.togglePlay()
     }
 
     func testServerMIDISourcePlaysTheLiveDesignerInstrument() async throws {
-        var client = MIDIClientRef(), source = MIDIEndpointRef()
+        var client = MIDIClientRef()
+        var source = MIDIEndpointRef()
         guard MIDIClientCreate("Soundroom test" as CFString, nil, nil, &client) == noErr,
-              MIDISourceCreate(client, "Soundroom Test Keys" as CFString, &source) == noErr else {
+            MIDISourceCreate(client, "Soundroom Test Keys" as CFString, &source) == noErr
+        else {
             throw XCTSkip("CoreMIDI is unavailable")
         }
-        defer { MIDIEndpointDispose(source); MIDIClientDispose(client) }
+        defer {
+            MIDIEndpointDispose(source)
+            MIDIClientDispose(client)
+        }
         let listed = try await reply(.init(operation: "designer.midiSources"))
         XCTAssertTrue(listed.accepted, listed.message ?? "")
         let sources = try JSONDecoder().decode([RemoteMIDISource].self, from: try XCTUnwrap(listed.payload))
         let keys = try XCTUnwrap(sources.first { $0.name == "Soundroom Test Keys" }, "\(sources)")
         let pattern = SoundDesignPattern(notes: [.init(pitch: 69, startBeat: 0, durationBeats: 1)], bpm: 120, beats: 2)
-        let connected = try await reply(.init(operation: "designer.midiConnect", integers: ["sourceID": Int(keys.id)], payload: try JSONEncoder().encode(pattern)))
+        let connected = try await reply(
+            .init(
+                operation: "designer.midiConnect", integers: ["sourceID": Int(keys.id)],
+                payload: try JSONEncoder().encode(pattern)))
         XCTAssertTrue(connected.accepted, connected.message ?? "")
         _ = try await reply(.init(operation: "meters.subscribe", payload: try JSONEncoder().encode([UUID]())))
         try await Task.sleep(for: .milliseconds(200))
@@ -486,7 +595,9 @@ import SoundroomRemote
         try await until("monitored input", timeout: 5) { self.store.meter > 0.1 }
         store.inputMonitoring = false
         store.finishRecording()
-        try await until("take committed", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
+        try await until("take committed", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 1
+        }
     }
 
     func testHardwareMicrophoneRecordsAnAlignedTake() async throws {
@@ -499,7 +610,9 @@ import SoundroomRemote
         try await until("recording from the microphone", timeout: 15) { self.store.isRecording }
         try await Task.sleep(for: .milliseconds(1500))
         store.finishRecording()
-        try await until("microphone take", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
+        try await until("microphone take", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 1
+        }
         let clip = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
         XCTAssertGreaterThan(clip.length, 48_000, "about 1.5 s of native input, resampled and aligned")
         XCTAssertLessThan(clip.start, 48_000)
@@ -511,14 +624,18 @@ import SoundroomRemote
         try await until("empty track") { self.remote.authoritativeSession?.tracks.count == 2 }
         let empty = try XCTUnwrap(remote.authoritativeSession?.tracks.last?.id)
         _ = try await reply(.init(operation: "meters.subscribe", payload: try JSONEncoder().encode([UUID]())))
-        let audition = try await reply(.init(operation: "transport.audition", context: store.remoteContext, strings: ["trackID": empty.uuidString]))
+        let audition = try await reply(
+            .init(operation: "transport.audition", context: store.remoteContext, strings: ["trackID": empty.uuidString])
+        )
         XCTAssertTrue(audition.accepted, audition.message ?? "")
         try await until("auditioning") { self.store.isPlaying }
         try await Task.sleep(for: .milliseconds(300))
         XCTAssertLessThan(store.meter, 0.001, "only the empty track is audible")
         // An authored edit during the audition must not bring back the full mix.
         store.renameTrack(toneTrack, to: "Renamed while auditioning")
-        try await until("rename") { self.remote.authoritativeSession?.tracks.first?.name == "Renamed while auditioning" }
+        try await until("rename") {
+            self.remote.authoritativeSession?.tracks.first?.name == "Renamed while auditioning"
+        }
         try await Task.sleep(for: .milliseconds(400))
         XCTAssertLessThan(store.meter, 0.001, "the audition survives the edit")
         store.togglePlay()
@@ -534,10 +651,17 @@ import SoundroomRemote
         let original = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
         // Two contiguous pieces of the same source with no fades or cut boundaries.
         store.updateTrack(track, actionName: "Pieces") { t in
-            var a = original, b = original
-            a.length = 20_000; a.edgeFadeFrames = 0; a.edgeProtectionDisabled = true
-            b.id = UUID(); b.start = original.start + 20_000; b.offset = original.offset + 20_000; b.length = 28_000
-            b.edgeFadeFrames = 0; b.edgeProtectionDisabled = true
+            var a = original
+            var b = original
+            a.length = 20_000
+            a.edgeFadeFrames = 0
+            a.edgeProtectionDisabled = true
+            b.id = UUID()
+            b.start = original.start + 20_000
+            b.offset = original.offset + 20_000
+            b.length = 28_000
+            b.edgeFadeFrames = 0
+            b.edgeProtectionDisabled = true
             t.clips = [a, b]
         }
         try await until("pieces") { self.remote.authoritativeSession?.tracks.first?.clips.count == 2 }
@@ -547,7 +671,8 @@ import SoundroomRemote
         try await until("rejoined", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
         let joined = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
         XCTAssertEqual(joined.assetID, original.assetID, "no new media for a provably identical rejoin")
-        XCTAssertEqual(joined.length, 48_000); XCTAssertEqual(joined.start, original.start)
+        XCTAssertEqual(joined.length, 48_000)
+        XCTAssertEqual(joined.start, original.start)
         store.undo()
         try await until("undo rejoin") { self.remote.authoritativeSession?.tracks.first?.clips.count == 2 }
     }
@@ -559,24 +684,42 @@ import SoundroomRemote
         let wav = directory.appendingPathComponent("ten-minutes.wav")
         var data = Data(capacity: 44 + frames * 2)
         func le<T: FixedWidthInteger>(_ v: T) { withUnsafeBytes(of: v.littleEndian) { data.append(contentsOf: $0) } }
-        data.append(contentsOf: Array("RIFF".utf8)); le(UInt32(36 + frames * 2)); data.append(contentsOf: Array("WAVEfmt ".utf8))
-        le(UInt32(16)); le(UInt16(1)); le(UInt16(1)); le(UInt32(48_000)); le(UInt32(96_000)); le(UInt16(2)); le(UInt16(16))
-        data.append(contentsOf: Array("data".utf8)); le(UInt32(frames * 2))
+        data.append(contentsOf: Array("RIFF".utf8))
+        le(UInt32(36 + frames * 2))
+        data.append(contentsOf: Array("WAVEfmt ".utf8))
+        le(UInt32(16))
+        le(UInt16(1))
+        le(UInt16(1))
+        le(UInt32(48_000))
+        le(UInt32(96_000))
+        le(UInt16(2))
+        le(UInt16(16))
+        data.append(contentsOf: Array("data".utf8))
+        le(UInt32(frames * 2))
         var samples = [Int16](repeating: 0, count: frames)
         for i in 0..<frames { samples[i] = Int16(sin(Double(i) * 0.03) * 6000) }
         samples.withUnsafeBytes { data.append(contentsOf: $0) }
         try data.write(to: wav)
         remote.importAudio(urls: [wav])
         let importStart = Date()
-        try await until("long import", timeout: 900) { self.remote.authoritativeSession?.tracks.first?.clips.count == 1 }
+        try await until("long import", timeout: 900) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 1
+        }
         let importSeconds = Date().timeIntervalSince(importStart)
         let track = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.id)
         let source = try XCTUnwrap(remote.authoritativeSession?.tracks.first?.clips.first)
         store.updateTrack(track, actionName: "Hour") { t in
-            t.clips = (0..<6).map { n in var c = source; c.id = UUID(); c.start = n * frames; return c }
+            t.clips = (0..<6).map { n in
+                var c = source
+                c.id = UUID()
+                c.start = n * frames
+                return c
+            }
             t.realtimeEffects = [RealtimeEffect(kind: .room, parameters: RealtimeEffectKind.room.defaultParameters)]
         }
-        try await until("hour timeline", timeout: 20) { self.remote.authoritativeSession?.tracks.first?.clips.count == 6 }
+        try await until("hour timeline", timeout: 20) {
+            self.remote.authoritativeSession?.tracks.first?.clips.count == 6
+        }
         func seekAndPlay(_ frame: Int) async throws -> Double {
             var reply: RemoteReply?
             let started = Date()
@@ -592,7 +735,11 @@ import SoundroomRemote
         }
         let first = try await seekAndPlay(58 * 60 * 48_000)
         let cached = try await seekAndPlay(58 * 60 * 48_000 + 48_000)
-        print(String(format: "SOUNDROOM_RUST_HOUR_BENCHMARK upload_import_57MiB_seconds=%.3f first_seek_to_playing_seconds=%.3f nearby_seek_to_playing_seconds=%.3f", importSeconds, first, cached))
+        print(
+            String(
+                format:
+                    "SOUNDROOM_RUST_HOUR_BENCHMARK upload_import_57MiB_seconds=%.3f first_seek_to_playing_seconds=%.3f nearby_seek_to_playing_seconds=%.3f",
+                importSeconds, first, cached))
         XCTAssertLessThan(first, 2, "bounded warm-start seek")
     }
 }

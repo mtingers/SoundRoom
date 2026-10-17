@@ -6,7 +6,9 @@ public struct PitchContourPoint: Equatable, Sendable {
     public let confidence: Float
     public var isVoiced: Bool { (50...1000).contains(frequency) && confidence > 0.75 }
     public init(frame: Int, frequency: Float, confidence: Float) {
-        self.frame = frame; self.frequency = frequency; self.confidence = confidence
+        self.frame = frame
+        self.frequency = frequency
+        self.confidence = confidence
     }
 }
 
@@ -17,7 +19,9 @@ public enum PitchContourAnalysis {
         guard audio.count > 0 else { return [] }
         let detector = PitchCorrectionState()
         var controls = PitchCorrectionParameters()
-        controls.mix = 0; controls.strength = 0; controls.formant = 0
+        controls.mix = 0
+        controls.strength = 0
+        controls.formant = 0
         // Bound chart complexity without changing the detector's audio cadence.
         let pointLimit = max(1, min(65_536, maximumPoints))
         let hop = max(256, Int(ceil(Double(audio.count) / Double(pointLimit) / 256)) * 256)
@@ -32,7 +36,9 @@ public enum PitchContourAnalysis {
             // Decisions arrive at frame 2044, 2300, ... and describe windows
             // centred 1024 frames earlier. Keep their actual timing in the plot.
             if sourceFrame >= 0, sourceFrame < audio.count, (index + 4) % hop == 0 {
-                result.append(PitchContourPoint(frame: sourceFrame, frequency: detector.detectedFrequency, confidence: detector.confidence))
+                result.append(
+                    PitchContourPoint(
+                        frame: sourceFrame, frequency: detector.detectedFrequency, confidence: detector.confidence))
             }
         }
         return result

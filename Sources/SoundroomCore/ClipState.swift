@@ -24,27 +24,44 @@ public struct ClipState: Codable, Equatable, Identifiable, Sendable {
     public init(clip: Clip, operation: String) {
         self.operation = operation
         renderEnvelope = clip.renderEnvelope
-        assetID = clip.assetID; name = clip.name; offset = clip.offset; length = clip.length
-        soundDesign = clip.soundDesign; drumPattern = clip.drumPattern
-        fadeInFrames = clip.fadeInFrames; fadeOutFrames = clip.fadeOutFrames
-        fadeReferenceOffset = clip.fadeReferenceOffset; fadeReferenceLength = clip.fadeReferenceLength
-        edgeFadeFrames = clip.edgeFadeFrames; edgeProtectionDisabled = clip.edgeProtectionDisabled
-        cutFadeInFrames = clip.cutFadeInFrames; cutFadeOutFrames = clip.cutFadeOutFrames
+        assetID = clip.assetID
+        name = clip.name
+        offset = clip.offset
+        length = clip.length
+        soundDesign = clip.soundDesign
+        drumPattern = clip.drumPattern
+        fadeInFrames = clip.fadeInFrames
+        fadeOutFrames = clip.fadeOutFrames
+        fadeReferenceOffset = clip.fadeReferenceOffset
+        fadeReferenceLength = clip.fadeReferenceLength
+        edgeFadeFrames = clip.edgeFadeFrames
+        edgeProtectionDisabled = clip.edgeProtectionDisabled
+        cutFadeInFrames = clip.cutFadeInFrames
+        cutFadeOutFrames = clip.cutFadeOutFrames
     }
     public func applying(to original: Clip) -> Clip {
         var clip = original
         clip.renderEnvelope = renderEnvelope
-        clip.assetID = assetID; clip.name = name; clip.offset = offset; clip.length = length
-        clip.soundDesign = soundDesign; clip.drumPattern = drumPattern
-        clip.fadeInFrames = fadeInFrames; clip.fadeOutFrames = fadeOutFrames
-        clip.fadeReferenceOffset = fadeReferenceOffset; clip.fadeReferenceLength = fadeReferenceLength
-        clip.edgeFadeFrames = edgeFadeFrames; clip.edgeProtectionDisabled = edgeProtectionDisabled
-        clip.cutFadeInFrames = cutFadeInFrames; clip.cutFadeOutFrames = cutFadeOutFrames
+        clip.assetID = assetID
+        clip.name = name
+        clip.offset = offset
+        clip.length = length
+        clip.soundDesign = soundDesign
+        clip.drumPattern = drumPattern
+        clip.fadeInFrames = fadeInFrames
+        clip.fadeOutFrames = fadeOutFrames
+        clip.fadeReferenceOffset = fadeReferenceOffset
+        clip.fadeReferenceLength = fadeReferenceLength
+        clip.edgeFadeFrames = edgeFadeFrames
+        clip.edgeProtectionDisabled = edgeProtectionDisabled
+        clip.cutFadeInFrames = cutFadeInFrames
+        clip.cutFadeOutFrames = cutFadeOutFrames
         return clip
     }
     public func matches(_ clip: Clip) -> Bool {
         var other = ClipState(clip: clip, operation: operation)
-        other.id = id; other.createdAt = createdAt
+        other.id = id
+        other.createdAt = createdAt
         return other == self
     }
 }

@@ -21,7 +21,11 @@ public struct RemotePeer: Codable, Sendable, Equatable, Identifiable {
     public var id: UUID
     public var name: String
     public var role: RemoteRole
-    public init(id: UUID, name: String, role: RemoteRole = .operator) { self.id = id; self.name = name; self.role = role }
+    public init(id: UUID, name: String, role: RemoteRole = .operator) {
+        self.id = id
+        self.name = name
+        self.role = role
+    }
 }
 
 public struct RemoteDevice: Codable, Sendable, Equatable, Identifiable {
@@ -31,7 +35,11 @@ public struct RemoteDevice: Codable, Sendable, Equatable, Identifiable {
     public var inputChannels: Int
     public var outputChannels: Int
     public init(id: UInt32, uid: String, name: String, inputChannels: Int, outputChannels: Int) {
-        self.id = id; self.uid = uid; self.name = name; self.inputChannels = inputChannels; self.outputChannels = outputChannels
+        self.id = id
+        self.uid = uid
+        self.name = name
+        self.inputChannels = inputChannels
+        self.outputChannels = outputChannels
     }
 }
 
@@ -45,10 +53,20 @@ public struct RemoteTransport: Codable, Sendable, Equatable {
     public var hostTime: Double
     public var operatorID: UUID?
     public var recordingStartFrame: Int?
-    public init(frame: Int = 0, isPlaying: Bool = false, isRecording: Bool = false, isPreparing: Bool = false,
-                loopStart: Int? = nil, loopEnd: Int? = nil, hostTime: Double = ProcessInfo.processInfo.systemUptime, operatorID: UUID? = nil, recordingStartFrame: Int? = nil) {
-        self.frame = frame; self.isPlaying = isPlaying; self.isRecording = isRecording; self.isPreparing = isPreparing
-        self.loopStart = loopStart; self.loopEnd = loopEnd; self.hostTime = hostTime; self.operatorID = operatorID; self.recordingStartFrame = recordingStartFrame
+    public init(
+        frame: Int = 0, isPlaying: Bool = false, isRecording: Bool = false, isPreparing: Bool = false,
+        loopStart: Int? = nil, loopEnd: Int? = nil, hostTime: Double = ProcessInfo.processInfo.systemUptime,
+        operatorID: UUID? = nil, recordingStartFrame: Int? = nil
+    ) {
+        self.frame = frame
+        self.isPlaying = isPlaying
+        self.isRecording = isRecording
+        self.isPreparing = isPreparing
+        self.loopStart = loopStart
+        self.loopEnd = loopEnd
+        self.hostTime = hostTime
+        self.operatorID = operatorID
+        self.recordingStartFrame = recordingStartFrame
     }
 }
 
@@ -63,9 +81,16 @@ public struct RemoteAsset: Codable, Sendable, Equatable, Identifiable {
     public var channelPeaks: [[Float]]?
     public var waveformStartFrame: Int
     public var framesPerBin: Int?
-    public init(id: UUID, frames: Int, channels: Int, peaks: [Float] = [], waveformStartFrame: Int = 0, framesPerBin: Int? = nil, channelPeaks: [[Float]]? = nil) {
-        self.id = id; self.frames = frames; self.channels = channels; self.peaks = peaks
-        self.waveformStartFrame = waveformStartFrame; self.framesPerBin = framesPerBin
+    public init(
+        id: UUID, frames: Int, channels: Int, peaks: [Float] = [], waveformStartFrame: Int = 0,
+        framesPerBin: Int? = nil, channelPeaks: [[Float]]? = nil
+    ) {
+        self.id = id
+        self.frames = frames
+        self.channels = channels
+        self.peaks = peaks
+        self.waveformStartFrame = waveformStartFrame
+        self.framesPerBin = framesPerBin
         self.channelPeaks = channelPeaks
     }
 }
@@ -85,13 +110,26 @@ public struct RemoteSnapshot: Codable, Sendable, Equatable {
     public var projectName: String?
     public var projectID: UUID?
     public var peers: [RemotePeer]
-    public init(serverID: UUID, serverName: String, session: Session, revision: Int = 0, trackRevisions: [UUID: Int] = [:],
-                transport: RemoteTransport = .init(), devices: [RemoteDevice] = [], inputDeviceID: UInt32 = 0,
-                outputDeviceID: UInt32 = 0, assets: [RemoteAsset] = [], status: String = "", projectName: String? = nil, projectID: UUID? = nil, peers: [RemotePeer] = []) {
-        self.serverID = serverID; self.serverName = serverName; self.session = session; self.revision = revision
-        self.trackRevisions = trackRevisions; self.transport = transport; self.devices = devices
-        self.inputDeviceID = inputDeviceID; self.outputDeviceID = outputDeviceID; self.assets = assets
-        self.status = status; self.projectName = projectName; self.projectID = projectID; self.peers = peers
+    public init(
+        serverID: UUID, serverName: String, session: Session, revision: Int = 0, trackRevisions: [UUID: Int] = [:],
+        transport: RemoteTransport = .init(), devices: [RemoteDevice] = [], inputDeviceID: UInt32 = 0,
+        outputDeviceID: UInt32 = 0, assets: [RemoteAsset] = [], status: String = "", projectName: String? = nil,
+        projectID: UUID? = nil, peers: [RemotePeer] = []
+    ) {
+        self.serverID = serverID
+        self.serverName = serverName
+        self.session = session
+        self.revision = revision
+        self.trackRevisions = trackRevisions
+        self.transport = transport
+        self.devices = devices
+        self.inputDeviceID = inputDeviceID
+        self.outputDeviceID = outputDeviceID
+        self.assets = assets
+        self.status = status
+        self.projectName = projectName
+        self.projectID = projectID
+        self.peers = peers
     }
 }
 
@@ -100,7 +138,11 @@ public struct RemotePitchPoint: Codable, Sendable, Equatable {
     public var frame: Int
     public var frequency: Float
     public var confidence: Float
-    public init(frame: Int, frequency: Float, confidence: Float) { self.frame = frame; self.frequency = frequency; self.confidence = confidence }
+    public init(frame: Int, frequency: Float, confidence: Float) {
+        self.frame = frame
+        self.frequency = frequency
+        self.confidence = confidence
+    }
 }
 public struct RemotePitchAnalysis: Codable, Sendable, Equatable {
     public var points: [RemotePitchPoint]
@@ -108,8 +150,15 @@ public struct RemotePitchAnalysis: Codable, Sendable, Equatable {
     public var isOutput: Bool
     public var targetsAreDraft: Bool
     public var error: String?
-    public init(points: [RemotePitchPoint] = [], regions: [PitchEditRegion] = [], isOutput: Bool = false, targetsAreDraft: Bool = false, error: String? = nil) {
-        self.points = points; self.regions = regions; self.isOutput = isOutput; self.targetsAreDraft = targetsAreDraft; self.error = error
+    public init(
+        points: [RemotePitchPoint] = [], regions: [PitchEditRegion] = [], isOutput: Bool = false,
+        targetsAreDraft: Bool = false, error: String? = nil
+    ) {
+        self.points = points
+        self.regions = regions
+        self.isOutput = isOutput
+        self.targetsAreDraft = targetsAreDraft
+        self.error = error
     }
 }
 
@@ -133,20 +182,39 @@ public struct RemoteTrackControls: Codable, Sendable, Equatable {
     public var realtimeEffects: [RealtimeEffect]
     public init(track: Track) {
         routing = track.routing
-        trackID = track.id; name = track.name; color = track.color; gain = track.gain; pan = track.pan
-        muted = track.muted; solo = track.solo; armed = track.armed
-        inputDeviceUID = track.inputDeviceUID; inputDeviceName = track.inputDeviceName
-        inputChannel = track.inputChannel; stereoInput = track.stereoInput
-        volumeAutomationScale = track.volumeAutomationScale; mixAutomation = track.mixAutomation; realtimeEffects = track.realtimeEffects
+        trackID = track.id
+        name = track.name
+        color = track.color
+        gain = track.gain
+        pan = track.pan
+        muted = track.muted
+        solo = track.solo
+        armed = track.armed
+        inputDeviceUID = track.inputDeviceUID
+        inputDeviceName = track.inputDeviceName
+        inputChannel = track.inputChannel
+        stereoInput = track.stereoInput
+        volumeAutomationScale = track.volumeAutomationScale
+        mixAutomation = track.mixAutomation
+        realtimeEffects = track.realtimeEffects
     }
     public func apply(to track: inout Track) {
         guard track.id == trackID else { return }
         track.routing = routing
-        track.name = name; track.color = color; track.gain = gain; track.pan = pan
-        track.muted = muted; track.solo = solo; track.armed = armed
-        track.inputDeviceUID = inputDeviceUID; track.inputDeviceName = inputDeviceName
-        track.inputChannel = inputChannel; track.stereoInput = stereoInput
-        track.volumeAutomationScale = volumeAutomationScale; track.mixAutomation = mixAutomation; track.realtimeEffects = realtimeEffects
+        track.name = name
+        track.color = color
+        track.gain = gain
+        track.pan = pan
+        track.muted = muted
+        track.solo = solo
+        track.armed = armed
+        track.inputDeviceUID = inputDeviceUID
+        track.inputDeviceName = inputDeviceName
+        track.inputChannel = inputChannel
+        track.stereoInput = stereoInput
+        track.volumeAutomationScale = volumeAutomationScale
+        track.mixAutomation = mixAutomation
+        track.realtimeEffects = realtimeEffects
     }
 }
 
@@ -159,14 +227,23 @@ public struct RemoteTrackControlPatch: Codable, Sendable, Equatable {
     public var muted: Bool?
     public var solo: Bool?
     public var armed: Bool?
-    public init(trackID: UUID, gain: Float? = nil, pan: Float? = nil, muted: Bool? = nil, solo: Bool? = nil, armed: Bool? = nil) {
-        self.trackID = trackID; self.gain = gain; self.pan = pan
-        self.muted = muted; self.solo = solo; self.armed = armed
+    public init(
+        trackID: UUID, gain: Float? = nil, pan: Float? = nil, muted: Bool? = nil, solo: Bool? = nil, armed: Bool? = nil
+    ) {
+        self.trackID = trackID
+        self.gain = gain
+        self.pan = pan
+        self.muted = muted
+        self.solo = solo
+        self.armed = armed
     }
     public func apply(to track: inout Track) {
         guard track.id == trackID else { return }
-        if let gain { track.gain = gain }; if let pan { track.pan = pan }
-        if let muted { track.muted = muted }; if let solo { track.solo = solo }; if let armed { track.armed = armed }
+        if let gain { track.gain = gain }
+        if let pan { track.pan = pan }
+        if let muted { track.muted = muted }
+        if let solo { track.solo = solo }
+        if let armed { track.armed = armed }
     }
     public func hasValidValues() -> Bool {
         (gain != nil || pan != nil || muted != nil || solo != nil || armed != nil)
@@ -190,10 +267,27 @@ public struct RemoteSessionDelta: Codable, Sendable, Equatable {
     public var sessionVersion: Int?
     public var assets: [RemoteAsset]
     public var status: String?
-    public init(revision: Int, tracks: [Track] = [], controls: [RemoteTrackControls] = [], controlPatches: [RemoteTrackControlPatch]? = nil, removedTrackIDs: [UUID] = [], trackOrder: [UUID]? = nil,
-                trackRevisions: [UUID: Int] = [:], name: String? = nil, masteringAnalysis: MasteringAnalysis? = nil, metadataUpdated: Bool = false, sessionVersion: Int? = nil, timing: MusicalTiming? = nil, assets: [RemoteAsset] = [], status: String? = nil) {
-        self.revision = revision; self.tracks = tracks; self.controls = controls; self.controlPatches = controlPatches; self.removedTrackIDs = removedTrackIDs; self.trackOrder = trackOrder
-        self.trackRevisions = trackRevisions; self.name = name; self.masteringAnalysis = masteringAnalysis; self.metadataUpdated = metadataUpdated; self.sessionVersion = sessionVersion; self.timing = timing; self.assets = assets; self.status = status
+    public init(
+        revision: Int, tracks: [Track] = [], controls: [RemoteTrackControls] = [],
+        controlPatches: [RemoteTrackControlPatch]? = nil, removedTrackIDs: [UUID] = [], trackOrder: [UUID]? = nil,
+        trackRevisions: [UUID: Int] = [:], name: String? = nil, masteringAnalysis: MasteringAnalysis? = nil,
+        metadataUpdated: Bool = false, sessionVersion: Int? = nil, timing: MusicalTiming? = nil,
+        assets: [RemoteAsset] = [], status: String? = nil
+    ) {
+        self.revision = revision
+        self.tracks = tracks
+        self.controls = controls
+        self.controlPatches = controlPatches
+        self.removedTrackIDs = removedTrackIDs
+        self.trackOrder = trackOrder
+        self.trackRevisions = trackRevisions
+        self.name = name
+        self.masteringAnalysis = masteringAnalysis
+        self.metadataUpdated = metadataUpdated
+        self.sessionVersion = sessionVersion
+        self.timing = timing
+        self.assets = assets
+        self.status = status
     }
     /// Preflight the entire sparse set before changing any mirrored metadata.
     public func hasValidControlPatches(in session: Session) -> Bool {
@@ -218,10 +312,18 @@ public struct RemoteEditorContext: Codable, Sendable, Equatable {
     public var rangeEnd: Int?
     public var effectID: UUID?
     public var automationTarget: String?
-    public init(trackID: UUID? = nil, clipID: UUID? = nil, clipIDs: [UUID] = [], cursorFrame: Int = 0,
-                rangeStart: Int? = nil, rangeEnd: Int? = nil, effectID: UUID? = nil, automationTarget: String? = nil) {
-        self.trackID = trackID; self.clipID = clipID; self.clipIDs = clipIDs; self.cursorFrame = cursorFrame
-        self.rangeStart = rangeStart; self.rangeEnd = rangeEnd; self.effectID = effectID; self.automationTarget = automationTarget
+    public init(
+        trackID: UUID? = nil, clipID: UUID? = nil, clipIDs: [UUID] = [], cursorFrame: Int = 0,
+        rangeStart: Int? = nil, rangeEnd: Int? = nil, effectID: UUID? = nil, automationTarget: String? = nil
+    ) {
+        self.trackID = trackID
+        self.clipID = clipID
+        self.clipIDs = clipIDs
+        self.cursorFrame = cursorFrame
+        self.rangeStart = rangeStart
+        self.rangeEnd = rangeEnd
+        self.effectID = effectID
+        self.automationTarget = automationTarget
     }
 }
 
@@ -235,10 +337,18 @@ public struct RemoteEditorIntent: Codable, Sendable, Equatable {
     public var strings: [String: String]
     public var flags: [String: Bool]
     public var payload: Data?
-    public init(operation: String, context: RemoteEditorContext = .init(), integers: [String: Int] = [:],
-                numbers: [String: Double] = [:], strings: [String: String] = [:], flags: [String: Bool] = [:], payload: Data? = nil) {
-        self.operation = operation; self.context = context; self.integers = integers; self.numbers = numbers
-        self.strings = strings; self.flags = flags; self.payload = payload
+    public init(
+        operation: String, context: RemoteEditorContext = .init(), integers: [String: Int] = [:],
+        numbers: [String: Double] = [:], strings: [String: String] = [:], flags: [String: Bool] = [:],
+        payload: Data? = nil
+    ) {
+        self.operation = operation
+        self.context = context
+        self.integers = integers
+        self.numbers = numbers
+        self.strings = strings
+        self.flags = flags
+        self.payload = payload
     }
 }
 
@@ -248,8 +358,15 @@ public struct RemoteTrackEdit: Codable, Sendable, Equatable {
     public var trackOrder: [UUID]?
     public var name: String
     public var gestureID: String?
-    public init(tracks: [Track] = [], removedTrackIDs: [UUID] = [], trackOrder: [UUID]? = nil, name: String, gestureID: String? = nil) {
-        self.tracks = tracks; self.removedTrackIDs = removedTrackIDs; self.trackOrder = trackOrder; self.name = name; self.gestureID = gestureID
+    public init(
+        tracks: [Track] = [], removedTrackIDs: [UUID] = [], trackOrder: [UUID]? = nil, name: String,
+        gestureID: String? = nil
+    ) {
+        self.tracks = tracks
+        self.removedTrackIDs = removedTrackIDs
+        self.trackOrder = trackOrder
+        self.name = name
+        self.gestureID = gestureID
     }
 }
 
@@ -298,18 +415,30 @@ public struct RemoteArtifact: Codable, Sendable, Equatable, Identifiable {
     public var name: String
     public var bytes: Int
     public var sha256: String
-    public init(id: UUID, name: String, bytes: Int, sha256: String) { self.id = id; self.name = name; self.bytes = bytes; self.sha256 = sha256 }
+    public init(id: UUID, name: String, bytes: Int, sha256: String) {
+        self.id = id
+        self.name = name
+        self.bytes = bytes
+        self.sha256 = sha256
+    }
 }
 public struct RemoteArtifactChunk: Codable, Sendable, Equatable {
     public var offset: Int
     public var data: Data
     public var complete: Bool
-    public init(offset: Int, data: Data, complete: Bool) { self.offset = offset; self.data = data; self.complete = complete }
+    public init(offset: Int, data: Data, complete: Bool) {
+        self.offset = offset
+        self.data = data
+        self.complete = complete
+    }
 }
 public struct RemoteMIDISource: Codable, Sendable, Equatable, Identifiable {
     public var id: UInt32
     public var name: String
-    public init(id: UInt32, name: String) { self.id = id; self.name = name }
+    public init(id: UInt32, name: String) {
+        self.id = id
+        self.name = name
+    }
 }
 
 public struct RemoteRequest: Codable, Sendable, Equatable, Identifiable {
@@ -318,10 +447,15 @@ public struct RemoteRequest: Codable, Sendable, Equatable, Identifiable {
     public var expectedRevision: Int?
     public var expectedTrackRevisions: [UUID: Int]
     public var command: RemoteCommand
-    public init(id: UUID = UUID(), clientID: UUID, expectedRevision: Int? = nil,
-                expectedTrackRevisions: [UUID: Int] = [:], command: RemoteCommand) {
-        self.id = id; self.clientID = clientID; self.expectedRevision = expectedRevision
-        self.expectedTrackRevisions = expectedTrackRevisions; self.command = command
+    public init(
+        id: UUID = UUID(), clientID: UUID, expectedRevision: Int? = nil,
+        expectedTrackRevisions: [UUID: Int] = [:], command: RemoteCommand
+    ) {
+        self.id = id
+        self.clientID = clientID
+        self.expectedRevision = expectedRevision
+        self.expectedTrackRevisions = expectedTrackRevisions
+        self.command = command
     }
 }
 
@@ -333,8 +467,15 @@ public struct RemoteReply: Codable, Sendable, Equatable {
     public var message: String
     public var payload: Data?
     public var accepted: Bool { status == .accepted }
-    public init(requestID: UUID, status: RemoteReplyStatus = .accepted, revision: Int, message: String = "", payload: Data? = nil) {
-        self.requestID = requestID; self.status = status; self.revision = revision; self.message = message; self.payload = payload
+    public init(
+        requestID: UUID, status: RemoteReplyStatus = .accepted, revision: Int, message: String = "",
+        payload: Data? = nil
+    ) {
+        self.requestID = requestID
+        self.status = status
+        self.revision = revision
+        self.message = message
+        self.payload = payload
     }
 }
 
@@ -369,7 +510,9 @@ public enum RemoteConnectionState: Equatable, Sendable {
 }
 
 public enum RemoteError: Error, LocalizedError, Equatable {
-    case invalidCredential, invalidFrame, oversizedFrame, queueFull, connectionLost, timeout, rejected(String), protocolMismatch
+    case invalidCredential, invalidFrame, oversizedFrame, queueFull, connectionLost, timeout
+    case rejected(String)
+    case protocolMismatch
     public var errorDescription: String? {
         switch self {
         case .invalidCredential: return "The pairing credential is invalid or insecure."

@@ -34,37 +34,37 @@ pub(crate) const GLOBAL_CONTROL_RESERVE: usize = 2 * 1024 * 1024;
 const LIVE_EVENT_BYTES: usize = 64 * 1024;
 /// Queued messages above which high-rate readings are skipped for a peer.
 const LOSSY_BACKLOG: usize = 16;
-#[path = "service_autosave.rs"]
-mod autosave;
-#[cfg(target_os = "macos")]
-#[path = "service_projects.rs"]
-mod projects;
 #[cfg(test)]
 #[path = "service_artifact_tests.rs"]
 mod artifact_tests;
+#[path = "service_autosave.rs"]
+mod autosave;
 #[path = "service_media.rs"]
 mod custody;
 #[path = "session_edits.rs"]
 mod edits;
 #[path = "service_master.rs"]
 mod master;
-#[path = "service_record.rs"]
-pub mod record;
-#[path = "service_process.rs"]
-mod process;
 #[path = "service_names.rs"]
 mod names;
-#[path = "service_separation.rs"]
-mod separation;
 #[path = "service_pitch.rs"]
 mod pitch;
 #[path = "service_preview.rs"]
 mod preview;
-#[path = "service_waveform.rs"]
-mod waveform;
+#[path = "service_process.rs"]
+mod process;
+#[cfg(target_os = "macos")]
+#[path = "service_projects.rs"]
+mod projects;
+#[path = "service_record.rs"]
+pub mod record;
 #[cfg(all(test, unix))]
 #[path = "request_acceptance.rs"]
 mod request_acceptance;
+#[path = "service_separation.rs"]
+mod separation;
+#[path = "service_waveform.rs"]
+mod waveform;
 #[path = "service_write.rs"]
 mod writes;
 #[derive(Clone)]
@@ -406,7 +406,9 @@ struct Job {
     cancel: Arc<AtomicBool>,
 }
 enum JobKind {
-    Waveform { task: waveform::Task },
+    Waveform {
+        task: waveform::Task,
+    },
     Recover {
         task: Box<recovery::Task>,
     },
@@ -492,7 +494,9 @@ enum JobKind {
         replace_existing: bool,
     },
     #[cfg(target_os = "macos")]
-    Package { project: Box<Project> },
+    Package {
+        project: Box<Project>,
+    },
     Open {
         path: PathBuf,
         expected: u64,
@@ -709,8 +713,10 @@ impl Service {
             media,
             recovery: Default::default(),
             root: root.into(),
-            project_name: project.and_then(|path| path.strip_prefix(root.join("Projects")).ok())
-                .and_then(|path| path.file_name()).map(|name| name.to_string_lossy().into_owned()),
+            project_name: project
+                .and_then(|path| path.strip_prefix(root.join("Projects")).ok())
+                .and_then(|path| path.file_name())
+                .map(|name| name.to_string_lossy().into_owned()),
             project_id: new_id()?,
             autosave: Arc::new(Mutex::new(autosave::State::default())),
             peers: BTreeMap::new(),
@@ -798,7 +804,9 @@ impl Service {
     }
     pub(crate) fn audio_telemetry(&mut self, telemetry: soundroom_engine::realtime::Telemetry) {
         let transport = if telemetry.playing && self.recording.is_some() {
-            soundroom_engine::authority::Transport::Recording { frame: telemetry.frame }
+            soundroom_engine::authority::Transport::Recording {
+                frame: telemetry.frame,
+            }
         } else if telemetry.playing {
             soundroom_engine::authority::Transport::Playing {
                 frame: telemetry.frame,
@@ -853,12 +861,24 @@ impl Service {
     ) -> Result<Handled, Error> {
         self.require_transport_owner(peer, false)?;
         self.require_editable()?;
-        if !self.admits_job(peer, false) { return Err(Error::QueueFull); }
-        if self.pending.values().any(|pending| pending.authored) {
-            return Err(Error::Conflict("Finish pending edits before recording".into()));
+        if !self.admits_job(peer, false) {
+            return Err(Error::QueueFull);
         }
-        let number = |key: &str| intent.and_then(|i| i.numbers.get(key).copied()).filter(|v| v.is_finite());
-        let flag = |key: &str| intent.and_then(|i| i.flags.get(key).copied()).unwrap_or(false);
+        if self.pending.values().any(|pending| pending.authored) {
+            return Err(Error::Conflict(
+                "Finish pending edits before recording".into(),
+            ));
+        }
+        let number = |key: &str| {
+            intent
+                .and_then(|i| i.numbers.get(key).copied())
+                .filter(|v| v.is_finite())
+        };
+        let flag = |key: &str| {
+            intent
+                .and_then(|i| i.flags.get(key).copied())
+                .unwrap_or(false)
+        };
         let offset_ms = number("offsetMS").unwrap_or(0.);
         let timing = self.authority.session.timing.clone();
         let tempo = timing.tempo.clamp(20., 300.);
@@ -896,7 +916,9 @@ impl Service {
             return Err(protocol("Operator role is required"));
         }
         if self.recording_finalizing {
-            return Err(Error::Conflict("The previous take is still finishing".into()));
+            return Err(Error::Conflict(
+                "The previous take is still finishing".into(),
+            ));
         }
         if self.recording.is_some() {
             return Err(Error::Conflict("Already recording".into()));
@@ -955,7 +977,9 @@ impl Service {
         if metronome {
             self.add_metronome(&mut project, playback, tempo)?;
         }
-        if intent.is_some() { self.input_monitoring = flag("inputMonitoring"); }
+        if intent.is_some() {
+            self.input_monitoring = flag("inputMonitoring");
+        }
         self.set_running(&project.session);
         self.operator = Some(peer.runtime.clone());
         Ok(Handled::Job(JobKind::Record {
@@ -965,11 +989,14 @@ impl Service {
                 offset_frames: (offset * 48.).round() as i64,
                 directory: self.root.join("Recordings"),
                 end_frame: end,
-                monitor: backend.preview().monitor_writer().map(|writer| record::Monitor {
-                    writer,
-                    enabled: Arc::new(AtomicBool::new(self.input_monitoring)),
-                    routes: monitor_routes,
-                }),
+                monitor: backend
+                    .preview()
+                    .monitor_writer()
+                    .map(|writer| record::Monitor {
+                        writer,
+                        enabled: Arc::new(AtomicBool::new(self.input_monitoring)),
+                        routes: monitor_routes,
+                    }),
             },
             backend,
             project: Box::new(project),
@@ -1081,8 +1108,10 @@ impl Service {
     /// Drains live insert meters for every subscribed effect and sends each
     /// subscriber its own readings.
     fn effect_meter_events(&mut self) {
-        self.effect_meters.retain(|runtime, _| self.peers.contains_key(runtime));
-        let ids: std::collections::BTreeSet<&String> = self.effect_meters.values().flatten().collect();
+        self.effect_meters
+            .retain(|runtime, _| self.peers.contains_key(runtime));
+        let ids: std::collections::BTreeSet<&String> =
+            self.effect_meters.values().flatten().collect();
         let mut readings = BTreeMap::new();
         for id in ids {
             if let Some(m) = soundroom_engine::meters::take(id) {
@@ -1236,22 +1265,24 @@ impl Service {
     ) -> Result<Handled, Error> {
         let stopping = matches!(command, crate::audio::Command::Pause);
         self.require_transport_owner(peer, stopping)?;
-        if !stopping { self.require_editable()?; }
+        if !stopping {
+            self.require_editable()?;
+        }
         // Stopping while recording finishes the take(s) first.
         if matches!(command, crate::audio::Command::Pause) && self.recording.is_some() {
             let backend = self.backend.clone().ok_or(Error::QueueFull)?;
             self.operator = Some(peer.runtime.clone());
             let active = self.recording.take().unwrap();
             self.recording_finalizing = true;
-            return Ok(Handled::Job(JobKind::FinishRecording {
-                active,
-                backend,
-            }));
+            return Ok(Handled::Job(JobKind::FinishRecording { active, backend }));
         }
         if matches!(command, crate::audio::Command::Pause) {
             self.operator = Some(peer.runtime.clone());
         } else if self.operator.as_ref().is_some_and(|id| id != &peer.runtime)
-            && (self.backend.as_ref().is_some_and(|backend| backend.active())
+            && (self
+                .backend
+                .as_ref()
+                .is_some_and(|backend| backend.active())
                 || self.recording.is_some()
                 || self.recording_finalizing)
         {
@@ -1322,17 +1353,36 @@ impl Service {
         Ok(())
     }
     fn require_editable(&self) -> Result<(), Error> {
-        if self.recording_preparing.is_some() || self.recording.is_some() || self.recording_finalizing {
-            return Err(Error::Conflict("Finish recording before changing the session".into()));
+        if self.recording_preparing.is_some()
+            || self.recording.is_some()
+            || self.recording_finalizing
+        {
+            return Err(Error::Conflict(
+                "Finish recording before changing the session".into(),
+            ));
         }
         Ok(())
     }
     fn require_transport_owner(&self, peer: &Identity, takeover: bool) -> Result<(), Error> {
-        if peer.role != RemoteRole::Operator { return Err(protocol("Operator role is required")); }
-        if !takeover && self.operator.as_ref().is_some_and(|owner| owner != &peer.runtime)
-            && (self.backend.as_ref().is_some_and(|backend| backend.active())
-                || self.recording_preparing.is_some() || self.recording.is_some() || self.recording_finalizing) {
-            return Err(Error::Conflict("Another operator controls transport; take transport explicitly".into()));
+        if peer.role != RemoteRole::Operator {
+            return Err(protocol("Operator role is required"));
+        }
+        if !takeover
+            && self
+                .operator
+                .as_ref()
+                .is_some_and(|owner| owner != &peer.runtime)
+            && (self
+                .backend
+                .as_ref()
+                .is_some_and(|backend| backend.active())
+                || self.recording_preparing.is_some()
+                || self.recording.is_some()
+                || self.recording_finalizing)
+        {
+            return Err(Error::Conflict(
+                "Another operator controls transport; take transport explicitly".into(),
+            ));
         }
         Ok(())
     }
@@ -1348,10 +1398,16 @@ impl Service {
         self.transport_generation.clone()
     }
     fn invalidate_transport_starts(&mut self) -> Result<(), Error> {
-        self.transport_generation.fetch_update(Ordering::AcqRel, Ordering::Acquire,
-            |generation| generation.checked_add(1))
+        self.transport_generation
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |generation| {
+                generation.checked_add(1)
+            })
             .map_err(|_| protocol("Transport generation exhausted"))?;
-        for pending in self.pending.values().filter(|pending| pending.transport_start) {
+        for pending in self
+            .pending
+            .values()
+            .filter(|pending| pending.transport_start)
+        {
             pending.cancel.store(true, Ordering::Release);
         }
         if let Some(cancel) = &self.recording_preparing {
@@ -1361,7 +1417,11 @@ impl Service {
     }
     fn cancel_waveforms(&self, identity: Option<&Identity>) {
         for (key, pending) in &self.pending {
-            if pending.waveform && identity.map_or(true, |peer| key.0 == peer.credential && key.1 == peer.runtime) {
+            if pending.waveform
+                && identity.map_or(true, |peer| {
+                    key.0 == peer.credential && key.1 == peer.runtime
+                })
+            {
                 pending.cancel.store(true, Ordering::Release);
             }
         }
@@ -1518,7 +1578,12 @@ impl Service {
                 .and_then(|old| soundroom_engine::render::LivePatch::between(old, &next))
         };
         if let (Some(live), Some(canonical)) = (patch(), patch()) {
-            if backend.publish_live(live, canonical, self.authority.revision, crate::audio::audible_variant(&next)) {
+            if backend.publish_live(
+                live,
+                canonical,
+                self.authority.revision,
+                crate::audio::audible_variant(&next),
+            ) {
                 *running = Some(next);
                 return;
             }
@@ -2036,10 +2101,19 @@ impl Service {
         }
     }
     fn admits_waveform(&self, peer: &Identity) -> bool {
-        self.pending.values().filter(|pending| pending.waveform).count() < 4
-            && self.pending.iter().filter(|(key, pending)| {
-                pending.waveform && key.0 == peer.credential && key.1 == peer.runtime
-            }).count() < 2
+        self.pending
+            .values()
+            .filter(|pending| pending.waveform)
+            .count()
+            < 4
+            && self
+                .pending
+                .iter()
+                .filter(|(key, pending)| {
+                    pending.waveform && key.0 == peer.credential && key.1 == peer.runtime
+                })
+                .count()
+                < 2
     }
     fn admits_write(&self, peer: &Identity, terminal: bool) -> bool {
         let total = self.pending.values().filter(|p| p.write).count();
@@ -2101,7 +2175,10 @@ impl Service {
             }
             return Err(error);
         }
-        if !value["clientID"].as_str().is_some_and(|id| id.eq_ignore_ascii_case(&peer.runtime)) {
+        if !value["clientID"]
+            .as_str()
+            .is_some_and(|id| id.eq_ignore_ascii_case(&peer.runtime))
+        {
             return Err(protocol(
                 "Request identity differs from the authenticated peer",
             ));
@@ -2139,7 +2216,10 @@ impl Service {
         }
         let authored = prepared.authored();
         let ValidatedRequest {
-            request, digest, transport_generation, ..
+            request,
+            digest,
+            transport_generation,
+            ..
         } = prepared;
         if std::env::var_os("SOUNDROOM_DEBUG_CONNECTIONS").is_some() {
             let kind = serde_json::to_value(&request.command)
@@ -2172,8 +2252,16 @@ impl Service {
             return out.send(&old.reply, true);
         }
         if state.shutdown_requested {
-            return out.send(&response(&request.id, "rejected", state.authority.revision,
-                "The server is shutting down; reconnect before issuing commands", None), true);
+            return out.send(
+                &response(
+                    &request.id,
+                    "rejected",
+                    state.authority.revision,
+                    "The server is shutting down; reconnect before issuing commands",
+                    None,
+                ),
+                true,
+            );
         }
         if let Some(old) = state.pending.get(&k) {
             if old.digest != digest {
@@ -2221,16 +2309,27 @@ impl Service {
         } else {
             None
         };
-        let starts_transport = matches!(request.command, RemoteCommand::Play { .. } | RemoteCommand::Record)
-            || matches!(&request.command, RemoteCommand::Editor { intent }
+        let starts_transport = matches!(
+            request.command,
+            RemoteCommand::Play { .. } | RemoteCommand::Record
+        ) || matches!(&request.command, RemoteCommand::Editor { intent }
                 if matches!(intent.operation.as_str(), "transport.play" | "transport.toggle" | "transport.record" | "transport.audition"));
         let handled = if state.cancelled_requests.contains(&k) {
-            Err(Error::Conflict("Request was cancelled before processing".into()))
-        } else if starts_transport && transport_generation
-            .is_some_and(|received| received != state.transport_generation.load(Ordering::Acquire)) {
-            Err(Error::Conflict("Transport start was superseded by Stop".into()))
+            Err(Error::Conflict(
+                "Request was cancelled before processing".into(),
+            ))
+        } else if starts_transport
+            && transport_generation.is_some_and(|received| {
+                received != state.transport_generation.load(Ordering::Acquire)
+            })
+        {
+            Err(Error::Conflict(
+                "Transport start was superseded by Stop".into(),
+            ))
         } else if authored && state.require_editable().is_err() {
-            Err(Error::Conflict("Finish recording before changing the session".into()))
+            Err(Error::Conflict(
+                "Finish recording before changing the session".into(),
+            ))
         } else if let Some(compact) = &compact {
             state.apply_compact(peer, &request, compact)
         } else if prepared_edit {
@@ -2246,11 +2345,11 @@ impl Service {
             Ok(Handled::Job(kind)) => {
                 let critical = matches!(
                     &kind,
-                    JobKind::FinishRecording { .. } |
-                    JobKind::Transport {
-                        command: crate::audio::Command::Pause,
-                        ..
-                    }
+                    JobKind::FinishRecording { .. }
+                        | JobKind::Transport {
+                            command: crate::audio::Command::Pause,
+                            ..
+                        }
                 );
                 let write = match &kind {
                     JobKind::Write { task } => Some(task.terminal()),
@@ -2284,8 +2383,13 @@ impl Service {
                             state.recording = Some(active);
                             state.recording_finalizing = false;
                         }
-                        let reply = response(&request.id, "rejected", state.authority.revision,
-                            &error.to_string(), None);
+                        let reply = response(
+                            &request.id,
+                            "rejected",
+                            state.authority.revision,
+                            &error.to_string(),
+                            None,
+                        );
                         state.remember(k, digest, reply.clone());
                         return out.send(&reply, true);
                     }
@@ -2293,10 +2397,19 @@ impl Service {
                         active.request_stop();
                     }
                 }
-                let transport_start = matches!(&kind, JobKind::Record { .. }
-                    | JobKind::Transport { command: crate::audio::Command::Play | crate::audio::Command::Seek(_), .. });
+                let transport_start = matches!(
+                    &kind,
+                    JobKind::Record { .. }
+                        | JobKind::Transport {
+                            command: crate::audio::Command::Play | crate::audio::Command::Seek(_),
+                            ..
+                        }
+                );
                 let cancel = match &kind {
-                    JobKind::Process { task } => task.preview.as_ref().map(|(_, _, cancel)| cancel.clone())
+                    JobKind::Process { task } => task
+                        .preview
+                        .as_ref()
+                        .map(|(_, _, cancel)| cancel.clone())
                         .unwrap_or_else(|| Arc::new(AtomicBool::new(false))),
                     _ => Arc::new(AtomicBool::new(false)),
                 };
@@ -2510,7 +2623,9 @@ impl Service {
             RemoteCommand::SetLoop { start, end } => {
                 self.require_transport_owner(peer, false)?;
                 self.require_editable()?;
-                if !self.admits_job(peer, false) { return Err(Error::QueueFull); }
+                if !self.admits_job(peer, false) {
+                    return Err(Error::QueueFull);
+                }
                 let range = match (start, end) {
                     (Some(start), Some(end)) if *start >= 0 && *end >= 0 => Some(
                         soundroom_engine::render::LoopRange::new(*start as u64, *end as u64)
@@ -2565,11 +2680,17 @@ impl Service {
                         }
                     }
                     if let Some(uid) = output_uid {
-                        if !devices.iter().any(|d| &d.uid == uid && d.output_channels > 0) {
+                        if !devices
+                            .iter()
+                            .any(|d| &d.uid == uid && d.output_channels > 0)
+                        {
                             return Err(Error::Conflict("Output device is unavailable".into()));
                         }
                         let current = self.output_uid.clone().or_else(|| {
-                            devices.iter().find(|d| d.is_default_output).map(|d| d.uid.clone())
+                            devices
+                                .iter()
+                                .find(|d| d.is_default_output)
+                                .map(|d| d.uid.clone())
                         });
                         if current.as_ref() != Some(uid) {
                             if self.backend.as_ref().is_some_and(|b| b.active()) {
@@ -2590,7 +2711,11 @@ impl Service {
                             result
                                 .recv_timeout(Duration::from_secs(5))
                                 .map_err(|_| protocol("The output device did not respond"))?
-                                .map_err(|m| Error::Conflict(format!("Could not open the output device: {m}")))?;
+                                .map_err(|m| {
+                                    Error::Conflict(format!(
+                                        "Could not open the output device: {m}"
+                                    ))
+                                })?;
                             self.output_uid = Some(uid.clone());
                         }
                     }
@@ -2616,7 +2741,9 @@ impl Service {
                     return Err(protocol("Invalid input channel"));
                 }
                 let track = Self::track(&mut candidate, track_id)?;
-                if track.extra.get("inputDeviceUID").and_then(Value::as_str) != device_uid.as_deref() {
+                if track.extra.get("inputDeviceUID").and_then(Value::as_str)
+                    != device_uid.as_deref()
+                {
                     track.extra.remove("inputDeviceName");
                 }
                 track.extra.insert("inputChannel".into(), json!(channel));
@@ -2677,15 +2804,23 @@ impl Service {
                     expected: self.authority.revision,
                 }));
             }
-            RemoteCommand::SaveProject { name, replace_existing, title: requested_title } => {
+            RemoteCommand::SaveProject {
+                name,
+                replace_existing,
+                title: requested_title,
+            } => {
                 if peer.role != RemoteRole::Operator {
                     return Err(protocol("Operator role is required to save a project"));
                 }
                 self.require_editable()?;
                 if self.pending.values().any(|pending| pending.save) {
-                    return Err(Error::Conflict("A project save is already in progress. Wait for it to finish.".into()));
+                    return Err(Error::Conflict(
+                        "A project save is already in progress. Wait for it to finish.".into(),
+                    ));
                 }
-                if r.expected_revision.is_some_and(|expected| expected != self.authority.revision as i64) {
+                if r.expected_revision
+                    .is_some_and(|expected| expected != self.authority.revision as i64)
+                {
                     return Err(Error::Conflict("The session changed before saving".into()));
                 }
                 let title = names::project_title(name)?;
@@ -2880,13 +3015,18 @@ impl Service {
                 }
                 let count = (*bytes as u64).min(a.bytes - *offset as u64);
                 return Ok(Handled::Job(JobKind::ReadArtifact {
-                    path: a.path.clone(), offset: *offset as u64, count: count as usize, total: a.bytes,
+                    path: a.path.clone(),
+                    offset: *offset as u64,
+                    count: count as usize,
+                    total: a.bytes,
                     #[cfg(test)]
                     hook: self.artifact_read_hook.clone(),
                 }));
             }
             RemoteCommand::Waveform { .. } => {
-                return Ok(Handled::Job(JobKind::Waveform { task: waveform::Task::capture(self, r)? }))
+                return Ok(Handled::Job(JobKind::Waveform {
+                    task: waveform::Task::capture(self, r)?,
+                }))
             }
             RemoteCommand::Editor { intent } => {
                 let mut handled = self.editor(peer, r, intent);
@@ -3040,11 +3180,23 @@ impl Service {
         intent: &soundroom_client::models::RemoteEditorIntent,
     ) -> Result<Handled, Error> {
         if intent.flags.get("separateSource") == Some(&true)
-            && matches!(intent.operation.as_str(), "effects.apply" | "effects.preview") {
-            let id = intent.context.track_id.as_ref().ok_or_else(|| protocol("A source track is required"))?;
+            && matches!(
+                intent.operation.as_str(),
+                "effects.apply" | "effects.preview"
+            )
+        {
+            let id = intent
+                .context
+                .track_id
+                .as_ref()
+                .ok_or_else(|| protocol("A source track is required"))?;
             let expected = Self::expected(r);
-            if expected.get(id) != self.authority.track_revisions.get(id) || !expected.contains_key(id) {
-                return Err(Error::Conflict("The source changed before separation; reopen the current audio".into()));
+            if expected.get(id) != self.authority.track_revisions.get(id)
+                || !expected.contains_key(id)
+            {
+                return Err(Error::Conflict(
+                    "The source changed before separation; reopen the current audio".into(),
+                ));
             }
         }
         match intent.operation.as_str() {
@@ -3081,7 +3233,9 @@ impl Service {
                     self.play_from_cursor(peer, intent)
                 }
             }
-            "drums.kits" => Ok(Handled::Payload(Some(json!(soundroom_engine::custom_kits::list())))),
+            "drums.kits" => Ok(Handled::Payload(Some(json!(
+                soundroom_engine::custom_kits::list()
+            )))),
             "drums.saveKit" | "drums.deleteKit" => {
                 if peer.role == RemoteRole::Viewer {
                     return Err(protocol("Editor role is required"));
@@ -3092,28 +3246,46 @@ impl Service {
                         .get("id")
                         .ok_or_else(|| protocol("Kit id is required"))?;
                     soundroom_engine::custom_kits::delete(&id.to_uppercase()).map_err(engine)?;
-                    return Ok(Handled::Payload(Some(json!(soundroom_engine::custom_kits::list()))));
+                    return Ok(Handled::Payload(Some(json!(
+                        soundroom_engine::custom_kits::list()
+                    ))));
                 }
                 use base64::Engine as _;
                 let bytes = base64::engine::general_purpose::STANDARD
-                    .decode(intent.payload.as_ref().ok_or_else(|| protocol("Kit design is required"))?)
+                    .decode(
+                        intent
+                            .payload
+                            .as_ref()
+                            .ok_or_else(|| protocol("Kit design is required"))?,
+                    )
                     .map_err(|_| protocol("Invalid kit design"))?;
                 let value: Value = serde_json::from_slice(&bytes)?;
                 soundroom_client::validation::validate_model(&value, "DrumKitDesign")?;
-                let mut design: soundroom_engine::custom_kits::KitDesign = serde_json::from_value(value)?;
+                let mut design: soundroom_engine::custom_kits::KitDesign =
+                    serde_json::from_value(value)?;
                 design.id = design.id.to_uppercase();
                 design.name = design.name.trim().to_string();
                 design.validate().map_err(engine)?;
-                Ok(Handled::Job(JobKind::KitExport { design: Box::new(design) }))
+                Ok(Handled::Job(JobKind::KitExport {
+                    design: Box::new(design),
+                }))
             }
             "effects.apply" => self.begin_effect(intent),
             "pitch.apply" => self.begin_bake(intent),
-            "drums.preview" | "designer.preview" | "take.preview" | "audition.stop"
-            | "designer.stop" | "drums.stop" | "take.stop" | "designer.configure"
-            | "designer.noteOn" | "designer.noteOff" | "designer.allNotesOff"
-            | "designer.controller" | "designer.midiConnect" | "designer.midiSources" => {
-                self.preview_editor(peer, intent)
-            }
+            "drums.preview"
+            | "designer.preview"
+            | "take.preview"
+            | "audition.stop"
+            | "designer.stop"
+            | "drums.stop"
+            | "take.stop"
+            | "designer.configure"
+            | "designer.noteOn"
+            | "designer.noteOff"
+            | "designer.allNotesOff"
+            | "designer.controller"
+            | "designer.midiConnect"
+            | "designer.midiSources" => self.preview_editor(peer, intent),
             "effects.preview" => {
                 self.claim_file_preview(peer, preview::Kind::Effects)?;
                 let mut handled = self.begin_effect(intent);
@@ -3186,7 +3358,10 @@ impl Service {
                     };
                 let track = target("trackID", intent.context.track_id.as_ref())?;
                 let clip = target("clipID", intent.context.clip_id.as_ref())?;
-                if designer && clip.is_none() && document["notes"].as_array().map_or(true, Vec::is_empty) {
+                if designer
+                    && clip.is_none()
+                    && document["notes"].as_array().map_or(true, Vec::is_empty)
+                {
                     return Err(protocol("Designer requires notes for a new clip"));
                 }
                 if clip.is_some() && track.is_none() {
@@ -3240,10 +3415,17 @@ impl Service {
             }
             "session.rename" => {
                 if r.expected_revision != Some(self.authority.revision as i64) {
-                    return Err(Error::Conflict("The session changed; reopen Rename Session".into()));
+                    return Err(Error::Conflict(
+                        "The session changed; reopen Rename Session".into(),
+                    ));
                 }
                 let mut candidate = self.authority.session.clone();
-                candidate.name = names::validated(intent.strings.get("name").ok_or_else(|| protocol("A session name is required"))?)?;
+                candidate.name = names::validated(
+                    intent
+                        .strings
+                        .get("name")
+                        .ok_or_else(|| protocol("A session name is required"))?,
+                )?;
                 self.commit(peer, r, candidate)?;
                 Ok(Handled::Payload(None))
             }
@@ -3287,7 +3469,11 @@ impl Service {
                         .strings
                         .get("role")
                         .ok_or_else(|| protocol("Approved role is required"))?))?;
-                let seconds = intent.integers.get("expiresInSeconds").copied().unwrap_or(120);
+                let seconds = intent
+                    .integers
+                    .get("expiresInSeconds")
+                    .copied()
+                    .unwrap_or(120);
                 let seconds = u64::try_from(seconds)
                     .map_err(|_| protocol("Invalid pairing code lifetime"))?;
                 Ok(Handled::Payload(Some(
@@ -3303,7 +3489,9 @@ impl Service {
                     .get("credentialID")
                     .ok_or_else(|| protocol("Credential ID is required"))?;
                 if id.eq_ignore_ascii_case(&peer.credential) {
-                    return Err(protocol("This connection's credential cannot be revoked from Browser access"));
+                    return Err(protocol(
+                        "This connection's credential cannot be revoked from Browser access",
+                    ));
                 }
                 if self
                     .protected_credential
@@ -3351,9 +3539,15 @@ impl Service {
                         if self.receipts.iter().any(|receipt| receipt.key == key) {
                             return Err(protocol("The requested job already completed"));
                         }
-                        if !self.cancelled_requests.contains(&key) && (
-                            self.cancelled_requests.len() >= 4096 || self.cancelled_requests.iter()
-                                .filter(|key| key.0 == peer.credential && key.1 == peer.runtime).count() >= 128) {
+                        if !self.cancelled_requests.contains(&key)
+                            && (self.cancelled_requests.len() >= 4096
+                                || self
+                                    .cancelled_requests
+                                    .iter()
+                                    .filter(|key| key.0 == peer.credential && key.1 == peer.runtime)
+                                    .count()
+                                    >= 128)
+                        {
                             return Err(Error::QueueFull);
                         }
                         self.cancelled_requests.insert(key);
@@ -3363,9 +3557,7 @@ impl Service {
                 }
                 Ok(Handled::Payload(None))
             }
-            "transport.record" => {
-                self.begin_recording(peer, Some(intent))
-            }
+            "transport.record" => self.begin_recording(peer, Some(intent)),
             "transport.finishRecording" => {
                 if self.recording.is_none() && self.recording_preparing.is_none() {
                     return Err(Error::Conflict("Nothing is recording".into()));
@@ -3516,20 +3708,35 @@ impl Service {
                     return Err(protocol("Operator role is required to save a project"));
                 }
                 if let Some(id) = intent.strings.get("release") {
-                    let artifact = self.artifacts.get(id).filter(|artifact| artifact.owner == peer.credential
-                        && artifact.runtime.as_ref().is_some_and(|runtime| *runtime == peer.runtime))
+                    let artifact = self
+                        .artifacts
+                        .get(id)
+                        .filter(|artifact| {
+                            artifact.owner == peer.credential
+                                && artifact
+                                    .runtime
+                                    .as_ref()
+                                    .is_some_and(|runtime| *runtime == peer.runtime)
+                        })
                         .ok_or_else(|| protocol("The project download is unavailable"))?;
                     let _ = std::fs::remove_file(&artifact.path);
                     self.artifacts.remove(id);
                     return Ok(Handled::Payload(None));
                 }
                 self.require_editable()?;
-                if r.expected_revision.is_some_and(|revision| revision != self.authority.revision as i64) {
-                    return Err(Error::Conflict("The session changed before saving. Retry Save.".into()));
+                if r.expected_revision
+                    .is_some_and(|revision| revision != self.authority.revision as i64)
+                {
+                    return Err(Error::Conflict(
+                        "The session changed before saving. Retry Save.".into(),
+                    ));
                 }
-                Ok(Handled::Job(JobKind::Package { project: Box::new(Project {
-                    session: self.authority.session.clone(), media: self.media.clone(),
-                }) }))
+                Ok(Handled::Job(JobKind::Package {
+                    project: Box::new(Project {
+                        session: self.authority.session.clone(),
+                        media: self.media.clone(),
+                    }),
+                }))
             }
             "project.export" => {
                 let name = intent
@@ -3659,17 +3866,28 @@ fn hash_file(path: &Path) -> Result<(u64, String), Error> {
     Ok((count, format!("{:x}", hasher.finalize())))
 }
 /// Opens a project directory and installs it as the authoritative session.
-fn open_project(shared: &Shared, peer: &Identity, cancel: &AtomicBool, path: PathBuf, expected: u64) -> Result<Option<Value>, Error> {
+fn open_project(
+    shared: &Shared,
+    peer: &Identity,
+    cancel: &AtomicBool,
+    path: PathBuf,
+    expected: u64,
+) -> Result<Option<Value>, Error> {
     let mut project = Project::open(&path).map_err(engine)?;
     names::recover_title(&mut project.session, &path);
     // Another project may already have custody audio under one of this
     // project's asset IDs (a copied project re-rendered, for example).
-    let root = shared.lock().map_err(|_| protocol("Authority is unavailable"))?.root.clone();
+    let root = shared
+        .lock()
+        .map_err(|_| protocol("Authority is unavailable"))?
+        .root
+        .clone();
     let (_, verified_media) = custody::rekey_conflicts(&root, &mut project)?;
     if cancel.load(Ordering::Acquire) {
         return Err(protocol("Job cancelled"));
     }
-    let mut authority = Authority::new(normalize_loaded_session(project.session)?).map_err(engine)?;
+    let mut authority =
+        Authority::new(normalize_loaded_session(project.session)?).map_err(engine)?;
     let state = shared
         .lock()
         .map_err(|_| protocol("Authority is unavailable"))?;
@@ -3694,9 +3912,15 @@ fn open_project(shared: &Shared, peer: &Identity, cancel: &AtomicBool, path: Pat
     for version in authority.track_revisions.values_mut() {
         *version = revision;
     }
-    let mut input = state.capture_snapshot_for(&authority.session, revision,
-        &authority.track_revisions, &project.media);
-    let project_name = path.file_name().map(|name| name.to_string_lossy().into_owned());
+    let mut input = state.capture_snapshot_for(
+        &authority.session,
+        revision,
+        &authority.track_revisions,
+        &project.media,
+    );
+    let project_name = path
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned());
     let project_id = new_id()?;
     input.project_name = project_name.clone();
     input.project_id = project_id.clone();
@@ -3706,30 +3930,58 @@ fn open_project(shared: &Shared, peer: &Identity, cancel: &AtomicBool, path: Pat
     let media = custody::Staged::load_verified(&root, project.media, verified_media)?;
     // Large model traversal/encoding never holds the serialized control owner.
     let document = SnapshotDocument::prepare(input.value()?, global)?;
-    let mut state = shared.lock().map_err(|_|protocol("Authority is unavailable"))?;
+    let mut state = shared
+        .lock()
+        .map_err(|_| protocol("Authority is unavailable"))?;
     if cancel.load(Ordering::Acquire) || !state.registry.contains(&peer.credential) {
         return Err(protocol("Open was cancelled or its credential was revoked"));
     }
     state.require_paused()?;
     if state.authority.revision != expected {
-        return Err(Error::Conflict("Session changed while preparing the open document".into()));
+        return Err(Error::Conflict(
+            "Session changed while preparing the open document".into(),
+        ));
     }
     let media = media.commit(&root)?;
     state.cancel_waveforms(None);
     state.authority = authority;
     state.project_name = project_name.clone();
     state.project_id = project_id.clone();
-    if let Some(backend) = &state.backend { backend.observe_revision(revision); }
+    if let Some(backend) = &state.backend {
+        backend.observe_revision(revision);
+    }
     state.media = media;
     let input = state.capture_snapshot();
     state.history_events();
-    if state.publication.enqueue(Publication { input, before: None, prepared: Some(document), compact: None,
-        targets: state.peers.values().map(|peer| (format!("{:p}", Arc::as_ptr(&peer.out.closed)),peer.out.clone())).collect() }).is_err() {
+    if state
+        .publication
+        .enqueue(Publication {
+            input,
+            before: None,
+            prepared: Some(document),
+            compact: None,
+            targets: state
+                .peers
+                .values()
+                .map(|peer| {
+                    (
+                        format!("{:p}", Arc::as_ptr(&peer.out.closed)),
+                        peer.out.clone(),
+                    )
+                })
+                .collect(),
+        })
+        .is_err()
+    {
         // Authority already committed. A publication failure requires refresh;
         // it must not turn this completed authored request into a rejected receipt.
-        for peer in state.peers.values() { peer.out.close(); }
+        for peer in state.peers.values() {
+            peer.out.close();
+        }
     }
-    Ok(Some(json!({"projectName":project_name,"projectID":project_id})))
+    Ok(Some(
+        json!({"projectName":project_name,"projectID":project_id}),
+    ))
 }
 /// Unpacks a ditto-made `.soundroom.zip` into Projects/ under a fresh name.
 #[cfg(target_os = "macos")]
@@ -3795,7 +4047,11 @@ fn unpack_project(shared: &Shared, zip: &Path, name: &str) -> Result<PathBuf, Er
         .filter(|c| !matches!(c, '/' | ':' | '\\') && !c.is_control())
         .take(100)
         .collect();
-    let stem = if stem.trim().is_empty() { "Imported project".to_string() } else { stem };
+    let stem = if stem.trim().is_empty() {
+        "Imported project".to_string()
+    } else {
+        stem
+    };
     let projects = root.join("Projects");
     std::fs::create_dir_all(&projects)?;
     let mut target = projects.join(format!("{stem}.soundroom"));
@@ -3809,7 +4065,10 @@ fn unpack_project(shared: &Shared, zip: &Path, name: &str) -> Result<PathBuf, Er
 }
 fn run_job(shared: Shared, out: Outbox, job: Job, digest: [u8; 32]) {
     let starting_record = matches!(job.kind, JobKind::Record { .. });
-    let protected_read = matches!(job.kind, JobKind::Waveform { .. } | JobKind::ReadArtifact { .. });
+    let protected_read = matches!(
+        job.kind,
+        JobKind::Waveform { .. } | JobKind::ReadArtifact { .. }
+    );
     let begin = match &job.kind {
         JobKind::Write { task } => task.begin_gesture(),
         _ => None,
@@ -4272,7 +4531,12 @@ fn run_job(shared: Shared, out: Outbox, job: Job, digest: [u8; 32]) {
         }
     })).unwrap_or_else(|_|Err(protocol("Worker failed; no automatic retry was performed")));
     if let Ok(mut state) = shared.lock() {
-        if starting_record && state.recording_preparing.as_ref().is_some_and(|cancel| Arc::ptr_eq(cancel, &job.cancel)) {
+        if starting_record
+            && state
+                .recording_preparing
+                .as_ref()
+                .is_some_and(|cancel| Arc::ptr_eq(cancel, &job.cancel))
+        {
             state.recording_preparing = None;
             state.broadcast_transport();
         }
@@ -4282,10 +4546,16 @@ fn run_job(shared: Shared, out: Outbox, job: Job, digest: [u8; 32]) {
         state.pending.remove(&key(&job.peer, &job.request));
         // Recheck at the final receipt/send boundary too: a revocation can win
         // the authority lock between worker validation and completion.
-        let result = if protected_read && (job.cancel.load(Ordering::Acquire)
-            || !state.registry.authorizes(&job.peer.credential, &job.peer.role)) {
+        let result = if protected_read
+            && (job.cancel.load(Ordering::Acquire)
+                || !state
+                    .registry
+                    .authorizes(&job.peer.credential, &job.peer.role))
+        {
             Err(protocol("Read cancelled or its credential was revoked"))
-        } else { result };
+        } else {
+            result
+        };
         let reply = match result {
             Ok(payload) => response(
                 &job.request.id,
@@ -4464,8 +4734,10 @@ fn unchanged_control_content(
         || track.name != controls.name
         || i64::from(track.color) != controls.color
         || track.volume_automation_scale.as_deref() != scale
-        || track.extra.get("inputDeviceUID").and_then(Value::as_str) != controls.input_device_uid.as_deref()
-        || track.extra.get("inputDeviceName").and_then(Value::as_str) != controls.input_device_name.as_deref()
+        || track.extra.get("inputDeviceUID").and_then(Value::as_str)
+            != controls.input_device_uid.as_deref()
+        || track.extra.get("inputDeviceName").and_then(Value::as_str)
+            != controls.input_device_name.as_deref()
         || track.extra.get("inputChannel") != Some(&json!(controls.input_channel))
         || track.extra.get("stereoInput") != Some(&json!(controls.stereo_input))
         || track.mix_automation.len() != controls.mix_automation.len()
@@ -5441,11 +5713,24 @@ mod publication_tests {
         // Simulate a decoded request held behind another command while urgent
         // Cancel reaches authority first. No runtime/model is needed to test
         // this ingress invariant.
-        let waiting = Service::validate_request(&editor, rpc_frame(&editor, &job_id,
-            command.clone(), json!({track.clone():0}))).unwrap();
+        let waiting = Service::validate_request(
+            &editor,
+            rpc_frame(&editor, &job_id, command.clone(), json!({track.clone():0})),
+        )
+        .unwrap();
         let cancel_id = new_id().unwrap();
-        Service::dispatch(&shared, &editor, &out, rpc_frame(&editor, &cancel_id,
-            scoped_cancel_command(&job_id), json!({}))).unwrap();
+        Service::dispatch(
+            &shared,
+            &editor,
+            &out,
+            rpc_frame(
+                &editor,
+                &cancel_id,
+                scoped_cancel_command(&job_id),
+                json!({}),
+            ),
+        )
+        .unwrap();
         assert_eq!(rpc_reply(&inbox, &cancel_id)["status"], "accepted");
         Service::dispatch_validated(&shared, &editor, &out, waiting).unwrap();
         let cancelled = rpc_reply(&inbox, &job_id);
@@ -5455,13 +5740,28 @@ mod publication_tests {
         // ownership scope; cancellation cannot affect that client's request.
         let mut other = editor.clone();
         other.runtime = new_id().unwrap();
-        Service::dispatch(&shared, &other, &out, rpc_frame(&other, &job_id,
-            command, json!({track.clone():0}))).unwrap();
+        Service::dispatch(
+            &shared,
+            &other,
+            &out,
+            rpc_frame(&other, &job_id, command, json!({track.clone():0})),
+        )
+        .unwrap();
         assert_eq!(rpc_reply(&inbox, &job_id)["status"], "accepted");
         assert_eq!(shared.lock().unwrap().authority.revision, 1);
         // The cancelled request's own receipt remains deterministic on retry.
-        Service::dispatch(&shared, &editor, &out, rpc_frame(&editor, &job_id,
-            json!({"type":"setTrackName","trackID":track,"name":"Must not commit"}), json!({track.clone():0}))).unwrap();
+        Service::dispatch(
+            &shared,
+            &editor,
+            &out,
+            rpc_frame(
+                &editor,
+                &job_id,
+                json!({"type":"setTrackName","trackID":track,"name":"Must not commit"}),
+                json!({track.clone():0}),
+            ),
+        )
+        .unwrap();
         assert_eq!(rpc_reply(&inbox, &job_id), cancelled);
         drop(shared);
         std::fs::remove_dir_all(root).unwrap();
@@ -5472,17 +5772,54 @@ mod publication_tests {
         let (out, inbox) = Outbox::pair(shared.lock().unwrap().global.clone());
         for index in 0..129 {
             let request_id = new_id().unwrap();
-            Service::dispatch(&shared, &editor, &out, rpc_frame(&editor, &request_id,
-                scoped_cancel_command(&new_id().unwrap()), json!({}))).unwrap();
-            assert_eq!(rpc_reply(&inbox, &request_id)["status"], if index < 128 { "accepted" } else { "busy" });
+            Service::dispatch(
+                &shared,
+                &editor,
+                &out,
+                rpc_frame(
+                    &editor,
+                    &request_id,
+                    scoped_cancel_command(&new_id().unwrap()),
+                    json!({}),
+                ),
+            )
+            .unwrap();
+            assert_eq!(
+                rpc_reply(&inbox, &request_id)["status"],
+                if index < 128 { "accepted" } else { "busy" }
+            );
         }
         assert_eq!(shared.lock().unwrap().cancelled_requests.len(), 128);
         let malformed = new_id().unwrap();
-        Service::dispatch(&shared, &editor, &out, rpc_frame(&editor, &malformed,
-            scoped_cancel_command("not-a-uuid"), json!({}))).unwrap();
+        Service::dispatch(
+            &shared,
+            &editor,
+            &out,
+            rpc_frame(
+                &editor,
+                &malformed,
+                scoped_cancel_command("not-a-uuid"),
+                json!({}),
+            ),
+        )
+        .unwrap();
         assert_eq!(rpc_reply(&inbox, &malformed)["status"], "rejected");
-        let target = shared.lock().unwrap().cancelled_requests.iter().next().unwrap().2.clone();
-        Service::dispatch(&shared, &editor, &out, rpc_frame(&editor, &target, json!({"type":"snapshot"}), json!({}))).unwrap();
+        let target = shared
+            .lock()
+            .unwrap()
+            .cancelled_requests
+            .iter()
+            .next()
+            .unwrap()
+            .2
+            .clone();
+        Service::dispatch(
+            &shared,
+            &editor,
+            &out,
+            rpc_frame(&editor, &target, json!({"type":"snapshot"}), json!({})),
+        )
+        .unwrap();
         assert_eq!(rpc_reply(&inbox, &target)["status"], "conflict");
         assert_eq!(shared.lock().unwrap().cancelled_requests.len(), 127);
         drop(shared);
@@ -6038,11 +6375,22 @@ mod edge_protection_tests {
         protect_unset_clip_edges(&mut session);
         let clips = &session.tracks[0].clips;
         assert_eq!(
-            (clips[0].edge_fade_frames, clips[0].cut_fade_in_frames, clips[0].cut_fade_out_frames),
+            (
+                clips[0].edge_fade_frames,
+                clips[0].cut_fade_in_frames,
+                clips[0].cut_fade_out_frames
+            ),
             (Some(96), Some(96), Some(96))
         );
-        assert_eq!(clips[1].edge_fade_frames, Some(0), "An explicit setting is kept");
-        assert_eq!(clips[2].edge_fade_frames, None, "Disabled protection is kept");
+        assert_eq!(
+            clips[1].edge_fade_frames,
+            Some(0),
+            "An explicit setting is kept"
+        );
+        assert_eq!(
+            clips[2].edge_fade_frames, None,
+            "Disabled protection is kept"
+        );
     }
 }
 

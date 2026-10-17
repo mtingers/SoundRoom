@@ -17,6 +17,9 @@ class ContractDriftTests(unittest.TestCase):
         shutil.copytree(ROOT/'protocol',root/'protocol')
         for target in ['SoundroomCore','SoundroomRemote']:
             shutil.copytree(ROOT/'Sources'/target,root/'Sources'/target)
+        generated_test='Tests/SoundroomRemoteTests/RemoteV3EnumParityTests.swift'
+        (root/generated_test).parent.mkdir(parents=True)
+        shutil.copy2(ROOT/generated_test,root/generated_test)
         return root
     def test_escaped_enum_cases_and_coding_keys_preserve_native_wire_values(self):
         from model_contract import extract
@@ -30,6 +33,49 @@ class ContractDriftTests(unittest.TestCase):
     def test_checked_in_contract_matches_sources(self):
         result=self.run_generator(ROOT,True)
         self.assertEqual(result.returncode,0,result.stderr+result.stdout)
+    def test_wrapped_associated_values_preserve_the_contract(self):
+        import re
+        with tempfile.TemporaryDirectory(prefix='soundroom-contract-layout-') as directory:
+            root=self.fixture(directory)
+            path=root/'Sources/SoundroomRemote/RemoteProtocol.swift'
+            source=path.read_text()
+            source,count=re.subn(r'case splitClip\(trackID: UUID, clipID: UUID, frame: Int\)',
+                'case splitClip(\n        trackID: UUID,\n        clipID: UUID,\n        frame: Int\n    )',source)
+            self.assertEqual(count,1)
+            path.write_text(source)
+            result=self.run_generator(root,True)
+            self.assertEqual(result.returncode,0,result.stderr+result.stdout)
+    def test_wrapped_model_headers_defaults_and_decode_calls_preserve_fields(self):
+        from model_contract import extract
+        with tempfile.TemporaryDirectory(prefix='soundroom-model-layout-') as directory:
+            path=pathlib.Path(directory)/'Fixture.swift'
+            path.write_text('''public enum Role:
+    String, Codable, CaseIterable
+{
+    case viewer,
+        editor
+}
+public struct Fixture:
+    Codable, Sendable
+{
+    public var name: String
+    public var label = "("
+    public var values: [Int] =
+        [1,
+         2]
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        name = try values.decode(
+            String.self,
+            forKey: .name
+        )
+    }
+}''')
+            records,enums=extract([path])
+            self.assertEqual(enums['Role'],['viewer','editor'])
+            fields=records['Fixture']['fields']
+            self.assertEqual([(f['name'],f['type'],f['required']) for f in fields],
+                [('name','String',True),('label','String',False),('values','[Int]',False)])
     def test_operation_registry_changes_require_regeneration(self):
         import json
         with tempfile.TemporaryDirectory(prefix='soundroom-operation-fixture-') as directory:

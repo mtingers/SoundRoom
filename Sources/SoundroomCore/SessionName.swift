@@ -6,7 +6,8 @@ public enum SessionName {
         guard !name.isEmpty else { throw SessionNameError.empty }
         guard name.utf8.count <= 128 else { throw SessionNameError.tooLong }
         guard !name.hasPrefix("."), !name.contains("/"), !name.contains("\\"), !name.contains(":"),
-              name.rangeOfCharacter(from: .controlCharacters) == nil else { throw SessionNameError.invalid }
+            name.rangeOfCharacter(from: .controlCharacters) == nil
+        else { throw SessionNameError.invalid }
         return name
     }
     public static func projectTitle(_ value: String) throws -> String {

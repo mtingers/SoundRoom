@@ -1,5 +1,5 @@
-import SwiftUI
 import SoundroomCore
+import SwiftUI
 
 /// Read-only setting diagrams. These intentionally do not animate or claim to meter audio.
 struct EffectSettingVisualization: View {
@@ -17,11 +17,15 @@ struct EffectSettingVisualization: View {
             case .compressor:
                 title("Static transfer · output dBFS")
                 CompressorSettingPlot(values: values)
-                    .help("Stereo-linked peak compression at steady level, including Makeup and Mix. Attack and Release affect transitions, not this curve. This is not live gain reduction.")
+                    .help(
+                        "Stereo-linked peak compression at steady level, including Makeup and Mix. Attack and Release affect transitions, not this curve. This is not live gain reduction."
+                    )
             case .echo:
                 title("Nominal repeats")
                 EchoSettingPlot(values: values)
-                    .help("Repeat levels before feedback-loop tone attenuation. The first wet repeat is undamped; subsequent repeats are frequency dependent.")
+                    .help(
+                        "Repeat levels before feedback-loop tone attenuation. The first wet repeat is undamped; subsequent repeats are frequency dependent."
+                    )
             case .chorus:
                 title("Delay sweep · one cycle")
                 ChorusSettingPlot(values: values)
@@ -46,7 +50,9 @@ struct EffectSettingVisualization: View {
             case .room:
                 title("Nominal decay envelope")
                 ReverbSettingPlot(values: values)
-                    .help("A setting diagram, not a measured impulse response. Damping shortens high-frequency decay; early reflections and diffusion shape the onset.")
+                    .help(
+                        "A setting diagram, not a measured impulse response. Damping shortens high-frequency decay; early reflections and diffusion shape the onset."
+                    )
                 readout("Nominal decay", String(format: "%.2f s to −60 dB", value("decay")))
             case .warmth:
                 title("Saturation settings")
@@ -58,9 +64,11 @@ struct EffectSettingVisualization: View {
                 let step = EffectSettingMath.quantizationStep(bits: value("bits"))
                 readout("One step", String(format: "%.3g full scale", step))
                 readout("TPDF RMS", String(format: "%.3g full scale", step * value("amount") / sqrt(6)))
-                    .help("Theoretical TPDF noise RMS before optional quantization; this is not a measured noise floor.")
+                    .help(
+                        "Theoretical TPDF noise RMS before optional quantization; this is not a measured noise floor.")
                 readout("Rounding", value("quantize") >= 0.5 ? "On" : "Off")
-                    .help("Theoretical TPDF noise RMS before optional quantization; this is not a measured noise floor.")
+                    .help(
+                        "Theoretical TPDF noise RMS before optional quantization; this is not a measured noise floor.")
             case .gate:
                 readout("Detection", "Stereo linked · hysteresis and hold")
                 readout("Range", String(format: "%.1f dB maximum reduction", value("range")))
@@ -77,8 +85,12 @@ struct EffectSettingVisualization: View {
         Text(text).font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.secondary)
     }
     private func readout(_ name: String, _ text: String) -> some View {
-        HStack { Text(name).foregroundStyle(Theme.secondary); Spacer(minLength: 8); Text(text).monospacedDigit() }
-            .font(.system(size: 11)).accessibilityElement(children: .combine)
+        HStack {
+            Text(name).foregroundStyle(Theme.secondary)
+            Spacer(minLength: 8)
+            Text(text).monospacedDigit()
+        }
+        .font(.system(size: 11)).accessibilityElement(children: .combine)
     }
 }
 
@@ -98,13 +110,24 @@ private struct ReverbSettingPlot: View {
                 context.stroke(envelope, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 2))
                 var delay = Path()
                 let x = area.minX + pre / end * area.width
-                delay.move(to: CGPoint(x: x, y: area.minY)); delay.addLine(to: CGPoint(x: x, y: area.maxY))
+                delay.move(to: CGPoint(x: x, y: area.minY))
+                delay.addLine(to: CGPoint(x: x, y: area.maxY))
                 context.stroke(delay, with: .color(Theme.secondary), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
             }.frame(height: 60)
-            HStack { Text("0 s"); Spacer(); Text(String(format: "Pre-delay %.1f ms", pre * 1000)); Spacer(); Text(String(format: "%.2f s", end)) }
-                .font(.system(size: 9)).foregroundStyle(Theme.secondary).padding(.leading, 25)
+            HStack {
+                Text("0 s")
+                Spacer()
+                Text(String(format: "Pre-delay %.1f ms", pre * 1000))
+                Spacer()
+                Text(String(format: "%.2f s", end))
+            }
+            .font(.system(size: 9)).foregroundStyle(Theme.secondary).padding(.leading, 25)
         }.accessibilityElement(children: .ignore)
-            .accessibilityLabel(String(format: "Nominal reverb envelope: %.2f milliseconds pre-delay, %.2f seconds to minus 60 decibels. Not a measured response.", pre * 1000, decay))
+            .accessibilityLabel(
+                String(
+                    format:
+                        "Nominal reverb envelope: %.2f milliseconds pre-delay, %.2f seconds to minus 60 decibels. Not a measured response.",
+                    pre * 1000, decay))
     }
 }
 
@@ -115,21 +138,30 @@ private struct SettingResponsePlot: View {
         VStack(spacing: 3) {
             Canvas { context, size in
                 let area = CGRect(x: 25, y: 3, width: max(1, size.width - 29), height: max(1, size.height - 8))
-                SettingPlotDrawing.grid(context: &context, area: area, levels: [-48, -24, 0, 24], lower: -48, upper: 24)
+                SettingPlotDrawing.grid(
+                    context: &context, area: area, levels: [-48, -24, 0, 24], lower: -48, upper: 24)
                 var response = Path()
                 for index in 0...180 {
-                    let t = Double(index) / 180, frequency = 20 * pow(1000, t)
+                    let t = Double(index) / 180
+                    let frequency = 20 * pow(1000, t)
                     let db = FilterResponse.decibels(at: frequency, kind: kind, parameters: values)
-                    let point = CGPoint(x: area.minX + t * area.width,
-                                        y: SettingPlotDrawing.y(db, area: area, lower: -48, upper: 24))
+                    let point = CGPoint(
+                        x: area.minX + t * area.width,
+                        y: SettingPlotDrawing.y(db, area: area, lower: -48, upper: 24))
                     if index == 0 { response.move(to: point) } else { response.addLine(to: point) }
                 }
                 context.stroke(response, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 1.8))
             }.frame(height: 98)
-            HStack { Text("20 Hz"); Spacer(); Text("20 kHz") }
-                .font(.system(size: 9)).foregroundStyle(Theme.secondary).padding(.leading, 25)
+            HStack {
+                Text("20 Hz")
+                Spacer()
+                Text("20 kHz")
+            }
+            .font(.system(size: 9)).foregroundStyle(Theme.secondary).padding(.leading, 25)
         }.accessibilityElement(children: .ignore)
-            .accessibilityLabel("Static \(kind.name) magnitude response. \(EffectControlPresentation.summary(kind: kind, values: values))")
+            .accessibilityLabel(
+                "Static \(kind.name) magnitude response. \(EffectControlPresentation.summary(kind: kind, values: values))"
+            )
     }
 }
 
@@ -139,24 +171,43 @@ private struct CompressorSettingPlot: View {
         VStack(spacing: 3) {
             Canvas { context, size in
                 let area = CGRect(x: 25, y: 4, width: max(1, size.width - 30), height: max(1, size.height - 9))
-                SettingPlotDrawing.grid(context: &context, area: area, levels: [-60, -30, 0, 24], lower: -60, upper: 24)
+                SettingPlotDrawing.grid(
+                    context: &context, area: area, levels: [-60, -30, 0, 24], lower: -60, upper: 24)
                 let model = EffectSettingMath.Compressor(values: values)
-                var reference = Path(), curve = Path()
+                var reference = Path()
+                var curve = Path()
                 for index in 0...120 {
                     let input = -60 + Double(index) * 0.5
                     let x = area.minX + Double(index) / 120 * area.width
                     let dry = CGPoint(x: x, y: SettingPlotDrawing.y(input, area: area, lower: -60, upper: 24))
-                    let wet = CGPoint(x: x, y: SettingPlotDrawing.y(model.outputDB(inputDB: input), area: area, lower: -60, upper: 24))
-                    if index == 0 { reference.move(to: dry); curve.move(to: wet) }
-                    else { reference.addLine(to: dry); curve.addLine(to: wet) }
+                    let wet = CGPoint(
+                        x: x, y: SettingPlotDrawing.y(model.outputDB(inputDB: input), area: area, lower: -60, upper: 24)
+                    )
+                    if index == 0 {
+                        reference.move(to: dry)
+                        curve.move(to: wet)
+                    } else {
+                        reference.addLine(to: dry)
+                        curve.addLine(to: wet)
+                    }
                 }
-                context.stroke(reference, with: .color(Theme.secondary.opacity(0.5)), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                context.stroke(
+                    reference, with: .color(Theme.secondary.opacity(0.5)),
+                    style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
                 context.stroke(curve, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 1.8))
             }.frame(height: 110)
-            HStack { Text("−60"); Spacer(); Text("Input dBFS"); Spacer(); Text("0") }
-                .font(.system(size: 9)).foregroundStyle(Theme.secondary).padding(.leading, 25)
+            HStack {
+                Text("−60")
+                Spacer()
+                Text("Input dBFS")
+                Spacer()
+                Text("0")
+            }
+            .font(.system(size: 9)).foregroundStyle(Theme.secondary).padding(.leading, 25)
         }.accessibilityElement(children: .ignore)
-            .accessibilityLabel("Static compressor input to output curve, including Makeup and Mix. \(EffectControlPresentation.summary(kind: .compressor, values: values))")
+            .accessibilityLabel(
+                "Static compressor input to output curve, including Makeup and Mix. \(EffectControlPresentation.summary(kind: .compressor, values: values))"
+            )
     }
 }
 
@@ -171,17 +222,23 @@ private struct EchoSettingPlot: View {
                 for (index, repeatValue) in repeats.enumerated() {
                     let db = 20 * log10(max(0.001, repeatValue.amplitude))
                     let x = area.minX + Double(index + 1) / Double(repeats.count + 1) * area.width
-                    var line = Path(); line.move(to: CGPoint(x: x, y: area.maxY))
+                    var line = Path()
+                    line.move(to: CGPoint(x: x, y: area.maxY))
                     line.addLine(to: CGPoint(x: x, y: SettingPlotDrawing.y(db, area: area, lower: -60, upper: 0)))
-                    context.stroke(line, with: .color(Theme.accent.opacity(0.95 - Double(index) * 0.08)), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    context.stroke(
+                        line, with: .color(Theme.accent.opacity(0.95 - Double(index) * 0.08)),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round))
                 }
             }.frame(height: 80)
             HStack {
-                Text("First: \(Int(repeats[0].milliseconds.rounded())) ms"); Spacer()
+                Text("First: \(Int(repeats[0].milliseconds.rounded())) ms")
+                Spacer()
                 Text("Last shown: \(String(format: "%.2f", repeats.last!.milliseconds / 1000)) s")
             }.font(.system(size: 9)).foregroundStyle(Theme.secondary)
         }.accessibilityElement(children: .ignore)
-            .accessibilityLabel("Nominal echo repeat levels before tone attenuation. \(EffectControlPresentation.summary(kind: .echo, values: values))")
+            .accessibilityLabel(
+                "Nominal echo repeat levels before tone attenuation. \(EffectControlPresentation.summary(kind: .echo, values: values))"
+            )
     }
 }
 
@@ -194,23 +251,35 @@ private struct ChorusSettingPlot: View {
         VStack(spacing: 3) {
             Canvas { context, size in
                 let area = CGRect(x: 30, y: 4, width: max(1, size.width - 34), height: max(1, size.height - 8))
-                let lower = base - 1, upper = base + max(1, depth) + 1
-                SettingPlotDrawing.grid(context: &context, area: area, levels: [base, base + depth], lower: lower, upper: upper, suffix: "")
+                let lower = base - 1
+                let upper = base + max(1, depth) + 1
+                SettingPlotDrawing.grid(
+                    context: &context, area: area, levels: [base, base + depth], lower: lower, upper: upper, suffix: "")
                 for right in [false, true] {
                     var curve = Path()
                     for index in 0...120 {
                         let t = Double(index) / 120
                         let delay = EffectSettingMath.chorusDelay(phase: t * 2 * .pi, right: right, values: values)
-                        let point = CGPoint(x: area.minX + t * area.width, y: SettingPlotDrawing.y(delay, area: area, lower: lower, upper: upper))
+                        let point = CGPoint(
+                            x: area.minX + t * area.width,
+                            y: SettingPlotDrawing.y(delay, area: area, lower: lower, upper: upper))
                         if index == 0 { curve.move(to: point) } else { curve.addLine(to: point) }
                     }
-                    context.stroke(curve, with: .color(right ? Theme.tracks[1] : Theme.accent), style: StrokeStyle(lineWidth: 1.6, dash: right ? [4, 2] : []))
+                    context.stroke(
+                        curve, with: .color(right ? Theme.tracks[1] : Theme.accent),
+                        style: StrokeStyle(lineWidth: 1.6, dash: right ? [4, 2] : []))
                 }
             }.frame(height: 80)
-            HStack { Text("L solid / R dashed · ms"); Spacer(); Text(String(format: "%.2f s", 1 / rate)) }
-                .font(.system(size: 9)).foregroundStyle(Theme.secondary)
+            HStack {
+                Text("L solid / R dashed · ms")
+                Spacer()
+                Text(String(format: "%.2f s", 1 / rate))
+            }
+            .font(.system(size: 9)).foregroundStyle(Theme.secondary)
         }.accessibilityElement(children: .ignore)
-            .accessibilityLabel("Static left and right delay sweeps over one chorus cycle. \(EffectControlPresentation.summary(kind: .chorus, values: values))")
+            .accessibilityLabel(
+                "Static left and right delay sweeps over one chorus cycle. \(EffectControlPresentation.summary(kind: .chorus, values: values))"
+            )
     }
 }
 
@@ -218,13 +287,19 @@ private enum SettingPlotDrawing {
     static func y(_ value: Double, area: CGRect, lower: Double, upper: Double) -> Double {
         area.maxY - max(0, min(1, (value - lower) / (upper - lower))) * area.height
     }
-    static func grid(context: inout GraphicsContext, area: CGRect, levels: [Double], lower: Double, upper: Double, suffix: String = "") {
+    static func grid(
+        context: inout GraphicsContext, area: CGRect, levels: [Double], lower: Double, upper: Double,
+        suffix: String = ""
+    ) {
         for level in levels {
             let position = y(level, area: area, lower: lower, upper: upper)
-            var line = Path(); line.move(to: CGPoint(x: area.minX, y: position)); line.addLine(to: CGPoint(x: area.maxX, y: position))
+            var line = Path()
+            line.move(to: CGPoint(x: area.minX, y: position))
+            line.addLine(to: CGPoint(x: area.maxX, y: position))
             context.stroke(line, with: .color(Theme.line.opacity(0.6)), lineWidth: 0.5)
-            context.draw(Text(String(format: "%.0f", level) + suffix).font(.system(size: 8)).foregroundColor(Theme.secondary),
-                         at: CGPoint(x: area.minX - 4, y: position), anchor: .trailing)
+            context.draw(
+                Text(String(format: "%.0f", level) + suffix).font(.system(size: 8)).foregroundColor(Theme.secondary),
+                at: CGPoint(x: area.minX - 4, y: position), anchor: .trailing)
         }
     }
 }

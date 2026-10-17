@@ -1,10 +1,12 @@
 import XCTest
+
 @testable import SoundroomEngineControl
 
 final class AuditionLeaseTests: XCTestCase {
     func testOwnedStopDoesNotReleaseAnotherClient() throws {
         var lease = AuditionLease()
-        let owner = UUID(), colleague = UUID()
+        let owner = UUID()
+        let colleague = UUID()
         let claim = try lease.acquire(owner: owner, kind: .pitch)
         XCTAssertThrowsError(try lease.stop(owner: colleague, kind: .pitch))
         XCTAssertThrowsError(try lease.acquire(owner: colleague, kind: .drums))

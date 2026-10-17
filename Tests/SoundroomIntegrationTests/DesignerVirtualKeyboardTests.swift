@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import Soundroom
 
 final class DesignerVirtualKeyboardTests: XCTestCase {

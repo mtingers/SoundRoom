@@ -16,9 +16,13 @@ struct RemoteV3ClientStream {
 
     mutating func accept(_ data: Data) throws -> [RemoteWireMessage] {
         guard data.count <= RemoteProtocol.maximumFrameBytes,
-              let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let kind = object["kind"] as? String else { throw RemoteError.invalidFrame }
-        if kind == "capabilities" { capabilities = try RemoteV3Codec.decodeCapabilities(data); return [] }
+            let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let kind = object["kind"] as? String
+        else { throw RemoteError.invalidFrame }
+        if kind == "capabilities" {
+            capabilities = try RemoteV3Codec.decodeCapabilities(data)
+            return []
+        }
         if kind.hasPrefix("snapshot") {
             try RemoteV3ModelValidator.validateJSON(data, type: "RemoteSnapshotPage")
             let page = try JSONDecoder().decode(RemoteSnapshotPage.self, from: data)
@@ -40,7 +44,9 @@ struct RemoteV3ClientStream {
         if pinnedRevision != nil || !installed {
             if case .event(.delta) = message {
                 guard deltas.count < 128 else { throw RemoteError.queueFull }
-                try retain(data.count); deltas.append((message, data.count, arrival)); return []
+                try retain(data.count)
+                deltas.append((message, data.count, arrival))
+                return []
             }
             let key: String?
             switch message {
@@ -52,13 +58,15 @@ struct RemoteV3ClientStream {
             }
             if let key {
                 if let old = telemetry.removeValue(forKey: key) { retainedBytes -= old.1 }
-                try retain(data.count); telemetry[key] = (message, data.count, arrival)
+                try retain(data.count)
+                telemetry[key] = (message, data.count, arrival)
             }
         }
         return [message]
     }
     private mutating func install(_ snapshot: RemoteSnapshot) -> [RemoteWireMessage] {
-        devices = snapshot.devices; installed = true
+        devices = snapshot.devices
+        installed = true
         var messages: [RemoteWireMessage] = [.event(.snapshot(snapshot))]
         var latestDeltaStatusArrival: UInt64 = 0
         for (message, _, sequence) in deltas {
@@ -73,7 +81,9 @@ struct RemoteV3ClientStream {
             if case .event(.devices(let next, _, _)) = message { devices = next }
             messages.append(message)
         }
-        deltas = []; telemetry = [:]; retainedBytes = 0
+        deltas = []
+        telemetry = [:]
+        retainedBytes = 0
         return messages
     }
     private mutating func retain(_ count: Int) throws {

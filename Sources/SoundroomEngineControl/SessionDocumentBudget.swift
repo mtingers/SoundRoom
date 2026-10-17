@@ -7,7 +7,10 @@ public enum SessionDocumentTransport: Sendable {
     case legacyNative
     case pagedWeb
     public var maximumDocumentBytes: Int {
-        switch self { case .legacyNative: 6 * 1024 * 1024; case .pagedWeb: RemoteSnapshotPages.maximumSnapshotBytes }
+        switch self {
+        case .legacyNative: 6 * 1024 * 1024
+        case .pagedWeb: RemoteSnapshotPages.maximumSnapshotBytes
+        }
     }
 }
 
@@ -32,9 +35,13 @@ public enum SessionDocumentBudget {
         guard count <= transport.maximumDocumentBytes else {
             switch transport {
             case .legacyNative:
-                throw RemoteError.rejected("This session exceeds the legacy remote document limit (6 MiB). Connect all clients through the common WSS endpoint to edit a larger session.")
+                throw RemoteError.rejected(
+                    "This session exceeds the legacy remote document limit (6 MiB). Connect all clients through the common WSS endpoint to edit a larger session."
+                )
             case .pagedWeb:
-                throw RemoteError.rejected("This session exceeds the bounded paged document limit (64 MiB). Reduce retained metadata before committing it.")
+                throw RemoteError.rejected(
+                    "This session exceeds the bounded paged document limit (64 MiB). Reduce retained metadata before committing it."
+                )
             }
         }
     }

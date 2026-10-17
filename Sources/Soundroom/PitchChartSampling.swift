@@ -7,13 +7,19 @@ enum PitchChartSampling {
         let end = lowerBound(points, frame: frames.upperBound + 1, time: { $0.frame })
         return extrema(points[start..<end], frames: frames, pixels: pixels, time: { $0.frame }, value: { $0.note })
     }
-    static func extrema<T>(_ values: ArraySlice<T>, frames: Range<Int>, pixels: Int,
-                           time: (T) -> Int, value: (T) -> Float) -> [T] {
+    static func extrema<T>(
+        _ values: ArraySlice<T>, frames: Range<Int>, pixels: Int,
+        time: (T) -> Int, value: (T) -> Float
+    ) -> [T] {
         guard !frames.isEmpty else { return [] }
         let width = max(1, pixels)
         if values.count <= width * 4 { return Array(values) }
-        var result: [T] = [], bucket = -1
-        var first: T?, last: T?, low: T?, high: T?
+        var result: [T] = []
+        var bucket = -1
+        var first: T?
+        var last: T?
+        var low: T?
+        var high: T?
         func flush() {
             guard let first, let last, let low, let high else { return }
             var unique: [Int: T] = [:]
@@ -21,9 +27,15 @@ enum PitchChartSampling {
             result.append(contentsOf: unique.values.sorted { time($0) < time($1) })
         }
         for item in values {
-            let pixel = max(0, min(width - 1, Int(Double(time(item) - frames.lowerBound) / Double(frames.count) * Double(width))))
+            let pixel = max(
+                0, min(width - 1, Int(Double(time(item) - frames.lowerBound) / Double(frames.count) * Double(width))))
             if bucket != pixel || first == nil {
-                flush(); first = item; last = item; low = item; high = item; bucket = pixel
+                flush()
+                first = item
+                last = item
+                low = item
+                high = item
+                bucket = pixel
             } else {
                 last = item
                 if value(item) < value(low!) { low = item }
@@ -34,7 +46,8 @@ enum PitchChartSampling {
         return result
     }
     static func lowerBound<T>(_ values: [T], frame: Int, time: (T) -> Int) -> Int {
-        var lo = 0, hi = values.count
+        var lo = 0
+        var hi = values.count
         while lo < hi {
             let middle = lo + (hi - lo) / 2
             if time(values[middle]) < frame { lo = middle + 1 } else { hi = middle }
@@ -52,7 +65,10 @@ enum PitchChartSampling {
         var output: [PitchContourPoint] = []
         output.reserveCapacity(min(end - start, width * 4 + 16))
         var bucket = -1
-        var first: PitchContourPoint?, last: PitchContourPoint?, low: PitchContourPoint?, high: PitchContourPoint?
+        var first: PitchContourPoint?
+        var last: PitchContourPoint?
+        var low: PitchContourPoint?
+        var high: PitchContourPoint?
         func flush() {
             guard let first, let last, let low, let high else { return }
             var unique: [Int: PitchContourPoint] = [:]
@@ -61,13 +77,24 @@ enum PitchChartSampling {
         }
         for point in points[start..<end] {
             guard point.isVoiced else {
-                flush(); first = nil; last = nil; low = nil; high = nil; bucket = -1
+                flush()
+                first = nil
+                last = nil
+                low = nil
+                high = nil
+                bucket = -1
                 if output.last?.isVoiced != false { output.append(point) }
                 continue
             }
-            let pixel = max(0, min(width - 1, Int(Double(point.frame - frames.lowerBound) / Double(frames.count) * Double(width))))
+            let pixel = max(
+                0, min(width - 1, Int(Double(point.frame - frames.lowerBound) / Double(frames.count) * Double(width))))
             if first == nil || bucket != pixel {
-                flush(); first = point; last = point; low = point; high = point; bucket = pixel
+                flush()
+                first = point
+                last = point
+                low = point
+                high = point
+                bucket = pixel
             } else {
                 last = point
                 if point.frequency < low!.frequency { low = point }
@@ -86,14 +113,18 @@ struct PreparedPitchChartRegion {
     init(_ region: PitchEditRegion) {
         range = region.range
         points = region.points
-        automation = points.map { AutomationPoint(frame: $0.frame, value: $0.note / 95,
-            curve: $0.curve, curveStart: $0.curveStart, curveEnd: $0.curveEnd) }
+        automation = points.map {
+            AutomationPoint(
+                frame: $0.frame, value: $0.note / 95,
+                curve: $0.curve, curveStart: $0.curveStart, curveEnd: $0.curveEnd)
+        }
     }
     /// One initial binary search; adjacent pixels reuse the current segment.
     /// Sampling includes knots (and the sample before hold steps), so steep changes
     /// do not turn into false long glides when the viewport gets wider.
     func samples(frames: Range<Int>, pixels: Int) -> [(frame: Int, note: Float)] {
-        let start = max(range.lowerBound, frames.lowerBound), end = min(range.upperBound - 1, frames.upperBound - 1)
+        let start = max(range.lowerBound, frames.lowerBound)
+        let end = min(range.upperBound - 1, frames.upperBound - 1)
         guard start <= end, !points.isEmpty else { return [] }
         let count = max(1, pixels * 2)
         let hop = max(1, (end - start) / count)
@@ -107,19 +138,25 @@ struct PreparedPitchChartRegion {
             if index > 0, points[index - 1].curve == .hold, frame > start { times.append(frame - 1) }
         }
         times.sort()
-        var segment = max(0, lo - 1), previous: Int?
+        var segment = max(0, lo - 1)
+        var previous: Int?
         var result: [(frame: Int, note: Float)] = []
         result.reserveCapacity(times.count)
         for frame in times where frame != previous {
             while segment + 1 < automation.count, automation[segment + 1].frame <= frame { segment += 1 }
             let value: Float
-            if frame < automation[0].frame { value = automation[0].value }
-            else if segment + 1 < automation.count {
+            if frame < automation[0].frame {
+                value = automation[0].value
+            } else if segment + 1 < automation.count {
                 value = AutomationInterpolation.between(automation[segment], automation[segment + 1], at: frame)
-            } else { value = automation[segment].value }
-            result.append((frame, value * 95)); previous = frame
+            } else {
+                value = automation[segment].value
+            }
+            result.append((frame, value * 95))
+            previous = frame
         }
-        return PitchChartSampling.extrema(result[...], frames: start..<(end + 1), pixels: max(1, pixels),
+        return PitchChartSampling.extrema(
+            result[...], frames: start..<(end + 1), pixels: max(1, pixels),
             time: { $0.frame }, value: { $0.note })
     }
 }

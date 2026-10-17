@@ -258,7 +258,10 @@ fn frames(buffer: &Buffer) -> usize {
 /// have a musical length, else the same frame.
 fn continued_position(old: &Buffer, position: usize, next: &Buffer) -> usize {
     let (old_start, start) = (loop_start(old), loop_start(next));
-    let (old_len, len) = ((frames(old) - old_start).max(1), (frames(next) - start).max(1));
+    let (old_len, len) = (
+        (frames(old) - old_start).max(1),
+        (frames(next) - start).max(1),
+    );
     // Position within the old loop (an intro maps proportionally onto it).
     let relative = if position >= old_start {
         position - old_start
@@ -384,7 +387,10 @@ impl PreviewMixer {
                 let (mut l, mut r) = (buffer.left[p] * buffer.gain, buffer.right[p] * buffer.gain);
                 if let Some(old) = previous.filter(|_| self.transition[voice] < XFADE) {
                     let weight = (0.5
-                        - 0.5 * (self.transition[voice] as f32 / XFADE as f32 * std::f32::consts::PI).cos())
+                        - 0.5
+                            * (self.transition[voice] as f32 / XFADE as f32
+                                * std::f32::consts::PI)
+                                .cos())
                     .clamp(0., 1.);
                     let old_length = frames(old);
                     let q = self.previous_position[voice];
@@ -492,7 +498,9 @@ mod tests {
         mixer.mix(&mut l, &mut r);
         // The new sound starts at once; the old one glides out under it.
         assert!(l[0] > 1.2 && l[0] <= 1.25);
-        assert!(l[..XFADE].windows(2).all(|w| w[1] <= w[0] && w[0] - w[1] < 0.01));
+        assert!(l[..XFADE]
+            .windows(2)
+            .all(|w| w[1] <= w[0] && w[0] - w[1] < 0.01));
         assert!(l[XFADE..].iter().all(|v| *v == 0.25));
         control.reclaim();
     }
@@ -518,7 +526,10 @@ mod tests {
         mixer.mix(&mut l, &mut r);
         assert_eq!(control.position(0), 2600);
         assert!(l[0] > 0.99, "the old loop sounds first");
-        assert!(l[1..XFADE].windows(2).all(|w| w[1] <= w[0]), "monotonic crossfade");
+        assert!(
+            l[1..XFADE].windows(2).all(|w| w[1] <= w[0]),
+            "monotonic crossfade"
+        );
         assert!(l[XFADE..].iter().all(|v| *v == -1.));
         // A non-continuous buffer still restarts, fading the old loop out.
         control.play(0, loop_of(0.5, 4000, 4., false));
@@ -534,11 +545,20 @@ mod tests {
         // Intro frames are 1.0, loop frames 2.0.
         let mut left = vec![1.; 100];
         left.extend(vec![2.; 50]);
-        control.play(0, Buffer { right: left.clone(), left, looping: true, gain: 1., loop_start: 100, ..Default::default() });
+        control.play(
+            0,
+            Buffer {
+                right: left.clone(),
+                left,
+                looping: true,
+                gain: 1.,
+                loop_start: 100,
+                ..Default::default()
+            },
+        );
         let (mut l, mut r) = (vec![0.; 400], vec![0.; 400]);
         mixer.mix(&mut l, &mut r);
         assert!(l[..100].iter().all(|v| *v == 1.), "intro once");
         assert!(l[100..].iter().all(|v| *v == 2.), "then only the loop");
     }
-
 }

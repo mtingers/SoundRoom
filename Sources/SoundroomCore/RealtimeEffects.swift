@@ -1,8 +1,9 @@
-import Foundation
 import Darwin
+import Foundation
 
 public enum RealtimeEffectKind: String, CaseIterable, Codable, Identifiable, Sendable {
-    case gain, lowPass, highPass, echo, warmth, compressor, room, equalizer, chorus, dither, pitchCorrection, limiter, resonance, vocalEnhancer, sourceIsolator, soundPutty, gate, utility, guitarRig
+    case gain, lowPass, highPass, echo, warmth, compressor, room, equalizer, chorus, dither, pitchCorrection, limiter,
+        resonance, vocalEnhancer, sourceIsolator, soundPutty, gate, utility, guitarRig
     public var id: String { rawValue }
     public var name: String {
         switch self {
@@ -33,7 +34,9 @@ public enum RealtimeEffectKind: String, CaseIterable, Codable, Identifiable, Sen
         case .lowPass: return 0.25
         case .echo: return 0.4
         case .warmth: return 0.3
-        case .highPass, .compressor, .room, .equalizer, .chorus, .dither, .pitchCorrection, .limiter, .resonance, .vocalEnhancer, .sourceIsolator, .soundPutty, .gate, .utility, .guitarRig: return 0.5
+        case .highPass, .compressor, .room, .equalizer, .chorus, .dither, .pitchCorrection, .limiter, .resonance,
+            .vocalEnhancer, .sourceIsolator, .soundPutty, .gate, .utility, .guitarRig:
+            return 0.5
         }
     }
     public func parameterDisplay(_ amount: Float) -> String {
@@ -41,7 +44,9 @@ public enum RealtimeEffectKind: String, CaseIterable, Codable, Identifiable, Sen
         switch self {
         case .gain: return String(format: "%+.1f dB", value * 48 - 24)
         case .lowPass: return String(format: "%.0f Hz", 200 * pow(80, 1 - value))
-        case .echo, .warmth, .highPass, .compressor, .room, .equalizer, .chorus, .dither, .pitchCorrection, .limiter, .resonance, .vocalEnhancer, .sourceIsolator, .soundPutty, .gate, .utility, .guitarRig: return String(format: "%.0f%%", value * 100)
+        case .echo, .warmth, .highPass, .compressor, .room, .equalizer, .chorus, .dither, .pitchCorrection, .limiter,
+            .resonance, .vocalEnhancer, .sourceIsolator, .soundPutty, .gate, .utility, .guitarRig:
+            return String(format: "%.0f%%", value * 100)
         }
     }
 }
@@ -53,15 +58,22 @@ public struct AutomationPoint: Codable, Equatable, Sendable, Identifiable {
     public var curveStart: Float
     public var curveEnd: Float
     public var id: Int { frame }
-    public init(frame: Int, value: Float, curve: AutomationCurve = .linear, curveStart: Float = 0, curveEnd: Float = 1) {
-        self.frame = max(0, frame); self.value = normalizedAmount(value); self.curve = curve
+    public init(frame: Int, value: Float, curve: AutomationCurve = .linear, curveStart: Float = 0, curveEnd: Float = 1)
+    {
+        self.frame = max(0, frame)
+        self.value = normalizedAmount(value)
+        self.curve = curve
         self.curveStart = normalizedAmount(curveStart)
         self.curveEnd = max(self.curveStart, normalizedAmount(curveEnd))
     }
     private enum CodingKeys: String, CodingKey { case frame, value, curve, curveStart, curveEnd }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        self.init(frame: try c.decode(Int.self, forKey: .frame), value: try c.decode(Float.self, forKey: .value), curve: try c.decodeIfPresent(AutomationCurve.self, forKey: .curve) ?? .linear, curveStart: try c.decodeIfPresent(Float.self, forKey: .curveStart) ?? 0, curveEnd: try c.decodeIfPresent(Float.self, forKey: .curveEnd) ?? 1)
+        self.init(
+            frame: try c.decode(Int.self, forKey: .frame), value: try c.decode(Float.self, forKey: .value),
+            curve: try c.decodeIfPresent(AutomationCurve.self, forKey: .curve) ?? .linear,
+            curveStart: try c.decodeIfPresent(Float.self, forKey: .curveStart) ?? 0,
+            curveEnd: try c.decodeIfPresent(Float.self, forKey: .curveEnd) ?? 1)
     }
 }
 
@@ -85,7 +97,10 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
         default: primary = nil
         }
         if parameters.isEmpty, !automation.isEmpty, let primary,
-           parameterAutomation[primary]?.isEmpty != false { keys.insert(primary) }
+            parameterAutomation[primary]?.isEmpty != false
+        {
+            keys.insert(primary)
+        }
         return keys
     }
     public var id: UUID
@@ -101,14 +116,20 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
     /// The source already contains this insert's processing in these half-open
     /// timeline ranges. Bypass each stage's wet output with latency-aligned dry.
     public var bakedRanges: [PitchEditRange]
-    public init(kind: RealtimeEffectKind, amount: Float? = nil, enabled: Bool = true,
-                automation: [AutomationPoint] = [], parameters: [String: Float] = [:],
-                parameterAutomation: [String: [AutomationPoint]] = [:], pitchEdits: [PitchEditRegion] = [],
-                pitchEditsOnly: Bool = false, bakedRanges: [PitchEditRange] = []) {
-        id = UUID(); self.kind = kind
+    public init(
+        kind: RealtimeEffectKind, amount: Float? = nil, enabled: Bool = true,
+        automation: [AutomationPoint] = [], parameters: [String: Float] = [:],
+        parameterAutomation: [String: [AutomationPoint]] = [:], pitchEdits: [PitchEditRegion] = [],
+        pitchEditsOnly: Bool = false, bakedRanges: [PitchEditRange] = []
+    ) {
+        id = UUID()
+        self.kind = kind
         self.amount = normalizedAmount(amount ?? kind.defaultAmount)
-        self.enabled = enabled; self.automation = automation
-        self.parameters = parameters.isEmpty && ![.gain, .lowPass, .echo, .warmth].contains(kind) ? kind.defaultParameters : parameters
+        self.enabled = enabled
+        self.automation = automation
+        self.parameters =
+            parameters.isEmpty && ![.gain, .lowPass, .echo, .warmth].contains(kind)
+            ? kind.defaultParameters : parameters
         self.parameterAutomation = parameterAutomation
         self.selectedAutomationParameter = self.parameters.isEmpty ? nil : kind.parameters.first?.id
         self.pitchEdits = PitchEditRegions.sanitized(pitchEdits)
@@ -116,7 +137,10 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
         self.bakedRanges = PitchEditRegions.sanitizedRanges(bakedRanges)
     }
 
-    private enum CodingKeys: String, CodingKey { case id, kind, amount, enabled, automation, parameters, parameterAutomation, selectedAutomationParameter, pitchEdits, pitchEditsOnly, bakedRanges }
+    private enum CodingKeys: String, CodingKey {
+        case id, kind, amount, enabled, automation, parameters, parameterAutomation, selectedAutomationParameter,
+            pitchEdits, pitchEditsOnly, bakedRanges
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
@@ -125,27 +149,44 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
         enabled = try c.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
         automation = try c.decodeIfPresent([AutomationPoint].self, forKey: .automation) ?? []
         parameters = try c.decodeIfPresent([String: Float].self, forKey: .parameters) ?? [:]
-        parameterAutomation = try c.decodeIfPresent([String: [AutomationPoint]].self, forKey: .parameterAutomation) ?? [:]
-        selectedAutomationParameter = try c.decodeIfPresent(String.self, forKey: .selectedAutomationParameter) ?? (parameters.isEmpty ? nil : kind.parameters.first?.id)
-        if let key = selectedAutomationParameter, !kind.parameters.contains(where: { $0.id == key }) { selectedAutomationParameter = parameters.isEmpty ? nil : kind.parameters.first?.id }
-        pitchEdits = PitchEditRegions.sanitized(try c.decodeIfPresent([PitchEditRegion].self, forKey: .pitchEdits) ?? [])
+        parameterAutomation =
+            try c.decodeIfPresent([String: [AutomationPoint]].self, forKey: .parameterAutomation) ?? [:]
+        selectedAutomationParameter =
+            try c.decodeIfPresent(String.self, forKey: .selectedAutomationParameter)
+            ?? (parameters.isEmpty ? nil : kind.parameters.first?.id)
+        if let key = selectedAutomationParameter, !kind.parameters.contains(where: { $0.id == key }) {
+            selectedAutomationParameter = parameters.isEmpty ? nil : kind.parameters.first?.id
+        }
+        pitchEdits = PitchEditRegions.sanitized(
+            try c.decodeIfPresent([PitchEditRegion].self, forKey: .pitchEdits) ?? [])
         pitchEditsOnly = try c.decodeIfPresent(Bool.self, forKey: .pitchEditsOnly) ?? false
-        bakedRanges = PitchEditRegions.sanitizedRanges(try c.decodeIfPresent([PitchEditRange].self, forKey: .bakedRanges) ?? [])
+        bakedRanges = PitchEditRegions.sanitizedRanges(
+            try c.decodeIfPresent([PitchEditRange].self, forKey: .bakedRanges) ?? [])
     }
     public var activeAutomation: [AutomationPoint] {
         get { selectedAutomationParameter.map { parameterAutomation[$0] ?? [] } ?? automation }
-        set { if let key = selectedAutomationParameter { parameterAutomation[key] = newValue } else { automation = newValue } }
+        set {
+            if let key = selectedAutomationParameter {
+                parameterAutomation[key] = newValue
+            } else {
+                automation = newValue
+            }
+        }
     }
     public var activeAutomationAmount: Float {
-        guard let key = selectedAutomationParameter, let descriptor = kind.parameters.first(where: { $0.id == key }) else { return normalizedAmount(amount) }
+        guard let key = selectedAutomationParameter, let descriptor = kind.parameters.first(where: { $0.id == key })
+        else { return normalizedAmount(amount) }
         return descriptor.normalized(parameters[key] ?? descriptor.defaultValue)
     }
     public func automationDisplay(_ normalized: Float) -> String {
-        guard let key = selectedAutomationParameter, let descriptor = kind.parameters.first(where: { $0.id == key }) else { return kind.parameterDisplay(normalized) }
+        guard let key = selectedAutomationParameter, let descriptor = kind.parameters.first(where: { $0.id == key })
+        else { return kind.parameterDisplay(normalized) }
         return descriptor.display(descriptor.physical(normalized))
     }
     /// Old projects retain the original one-knob signal path and amount automation.
-    public func value(at frame: Int) -> Float { Self.interpolated(automation, at: frame, baseline: normalizedAmount(amount)) }
+    public func value(at frame: Int) -> Float {
+        Self.interpolated(automation, at: frame, baseline: normalizedAmount(amount))
+    }
     /// Normalized automation value for one parameter, with its physical base as fallback.
     public func value(at frame: Int, parameter: String) -> Float {
         guard let descriptor = kind.parameters.first(where: { $0.id == parameter }) else { return 0 }
@@ -161,7 +202,9 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
             default: primary = nil
             }
             if parameter == primary {
-                var sample = self; sample.amount = value(at: frame); sample.automation = []
+                var sample = self
+                sample.amount = value(at: frame)
+                sample.automation = []
                 return descriptor.normalized(sample.parametersForEditing[parameter] ?? base)
             }
         }
@@ -184,11 +227,15 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
             return Int(min(30, milliseconds / 1000 * max(1, repeats)) * Float(sessionRate))
         }
         if kind == .guitarRig {
-            var seconds: Float = maximumParameterValue("pedal") > 0 || maximumParameterValue("amp") > 0 || maximumParameterValue("cabinet") > 0 ? 0.25 : 0
+            var seconds: Float =
+                maximumParameterValue("pedal") > 0 || maximumParameterValue("amp") > 0
+                    || maximumParameterValue("cabinet") > 0 ? 0.25 : 0
             if maximumParameterValue("modulation") > 0 && maximumParameterValue("modMix") > 0 { seconds += 0.03 }
             if maximumParameterValue("delayMix") > 0 {
                 let feedback = maximumParameterValue("delayFeedback")
-                seconds += maximumParameterValue("delayTime") / 1000 * (feedback > 0 ? max(1, ceil(log(0.001) / log(feedback))) : 1)
+                seconds +=
+                    maximumParameterValue("delayTime") / 1000
+                    * (feedback > 0 ? max(1, ceil(log(0.001) / log(feedback))) : 1)
             }
             if maximumParameterValue("reverbMix") > 0 { seconds += maximumParameterValue("reverbDecay") + 0.15 }
             return Int(min(30, seconds) * Float(sessionRate))
@@ -199,7 +246,9 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
         }
         if kind == .room {
             let dense = maximumParameterValue("character") >= 0.5
-            return Int(min(30, maximumParameterValue("decay") + maximumParameterValue("predelay") / 1000 + (dense ? 0.15 : 0)) * Float(sessionRate))
+            return Int(
+                min(30, maximumParameterValue("decay") + maximumParameterValue("predelay") / 1000 + (dense ? 0.15 : 0))
+                    * Float(sessionRate))
         }
         if kind == .utility { return Int(max(maximumParameterValue("delayL"), maximumParameterValue("delayR"))) }
         if kind == .chorus {
@@ -212,10 +261,14 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
     }
     private func maximumParameterValue(_ key: String) -> Float {
         guard let descriptor = kind.parameters.first(where: { $0.id == key }) else { return 0 }
-        return (parameterAutomation[key] ?? []).reduce(descriptor.clamped(parameters[key] ?? descriptor.defaultValue)) { max($0, descriptor.physical($1.value)) }
+        return (parameterAutomation[key] ?? []).reduce(descriptor.clamped(parameters[key] ?? descriptor.defaultValue)) {
+            max($0, descriptor.physical($1.value))
+        }
     }
-    public func process(_ audio: AudioSamples, startFrame: Int = 0, includeTail: Bool = false,
-                        progress: (@Sendable (Double) -> Void)? = nil) -> AudioSamples {
+    public func process(
+        _ audio: AudioSamples, startFrame: Int = 0, includeTail: Bool = false,
+        progress: (@Sendable (Double) -> Void)? = nil
+    ) -> AudioSamples {
         guard audio.count > 0, audio.channelCount > 0, !Task.isCancelled else { return audio }
         let outputCount = audio.count + (includeTail ? tailFrames : 0)
         let count = outputCount + latencyFrames
@@ -223,7 +276,8 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
         // Guitar rigs have a stereo output even for a mono DI source. Retain
         // the chorus/room right channel when applying the effect to audio.
         let outputChannels = kind == .guitarRig && audio.channelCount == 1 ? 2 : audio.channelCount
-        var channels: [[Float]] = [], reportedPercent = -1
+        var channels: [[Float]] = []
+        var reportedPercent = -1
         for pair in stride(from: 0, to: audio.channelCount, by: 2) {
             guard !Task.isCancelled else { return audio }
             let processor = EffectProcessor(effect: self)
@@ -234,20 +288,28 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
                 // Only this bounded input block is materialized, even for mapped sources.
                 guard !Task.isCancelled else { return audio }
                 let block = min(8192, count - offset)
-                var left: [Float], right: [Float]
+                var left: [Float]
+                var right: [Float]
                 if offset < audio.count {
                     let end = min(audio.count, offset + block)
                     let input = audio.readFrames(offset..<end, channels: [pair, min(pair + 1, audio.channelCount - 1)])
-                    left = input[0]; right = input[1]
+                    left = input[0]
+                    right = input[1]
                     left.append(contentsOf: repeatElement(0, count: block - left.count))
                     right.append(contentsOf: repeatElement(0, count: block - right.count))
                 } else {
-                    left = Array(repeating: 0, count: block); right = left
+                    left = Array(repeating: 0, count: block)
+                    right = left
                 }
-                left.withUnsafeMutableBufferPointer { l in right.withUnsafeMutableBufferPointer { r in
-                    processor.process(left: l.baseAddress!, right: r.baseAddress!, count: block, position: PitchEditRange.clampedFrame(startFrame) + offset)
-                } }
-                let first = max(0, latencyFrames - offset), last = min(block, count - offset)
+                left.withUnsafeMutableBufferPointer { l in
+                    right.withUnsafeMutableBufferPointer { r in
+                        processor.process(
+                            left: l.baseAddress!, right: r.baseAddress!, count: block,
+                            position: PitchEditRange.clampedFrame(startFrame) + offset)
+                    }
+                }
+                let first = max(0, latencyFrames - offset)
+                let last = min(block, count - offset)
                 if last > first {
                     let destination = (offset + first - latencyFrames)..<(offset + last - latencyFrames)
                     outputLeft.replaceSubrange(destination, with: left[first..<last])
@@ -256,14 +318,16 @@ public struct RealtimeEffect: Codable, Equatable, Sendable, Identifiable {
                 offset += block
                 let fraction = Double((pair / 2) * count + offset) / Double(pairs * count)
                 let percent = Int(fraction * 100)
-                if percent != reportedPercent { reportedPercent = percent; progress?(fraction) }
+                if percent != reportedPercent {
+                    reportedPercent = percent
+                    progress?(fraction)
+                }
             }
             channels.append(outputLeft)
             if pair + 1 < outputChannels { channels.append(outputRight) }
         }
         return AudioSamples(channels: channels)
     }
-
 }
 
 private func normalizedAmount(_ value: Float) -> Float {
@@ -306,29 +370,40 @@ public final class RealtimeMixer {
     /// Call on the preparation worker, after stateful seek warm-up.
     public func prepareRealtimeSources(session: Session, assets: [UUID: AudioSamples], loopRange: Range<Int>? = nil) {
         guard assets.values.contains(where: \.isStreamed) else { return }
-        let cache = RealtimeSourceCache(session: session, assets: assets, startFrame: position + (routed?.latency ?? 0), loopRange: loopRange)
+        let cache = RealtimeSourceCache(
+            session: session, assets: assets, startFrame: position + (routed?.latency ?? 0), loopRange: loopRange)
         sourceCache = cache
         routed?.sourceCache = cache
         for track in tracks { track.sourceCache = cache }
     }
 
-    public init(session: Session, assets: [UUID: AudioSamples], startFrame: Int = 0, includeEffectTails: Bool = false, renderEndFrame: Int? = nil, seekCache: DSPSeekCache? = nil, isCancelled: (() -> Bool)? = nil, loopRange: Range<Int>? = nil, seekPolicy: RealtimeSeekPolicy = .continuousHistory) {
+    public init(
+        session: Session, assets: [UUID: AudioSamples], startFrame: Int = 0, includeEffectTails: Bool = false,
+        renderEndFrame: Int? = nil, seekCache: DSPSeekCache? = nil, isCancelled: (() -> Bool)? = nil,
+        loopRange: Range<Int>? = nil, seekPolicy: RealtimeSeekPolicy = .continuousHistory
+    ) {
         self.loopRange = loopRange
         self.includeEffectTails = includeEffectTails
         self.renderEndFrame = renderEndFrame.map { max(0, $0) }
         let origin = loopRange?.lowerBound ?? min(0, startFrame)
-        position = seekPolicy == .interactive && startFrame > origin ? max(origin, startFrame - RealtimeSeekPolicy.interactiveHistoryFrames) : origin
+        position =
+            seekPolicy == .interactive && startFrame > origin
+            ? max(origin, startFrame - RealtimeSeekPolicy.interactiveHistoryFrames) : origin
         end = session.end
         if session.tracks.contains(where: { $0.routing != nil }) {
             routingRequested = true
-            routed = try? RoutedRealtimeGraph(session: session, assets: assets, startFrame: startFrame, loopRange: loopRange, historyStart: seekPolicy == .interactive ? position : nil, isCancelled: isCancelled)
+            routed = try? RoutedRealtimeGraph(
+                session: session, assets: assets, startFrame: startFrame, loopRange: loopRange,
+                historyStart: seekPolicy == .interactive ? position : nil, isCancelled: isCancelled)
             end = renderEndFrame ?? session.end + (includeEffectTails ? Self.tailFrames(session: session) : 0)
             position = startFrame
             return
         }
         let primeFrame = position
-        let initial = PreparedRealtimeMixerUpdate(session: session, assets: assets, loopRange: loopRange, primeFrame: primeFrame)
-        applyPreparedUpdate(initial); initial.releaseRetiredResources()
+        let initial = PreparedRealtimeMixerUpdate(
+            session: session, assets: assets, loopRange: loopRange, primeFrame: primeFrame)
+        applyPreparedUpdate(initial)
+        initial.releaseRetiredResources()
         // Prime the complete output bus against actual summed audio. Tracks own
         // their insert look-ahead; latency-bearing output inserts own an extra
         // look-ahead budget. With an empty bus this path performs no extra work.
@@ -338,25 +413,38 @@ public final class RealtimeMixer {
             let primeL = UnsafeMutablePointer<Float>.allocate(capacity: master.lookAheadFrames)
             let primeR = UnsafeMutablePointer<Float>.allocate(capacity: master.lookAheadFrames)
             render(intoLeft: primeL, intoRight: primeR, frameCount: master.lookAheadFrames)
-            primeL.deallocate(); primeR.deallocate(); position = savedPosition
+            primeL.deallocate()
+            primeR.deallocate()
+            position = savedPosition
         }
-        let needsHistory = !session.masterTrack.realtimeEffects.isEmpty || session.tracks.contains { track in
-            track.realtimeEffects.contains {
-                $0.kind != .gain && $0.kind != .dither && ($0.kind != .warmth || !$0.parameters.isEmpty || !$0.parameterAutomation.isEmpty)
+        let needsHistory =
+            !session.masterTrack.realtimeEffects.isEmpty
+            || session.tracks.contains { track in
+                track.realtimeEffects.contains {
+                    $0.kind != .gain && $0.kind != .dither
+                        && ($0.kind != .warmth || !$0.parameters.isEmpty || !$0.parameterAutomation.isEmpty)
+                }
             }
-        }
         if startFrame > position && needsHistory {
             // Locally reset states must never enter the canonical checkpoint
             // cache: exports and aligned live edits rely on exact history.
             let historyCache = seekPolicy == .continuousHistory ? seekCache : nil
-            let key = historyCache?.key(session: session, assets: assets, includeTails: includeEffectTails, end: renderEndFrame, loopRange: loopRange)
-            if let cache = historyCache, let key, let checkpoint = cache.nearest(key: key, frame: min(startFrame, end)) {
-                for track in tracks { for effect in track.effects {
-                    if let saved = checkpoint.tracks[track.track.id]?[effect.effect.id] { effect.restoreSeek(saved) }
-                } }
+            let key = historyCache?.key(
+                session: session, assets: assets, includeTails: includeEffectTails, end: renderEndFrame,
+                loopRange: loopRange)
+            if let cache = historyCache, let key, let checkpoint = cache.nearest(key: key, frame: min(startFrame, end))
+            {
+                for track in tracks {
+                    for effect in track.effects {
+                        if let saved = checkpoint.tracks[track.track.id]?[effect.effect.id] {
+                            effect.restoreSeek(saved)
+                        }
+                    }
+                }
                 if let bus = checkpoint.master { master = bus.deepCopy() }
                 for track in tracks { track.primeDryBaseline(at: checkpoint.frame + master.lookAheadFrames) }
-                position = checkpoint.frame; restoredCheckpointFrame = checkpoint.frame
+                position = checkpoint.frame
+                restoredCheckpointFrame = checkpoint.frame
             }
             let warmupStart = position
             let interval = historyCache?.intervalFrames ?? Int.max
@@ -365,16 +453,32 @@ public final class RealtimeMixer {
             let count = 8192
             let left = UnsafeMutablePointer<Float>.allocate(capacity: count)
             let right = UnsafeMutablePointer<Float>.allocate(capacity: count)
-            defer { left.deallocate(); right.deallocate() }
+            defer {
+                left.deallocate()
+                right.deallocate()
+            }
             var warmedBlocks = 0
             while position < min(startFrame, end) {
-                if Task.isCancelled || isCancelled?() == true { position = startFrame; return }
-                render(intoLeft: left, intoRight: right, frameCount: min(count, min(startFrame, end) - position, nextCheckpoint - position))
+                if Task.isCancelled || isCancelled?() == true {
+                    position = startFrame
+                    return
+                }
+                render(
+                    intoLeft: left, intoRight: right,
+                    frameCount: min(count, min(startFrame, end) - position, nextCheckpoint - position))
                 if position == nextCheckpoint, let cache = historyCache, let key {
                     var saved: [UUID: [UUID: EffectSeekState]] = [:]
-                    for track in tracks { for effect in track.effects { saved[track.track.id, default: [:]][effect.effect.id] = effect.seekSnapshot() } }
-                    cache.store(key: key, checkpoint: DSPSeekCheckpoint(frame: position, tracks: saved, master: master.effects.isEmpty ? nil : master.deepCopy()))
-                    let next = nextCheckpoint.addingReportingOverflow(interval); nextCheckpoint = next.overflow ? Int.max : next.partialValue
+                    for track in tracks {
+                        for effect in track.effects {
+                            saved[track.track.id, default: [:]][effect.effect.id] = effect.seekSnapshot()
+                        }
+                    }
+                    cache.store(
+                        key: key,
+                        checkpoint: DSPSeekCheckpoint(
+                            frame: position, tracks: saved, master: master.effects.isEmpty ? nil : master.deepCopy()))
+                    let next = nextCheckpoint.addingReportingOverflow(interval)
+                    nextCheckpoint = next.overflow ? Int.max : next.partialValue
                 }
                 warmedBlocks += 1
                 if warmedBlocks % 32 == 0 { for audio in assets.values { audio.discardReadPages() } }
@@ -387,38 +491,66 @@ public final class RealtimeMixer {
     }
 
     /// Resolve source media and allocate graph/configuration storage away from the render thread.
-    public static func prepareUpdate(session: Session, assets: [UUID: AudioSamples], realtimeStartFrame: Int? = nil, loopRange: Range<Int>? = nil) -> PreparedRealtimeMixerUpdate {
-        PreparedRealtimeMixerUpdate(session: session, assets: assets, realtimeStartFrame: realtimeStartFrame, loopRange: loopRange)
+    public static func prepareUpdate(
+        session: Session, assets: [UUID: AudioSamples], realtimeStartFrame: Int? = nil, loopRange: Range<Int>? = nil
+    ) -> PreparedRealtimeMixerUpdate {
+        PreparedRealtimeMixerUpdate(
+            session: session, assets: assets, realtimeStartFrame: realtimeStartFrame, loopRange: loopRange)
     }
 
     /// A layout change requires independent state: even equal total latency can
     /// change the input timeline of an existing processor when inserts move.
     public static func requiresAlignedUpdate(from previous: Session, to incoming: Session) -> Bool {
-        (previous.tracks.contains(where: { $0.routing != nil }) || incoming.tracks.contains(where: { $0.routing != nil })) && routedLayoutChanged(previous, incoming) || MasterBusProcessor.layoutChanged(previous.masterTrack, incoming.masterTrack) || incoming.tracks.contains { track in
-            guard let old = previous.tracks.first(where: { $0.id == track.id }) else { return track.realtimeEffects.contains { $0.latencyFrames > 0 } }
-            return TrackProcessor.layoutChanged(from: old, to: track)
-        }
+        (previous.tracks.contains(where: { $0.routing != nil })
+            || incoming.tracks.contains(where: { $0.routing != nil })) && routedLayoutChanged(previous, incoming)
+            || MasterBusProcessor.layoutChanged(previous.masterTrack, incoming.masterTrack)
+            || incoming.tracks.contains { track in
+                guard let old = previous.tracks.first(where: { $0.id == track.id }) else {
+                    return track.realtimeEffects.contains { $0.latencyFrames > 0 }
+                }
+                return TrackProcessor.layoutChanged(from: old, to: track)
+            }
     }
     private static func routedLayoutChanged(_ a: Session, _ b: Session) -> Bool {
         guard a.tracks.count == b.tracks.count, a.timing == b.timing else { return true }
-        for (a,b) in zip(a.tracks + [a.masterTrack],b.tracks + [b.masterTrack]) {
-            if a.id != b.id || a.clips != b.clips || a.routing?.role != b.routing?.role || a.routing?.outputID != b.routing?.outputID || a.routing?.sidechainSourceID != b.routing?.sidechainSourceID || a.routing?.sends.map(\.trackID) != b.routing?.sends.map(\.trackID) || a.realtimeEffects.count != b.realtimeEffects.count { return true }
-            for (a,b) in zip(a.realtimeEffects,b.realtimeEffects) { if a.id != b.id || a.kind != b.kind || a.latencyFrames != b.latencyFrames { return true } }
+        for (a, b) in zip(a.tracks + [a.masterTrack], b.tracks + [b.masterTrack]) {
+            if a.id != b.id || a.clips != b.clips || a.routing?.role != b.routing?.role
+                || a.routing?.outputID != b.routing?.outputID
+                || a.routing?.sidechainSourceID != b.routing?.sidechainSourceID
+                || a.routing?.sends.map(\.trackID) != b.routing?.sends.map(\.trackID)
+                || a.realtimeEffects.count != b.realtimeEffects.count
+            {
+                return true
+            }
+            for (a, b) in zip(a.realtimeEffects, b.realtimeEffects) {
+                if a.id != b.id || a.kind != b.kind || a.latencyFrames != b.latencyFrames { return true }
+            }
         }
         return a.tracks.contains(where: { $0.routing != nil }) != b.tracks.contains(where: { $0.routing != nil })
     }
     /// Worker-only. Prepare canonical state at the exact future output frame.
-    public static func prepareAlignedUpdate(session: Session, assets: [UUID: AudioSamples], previousSession: Session,
+    public static func prepareAlignedUpdate(
+        session: Session, assets: [UUID: AudioSamples], previousSession: Session,
         handoffFrame: Int, loopRange: Range<Int>? = nil, seekCache: DSPSeekCache? = nil,
-        isCancelled: (() -> Bool)? = nil) -> PreparedRealtimeMixerUpdate? {
-        if session.tracks.contains(where: { $0.routing != nil }) || previousSession.tracks.contains(where: { $0.routing != nil }) {
-            let prepared = PreparedRealtimeMixerUpdate(session: session, assets: assets, realtimeStartFrame: handoffFrame, loopRange: loopRange)
+        isCancelled: (() -> Bool)? = nil
+    ) -> PreparedRealtimeMixerUpdate? {
+        if session.tracks.contains(where: { $0.routing != nil })
+            || previousSession.tracks.contains(where: { $0.routing != nil })
+        {
+            let prepared = PreparedRealtimeMixerUpdate(
+                session: session, assets: assets, realtimeStartFrame: handoffFrame, loopRange: loopRange)
             if session.tracks.contains(where: { $0.routing != nil }) {
-                prepared.routed = try? RoutedRealtimeGraph(session: session, assets: assets, startFrame: handoffFrame, loopRange: loopRange, isCancelled: isCancelled)
+                prepared.routed = try? RoutedRealtimeGraph(
+                    session: session, assets: assets, startFrame: handoffFrame, loopRange: loopRange,
+                    isCancelled: isCancelled)
                 prepared.alignedRouting = true
             } else {
-                let warmed = RealtimeMixer(session: session, assets: assets, startFrame: handoffFrame, includeEffectTails: true, isCancelled: isCancelled, loopRange: loopRange)
-                prepared.tracks = warmed.tracks; prepared.master = warmed.master; prepared.alignedMaster = true
+                let warmed = RealtimeMixer(
+                    session: session, assets: assets, startFrame: handoffFrame, includeEffectTails: true,
+                    isCancelled: isCancelled, loopRange: loopRange)
+                prepared.tracks = warmed.tracks
+                prepared.master = warmed.master
+                prepared.alignedMaster = true
             }
             guard !Task.isCancelled, isCancelled?() != true else { return nil }
             prepared.handoffFrame = handoffFrame
@@ -426,23 +558,41 @@ public final class RealtimeMixer {
         }
         var changed = Set<UUID>()
         for track in session.tracks {
-            if let old = previousSession.tracks.first(where: { $0.id == track.id }), TrackProcessor.layoutChanged(from: old, to: track) { changed.insert(track.id) }
-            else if !previousSession.tracks.contains(where: { $0.id == track.id }), track.realtimeEffects.contains(where: { $0.latencyFrames > 0 }) { changed.insert(track.id) }
+            if let old = previousSession.tracks.first(where: { $0.id == track.id }),
+                TrackProcessor.layoutChanged(from: old, to: track)
+            {
+                changed.insert(track.id)
+            } else if !previousSession.tracks.contains(where: { $0.id == track.id }),
+                track.realtimeEffects.contains(where: { $0.latencyFrames > 0 })
+            {
+                changed.insert(track.id)
+            }
         }
         let masterChanged = MasterBusProcessor.layoutChanged(previousSession.masterTrack, session.masterTrack)
-        let budgetChanged = MasterBusProcessor.lookAheadFrames(for: previousSession.masterTrack) != MasterBusProcessor.lookAheadFrames(for: session.masterTrack)
+        let budgetChanged =
+            MasterBusProcessor.lookAheadFrames(for: previousSession.masterTrack)
+            != MasterBusProcessor.lookAheadFrames(for: session.masterTrack)
         if budgetChanged { changed = Set(session.tracks.map(\.id)) }
-        var subset = session; subset.tracks = masterChanged ? session.tracks : session.tracks.filter { changed.contains($0.id) }
-        let warmed = RealtimeMixer(session: subset, assets: assets, startFrame: handoffFrame,
+        var subset = session
+        subset.tracks = masterChanged ? session.tracks : session.tracks.filter { changed.contains($0.id) }
+        let warmed = RealtimeMixer(
+            session: subset, assets: assets, startFrame: handoffFrame,
             includeEffectTails: true, seekCache: seekCache, isCancelled: isCancelled, loopRange: loopRange)
         guard isCancelled?() != true, !Task.isCancelled else { return nil }
-        let prepared = PreparedRealtimeMixerUpdate(session: session, assets: assets, realtimeStartFrame: handoffFrame, loopRange: loopRange)
+        let prepared = PreparedRealtimeMixerUpdate(
+            session: session, assets: assets, realtimeStartFrame: handoffFrame, loopRange: loopRange)
         for i in prepared.tracks.indices {
-            if let track = warmed.tracks.first(where: { $0.track.id == prepared.tracks[i].track.id }) { prepared.tracks[i] = track }
+            if let track = warmed.tracks.first(where: { $0.track.id == prepared.tracks[i].track.id }) {
+                prepared.tracks[i] = track
+            }
         }
-        if masterChanged { prepared.master = warmed.master; prepared.alignedMaster = true }
+        if masterChanged {
+            prepared.master = warmed.master
+            prepared.alignedMaster = true
+        }
         prepared.wholeOutputAligned = budgetChanged
-        prepared.handoffFrame = handoffFrame; prepared.alignedTrackIDs = changed
+        prepared.handoffFrame = handoffFrame
+        prepared.alignedTrackIDs = changed
         return prepared
     }
 
@@ -450,15 +600,30 @@ public final class RealtimeMixer {
     public func update(session: Session, assets: [UUID: AudioSamples]) {
         let prepared: PreparedRealtimeMixerUpdate
         if routingRequested || session.tracks.contains(where: { $0.routing != nil }) {
-            if let routed, !Self.routedLayoutChanged(routed.session, session) { prepared = Self.prepareUpdate(session: session, assets: assets, realtimeStartFrame: position, loopRange: loopRange) }
-            else { guard let aligned = Self.prepareAlignedUpdate(session: session, assets: assets, previousSession: routed?.session ?? session, handoffFrame: position, loopRange: loopRange) else { return }; prepared = aligned }
+            if let routed, !Self.routedLayoutChanged(routed.session, session) {
+                prepared = Self.prepareUpdate(
+                    session: session, assets: assets, realtimeStartFrame: position, loopRange: loopRange)
+            } else {
+                guard
+                    let aligned = Self.prepareAlignedUpdate(
+                        session: session, assets: assets, previousSession: routed?.session ?? session,
+                        handoffFrame: position, loopRange: loopRange)
+                else { return }
+                prepared = aligned
+            }
         } else if MasterBusProcessor.layoutChanged(master.track, session.masterTrack) {
-            var previous = session; previous.tracks = tracks.map(\.track); previous.masterTrack = master.track
-            guard let aligned = Self.prepareAlignedUpdate(session: session, assets: assets, previousSession: previous,
-                handoffFrame: position, loopRange: loopRange) else { return }
+            var previous = session
+            previous.tracks = tracks.map(\.track)
+            previous.masterTrack = master.track
+            guard
+                let aligned = Self.prepareAlignedUpdate(
+                    session: session, assets: assets, previousSession: previous,
+                    handoffFrame: position, loopRange: loopRange)
+            else { return }
             prepared = aligned
         } else {
-            prepared = Self.prepareUpdate(session: session, assets: assets, realtimeStartFrame: position, loopRange: loopRange)
+            prepared = Self.prepareUpdate(
+                session: session, assets: assets, realtimeStartFrame: position, loopRange: loopRange)
         }
         applyPreparedUpdate(prepared)
         prepared.releaseRetiredResources()
@@ -466,49 +631,73 @@ public final class RealtimeMixer {
 
     /// Consume exactly once at a render-block boundary. This adopts state references and swaps
     /// already-allocated graphs; retirement must be drained by the caller away from audio.
-    @discardableResult public func applyPreparedUpdate(_ prepared: PreparedRealtimeMixerUpdate, smoothManualChanges: Bool = false) -> Bool {
+    @discardableResult public func applyPreparedUpdate(
+        _ prepared: PreparedRealtimeMixerUpdate, smoothManualChanges: Bool = false
+    ) -> Bool {
         guard !prepared.applied, prepared.handoffFrame == nil || prepared.handoffFrame == position else { return false }
         if routingRequested || prepared.routingRequested {
             guard !prepared.routingRequested || prepared.routed != nil else { return false }
             if let old = routed, let next = prepared.routed, !prepared.alignedRouting {
                 guard next.canAdopt(from: old) else { return false }
-                next.adopt(from: old, smooth: smoothManualChanges, discardedStates:&prepared.discardedStates, discardedDelays:&prepared.discardedRoutingDelays)
-            } else if prepared.routingRequested && !prepared.alignedRouting && routed == nil { return false }
-            if smoothManualChanges, prepared.alignedRouting, let old = routed, let next = prepared.routed {
-                prepared.retiredSecondaryRouting = next.beginTransition(from:old)
+                next.adopt(
+                    from: old, smooth: smoothManualChanges, discardedStates: &prepared.discardedStates,
+                    discardedDelays: &prepared.discardedRoutingDelays)
+            } else if prepared.routingRequested && !prepared.alignedRouting && routed == nil {
+                return false
             }
-            prepared.retiredRouting = routed; routed = prepared.routed; routingRequested = prepared.routingRequested
+            if smoothManualChanges, prepared.alignedRouting, let old = routed, let next = prepared.routed {
+                prepared.retiredSecondaryRouting = next.beginTransition(from: old)
+            }
+            prepared.retiredRouting = routed
+            routed = prepared.routed
+            routingRequested = prepared.routingRequested
             if routingRequested {
-                prepared.retiredTracks = tracks; tracks = []
-                prepared.retiredMaster = master; master = nil
-                prepared.retiredOutputTransition = outputTransition; outputTransition = nil
+                prepared.retiredTracks = tracks
+                tracks = []
+                prepared.retiredMaster = master
+                master = nil
+                prepared.retiredOutputTransition = outputTransition
+                outputTransition = nil
                 prepared.applied = true
                 end = renderEndFrame ?? prepared.sourceEnd + (includeEffectTails ? prepared.tail : 0)
-                if let cache = prepared.sourceCache { sourceCache = cache }; routed?.sourceCache = sourceCache
+                if let cache = prepared.sourceCache { sourceCache = cache }
+                routed?.sourceCache = sourceCache
                 return true
             }
         }
-        if let master, MasterBusProcessor.layoutChanged(master.track, prepared.master.track), !prepared.alignedMaster { return false }
+        if let master, MasterBusProcessor.layoutChanged(master.track, prepared.master.track), !prepared.alignedMaster {
+            return false
+        }
         prepared.applied = true
         prepared.retiredTracks = tracks
-        var spareIndex = 0, retiredGraphIndex = 0
+        var spareIndex = 0
+        var retiredGraphIndex = 0
         if prepared.wholeOutputAligned, let oldMaster = master {
-            prepared.outputTransition.configure(tracks: tracks, master: oldMaster, hasSolo: hasSolo, loopRange: loopRange, predecessor: outputTransition)
+            prepared.outputTransition.configure(
+                tracks: tracks, master: oldMaster, hasSolo: hasSolo, loopRange: loopRange, predecessor: outputTransition
+            )
             outputTransition = prepared.outputTransition
         }
         for incoming in prepared.tracks {
             // A bus budget change moves every upstream input timeline. Keep all
             // newly warmed track histories independent of the retiring output.
-            if prepared.wholeOutputAligned { spareIndex += incoming.effects.count; continue }
+            if prepared.wholeOutputAligned {
+                spareIndex += incoming.effects.count
+                continue
+            }
             if let previous = tracks.first(where: { $0.track.id == incoming.track.id }) {
                 if prepared.alignedTrackIDs.contains(incoming.track.id) {
-                    incoming.adoptAlignedTransition(from: previous, discarded: &prepared.discardedGraphs, discardedIndex: &retiredGraphIndex)
+                    incoming.adoptAlignedTransition(
+                        from: previous, discarded: &prepared.discardedGraphs, discardedIndex: &retiredGraphIndex)
                     spareIndex += incoming.effects.count
                     continue
                 }
                 if smoothManualChanges { incoming.prepareLiveTransition(from: previous) }
                 for processor in incoming.effects {
-                    if let prior = previous.effects.first(where: { $0.effect.id == processor.effect.id && $0.effect.kind == processor.effect.kind && $0.usesLegacy == processor.usesLegacy }) {
+                    if let prior = previous.effects.first(where: {
+                        $0.effect.id == processor.effect.id && $0.effect.kind == processor.effect.kind
+                            && $0.usesLegacy == processor.usesLegacy
+                    }) {
                         prepared.discardedStates[spareIndex] = processor.state
                         processor.state = prior.state
                         if smoothManualChanges { processor.prepareLiveTransition(from: prior) }
@@ -517,15 +706,19 @@ public final class RealtimeMixer {
                 }
                 if smoothManualChanges {
                     incoming.transitionChain.prepareLiveTransition(from: previous.transitionChain)
-                    incoming.carryAlignedRetirements(from: previous, discarded: &prepared.discardedGraphs, discardedIndex: &retiredGraphIndex)
+                    incoming.carryAlignedRetirements(
+                        from: previous, discarded: &prepared.discardedGraphs, discardedIndex: &retiredGraphIndex)
                 }
-            } else { spareIndex += incoming.effects.count }
+            } else {
+                spareIndex += incoming.effects.count
+            }
         }
         if let previous = master {
             prepared.retiredMaster = previous
             if !prepared.wholeOutputAligned {
-                prepared.master.adopt(from: previous, aligned: prepared.alignedMaster, smooth: smoothManualChanges,
-                                      discarded: &prepared.discardedStates, index: &spareIndex)
+                prepared.master.adopt(
+                    from: previous, aligned: prepared.alignedMaster, smooth: smoothManualChanges,
+                    discarded: &prepared.discardedStates, index: &spareIndex)
             }
         }
         master = prepared.master
@@ -543,7 +736,9 @@ public final class RealtimeMixer {
         }
         if smoothManualChanges {
             var remaining = 0
-            for track in tracks { remaining = max(remaining, track.transitionChain.remainingTailFrames, track.alignedTailFrames) }
+            for track in tracks {
+                remaining = max(remaining, track.transitionChain.remainingTailFrames, track.alignedTailFrames)
+            }
             let finish = position.addingReportingOverflow(remaining)
             targetEnd = max(targetEnd, finish.overflow ? Int.max : finish.partialValue)
         }
@@ -569,15 +764,23 @@ public final class RealtimeMixer {
             var tail = [Int](repeating: 0, count: nodes.count)
             for i in plan.order {
                 tail[i] += nodes[i].realtimeEffects.reduce(0) { $0 + $1.tailFrames }
-                for edge in plan.edges where edge.from == i && !edge.detector { tail[edge.to] = max(tail[edge.to],tail[i]) }
+                for edge in plan.edges where edge.from == i && !edge.detector {
+                    tail[edge.to] = max(tail[edge.to], tail[i])
+                }
             }
-            return min(Int(sessionRate * 30),tail.last ?? 0)
+            return min(Int(sessionRate * 30), tail.last ?? 0)
         }
-        return min(Int(sessionRate * 30), (session.tracks.map { min(Int(sessionRate * 30), $0.realtimeEffects.reduce(0) { $0 + $1.tailFrames }) }.max() ?? 0) + session.masterTrack.realtimeEffects.reduce(0) { $0 + $1.tailFrames })
+        return min(
+            Int(sessionRate * 30),
+            (session.tracks.map { min(Int(sessionRate * 30), $0.realtimeEffects.reduce(0) { $0 + $1.tailFrames }) }
+                .max() ?? 0) + session.masterTrack.realtimeEffects.reduce(0) { $0 + $1.tailFrames })
     }
 
     /// Reserve outside the audio callback when a device uses unusually large blocks.
-    public func releaseCompletedGraphResources() { alignedRetirementMailbox.releaseOnWorker(); masterRetirementMailbox.releaseOnWorker() }
+    public func releaseCompletedGraphResources() {
+        alignedRetirementMailbox.releaseOnWorker()
+        masterRetirementMailbox.releaseOnWorker()
+    }
 
     /// Callback-only pre-handoff phase. Superseding edits fade the previous tail
     /// before adding another whole graph, keeping at most two DSP graphs per track.
@@ -592,35 +795,54 @@ public final class RealtimeMixer {
 
     public func reserveCapacity(frameCount: Int) {
         guard !routingRequested else { return }
-        for track in tracks { track.reserveCapacity(frameCount: frameCount) }; master.reserveCapacity(frameCount)
+        for track in tracks { track.reserveCapacity(frameCount: frameCount) }
+        master.reserveCapacity(frameCount)
     }
 
     /// The serialized render owner may wrap a loop without reconstructing histories.
     /// Automation cursors detect the backward frame jump on the next sample.
     public func rewindForLoop(to frame: Int) { position = max(0, frame) }
 
-    public func render(intoLeft left: UnsafeMutablePointer<Float>, intoRight right: UnsafeMutablePointer<Float>, frameCount: Int) {
+    public func render(
+        intoLeft left: UnsafeMutablePointer<Float>, intoRight right: UnsafeMutablePointer<Float>, frameCount: Int
+    ) {
         guard frameCount > 0 else { return }
         if routingRequested {
-            left.update(repeating: 0, count: frameCount); right.update(repeating: 0, count: frameCount)
-            let active = max(0, min(frameCount, end-position)); var offset = 0
-            while offset < active { let count = min(8192,active-offset); routed?.render(left: left+offset, right: right+offset, count: count); offset += count }
-            for i in 0..<frameCount { if !left[i].isFinite { left[i] = 0 }; if !right[i].isFinite { right[i] = 0 } }
-            position += frameCount; return
+            left.update(repeating: 0, count: frameCount)
+            right.update(repeating: 0, count: frameCount)
+            let active = max(0, min(frameCount, end - position))
+            var offset = 0
+            while offset < active {
+                let count = min(8192, active - offset)
+                routed?.render(left: left + offset, right: right + offset, count: count)
+                offset += count
+            }
+            for i in 0..<frameCount {
+                if !left[i].isFinite { left[i] = 0 }
+                if !right[i].isFinite { right[i] = 0 }
+            }
+            position += frameCount
+            return
         }
         sourceCache?.advance(to: position + master.lookAheadFrames)
-        left.update(repeating: 0, count: frameCount); right.update(repeating: 0, count: frameCount)
+        left.update(repeating: 0, count: frameCount)
+        right.update(repeating: 0, count: frameCount)
         let activeCount = max(0, min(frameCount, end - position))
         if activeCount > 0 {
             var offset = 0
             while offset < activeCount {
                 let block = min(8192, activeCount - offset)
                 for processor in tracks {
-                    processor.render(at: position + offset + master.lookAheadFrames, count: block, left: left + offset, right: right + offset,
-                                     audible: !processor.track.muted && (!hasSolo || processor.track.solo))
+                    processor.render(
+                        at: position + offset + master.lookAheadFrames, count: block, left: left + offset,
+                        right: right + offset,
+                        audible: !processor.track.muted && (!hasSolo || processor.track.solo))
                 }
-                master.process(left: left + offset, right: right + offset, count: block, sourcePosition: position + offset + master.lookAheadFrames, loopRange: loopRange)
-                outputTransition?.blend(intoLeft: left + offset, right: right + offset, count: block, position: position + offset)
+                master.process(
+                    left: left + offset, right: right + offset, count: block,
+                    sourcePosition: position + offset + master.lookAheadFrames, loopRange: loopRange)
+                outputTransition?.blend(
+                    intoLeft: left + offset, right: right + offset, count: block, position: position + offset)
                 offset += block
             }
         }
@@ -666,28 +888,56 @@ public final class PreparedRealtimeMixerUpdate: @unchecked Sendable {
     fileprivate var alignedTrackIDs = Set<UUID>()
     fileprivate var discardedGraphs: [AlignedRetiredTrack?]
     fileprivate var applied = false
-    fileprivate init(session: Session, assets: [UUID: AudioSamples], realtimeStartFrame: Int? = nil, loopRange: Range<Int>? = nil, primeFrame: Int? = nil) {
-        let routedLatency = session.tracks.contains(where: { $0.routing != nil }) ? ((try? TrackRoutingPlan(session:session))?.outputLatency.last ?? 0) : 0
-        sourceCache = realtimeStartFrame.flatMap { frame in assets.values.contains(where: \.isStreamed) ? RealtimeSourceCache(session: session, assets: assets, startFrame: frame + routedLatency, loopRange: loopRange) : nil }
+    fileprivate init(
+        session: Session, assets: [UUID: AudioSamples], realtimeStartFrame: Int? = nil, loopRange: Range<Int>? = nil,
+        primeFrame: Int? = nil
+    ) {
+        let routedLatency =
+            session.tracks.contains(where: { $0.routing != nil })
+            ? ((try? TrackRoutingPlan(session: session))?.outputLatency.last ?? 0) : 0
+        sourceCache = realtimeStartFrame.flatMap { frame in
+            assets.values.contains(where: \.isStreamed)
+                ? RealtimeSourceCache(
+                    session: session, assets: assets, startFrame: frame + routedLatency, loopRange: loopRange) : nil
+        }
         let preparedMaster = MasterBusProcessor(track: session.masterTrack)
         master = preparedMaster
         let sourceFrame = (realtimeStartFrame ?? 0) + preparedMaster.lookAheadFrames
         routingRequested = session.tracks.contains(where: { $0.routing != nil })
-        if routingRequested { routed = try? RoutedRealtimeGraph(session: session, assets: assets, startFrame: realtimeStartFrame ?? 0, loopRange: loopRange, warmHistory: false) }
-        tracks = routingRequested ? [] : session.tracks.map { TrackProcessor(track: $0, assets: assets, primeFrame: primeFrame ?? sourceFrame, loopRange: loopRange, outputLatencyFrames: preparedMaster.lookAheadFrames) }
-        discardedRoutingDelays = Array(repeating:nil,count:routed?.retirementSlotCount ?? 0)
-        sourceEnd = session.end; tail = RealtimeMixer.tailFrames(session: session)
+        if routingRequested {
+            routed = try? RoutedRealtimeGraph(
+                session: session, assets: assets, startFrame: realtimeStartFrame ?? 0, loopRange: loopRange,
+                warmHistory: false)
+        }
+        tracks =
+            routingRequested
+            ? []
+            : session.tracks.map {
+                TrackProcessor(
+                    track: $0, assets: assets, primeFrame: primeFrame ?? sourceFrame, loopRange: loopRange,
+                    outputLatencyFrames: preparedMaster.lookAheadFrames)
+            }
+        discardedRoutingDelays = Array(repeating: nil, count: routed?.retirementSlotCount ?? 0)
+        sourceEnd = session.end
+        tail = RealtimeMixer.tailFrames(session: session)
         hasSolo = session.tracks.contains(where: \.solo)
-        discardedStates = Array(repeating: nil, count: session.tracks.reduce(session.masterTrack.realtimeEffects.count) { $0 + $1.realtimeEffects.count })
+        discardedStates = Array(
+            repeating: nil,
+            count: session.tracks.reduce(session.masterTrack.realtimeEffects.count) { $0 + $1.realtimeEffects.count })
         discardedGraphs = Array(repeating: nil, count: session.tracks.count * TrackProcessor.retirementCapacity)
     }
     /// Call on a worker after handoff. The active mixer retains all adopted state.
     public func releaseRetiredResources() {
-        retiredMaster = nil; retiredRouting = nil; retiredSecondaryRouting = nil; retiredOutputTransition = nil
+        retiredMaster = nil
+        retiredRouting = nil
+        retiredSecondaryRouting = nil
+        retiredOutputTransition = nil
         discardedRoutingDelays = []
         guard applied else { return }
         for graph in discardedGraphs { graph?.releaseInactiveTarget() }
-        retiredTracks = []; discardedStates = []; discardedGraphs = []
+        retiredTracks = []
+        discardedStates = []
+        discardedGraphs = []
     }
 }
 
@@ -704,28 +954,45 @@ fileprivate final class MasterOutputTransition {
     private var fadePosition = 0
     private var left = [Float](repeating: 0, count: 8192), right = [Float](repeating: 0, count: 8192)
     var completed: Bool { fadePosition >= LiveRamp.frameCount }
-    func configure(tracks: [TrackProcessor], master: MasterBusProcessor, hasSolo: Bool, loopRange: Range<Int>?, predecessor: MasterOutputTransition?) {
-        self.tracks = tracks; self.master = master; self.hasSolo = hasSolo
-        self.loopRange = loopRange; self.predecessor = predecessor; fadePosition = 0
+    func configure(
+        tracks: [TrackProcessor], master: MasterBusProcessor, hasSolo: Bool, loopRange: Range<Int>?,
+        predecessor: MasterOutputTransition?
+    ) {
+        self.tracks = tracks
+        self.master = master
+        self.hasSolo = hasSolo
+        self.loopRange = loopRange
+        self.predecessor = predecessor
+        fadePosition = 0
     }
-    func blend(intoLeft outputLeft: UnsafeMutablePointer<Float>, right outputRight: UnsafeMutablePointer<Float>, count: Int, position: Int) {
+    func blend(
+        intoLeft outputLeft: UnsafeMutablePointer<Float>, right outputRight: UnsafeMutablePointer<Float>, count: Int,
+        position: Int
+    ) {
         guard !completed, let master else { return }
         let active = min(count, LiveRamp.frameCount - fadePosition)
-        left.withUnsafeMutableBufferPointer { l in right.withUnsafeMutableBufferPointer { r in
-            let lp = l.baseAddress!, rp = r.baseAddress!
-            lp.update(repeating: 0, count: active); rp.update(repeating: 0, count: active)
-            for track in tracks {
-                track.render(at: position + master.lookAheadFrames, count: active, left: lp, right: rp,
-                             audible: !track.track.muted && (!hasSolo || track.track.solo))
+        left.withUnsafeMutableBufferPointer { l in
+            right.withUnsafeMutableBufferPointer { r in
+                let lp = l.baseAddress!
+                let rp = r.baseAddress!
+                lp.update(repeating: 0, count: active)
+                rp.update(repeating: 0, count: active)
+                for track in tracks {
+                    track.render(
+                        at: position + master.lookAheadFrames, count: active, left: lp, right: rp,
+                        audible: !track.track.muted && (!hasSolo || track.track.solo))
+                }
+                master.process(
+                    left: lp, right: rp, count: active, sourcePosition: position + master.lookAheadFrames,
+                    loopRange: loopRange)
+                predecessor?.blend(intoLeft: lp, right: rp, count: active, position: position)
+                for i in 0..<active {
+                    let weight = Float(fadePosition + i + 1) / Float(LiveRamp.frameCount)
+                    outputLeft[i] = lp[i] * (1 - weight) + outputLeft[i] * weight
+                    outputRight[i] = rp[i] * (1 - weight) + outputRight[i] * weight
+                }
             }
-            master.process(left: lp, right: rp, count: active, sourcePosition: position + master.lookAheadFrames, loopRange: loopRange)
-            predecessor?.blend(intoLeft: lp, right: rp, count: active, position: position)
-            for i in 0..<active {
-                let weight = Float(fadePosition + i + 1) / Float(LiveRamp.frameCount)
-                outputLeft[i] = lp[i] * (1 - weight) + outputLeft[i] * weight
-                outputRight[i] = rp[i] * (1 - weight) + outputRight[i] * weight
-            }
-        } }
+        }
         fadePosition += active
     }
 }
@@ -742,19 +1009,29 @@ fileprivate final class AlignedGraphRetirementMailbox {
     private var count = 0
     private let publishers = UnsafeMutablePointer<Int64>.allocate(capacity: 1)
     init() { publishers.initialize(to: 0) }
-    deinit { publishers.deinitialize(count: 1); publishers.deallocate() }
+    deinit {
+        publishers.deinitialize(count: 1)
+        publishers.deallocate()
+    }
     func beginPublishing() { OSAtomicIncrement64Barrier(publishers) }
     func endPublishing() { OSAtomicDecrement64Barrier(publishers) }
     func retire(_ track: TrackProcessor) -> Bool {
-        guard lock.try() else { return false }; defer { lock.unlock() }
+        guard lock.try() else { return false }
+        defer { lock.unlock() }
         guard count < values.count else { return false }
-        values[count] = track; count += 1; return true
+        values[count] = track
+        count += 1
+        return true
     }
     func releaseOnWorker() {
         lock.lock()
-        guard count > 0, OSAtomicAdd64Barrier(0, publishers) == 0 else { lock.unlock(); return }
+        guard count > 0, OSAtomicAdd64Barrier(0, publishers) == 0 else {
+            lock.unlock()
+            return
+        }
         let retired = values
-        values = [TrackProcessor?](repeating: nil, count: 512); count = 0
+        values = [TrackProcessor?](repeating: nil, count: 512)
+        count = 0
         lock.unlock()
         withExtendedLifetime(retired) {}
     }
@@ -767,17 +1044,27 @@ fileprivate final class AlignedRetiredTrack {
     private var startWeight: Float = 1
     private var keepTail = false
     func configure(target: TrackProcessor, weight: Float, keepTail: Bool) {
-        self.target = target; self.startWeight = weight; self.keepTail = keepTail
-        remaining = LiveRamp.frameCount + (keepTail ? target.latencyFrames + min(Int(sessionRate * 30), target.track.realtimeEffects.reduce(0) { $0 + $1.tailFrames }) : 0)
+        self.target = target
+        self.startWeight = weight
+        self.keepTail = keepTail
+        remaining =
+            LiveRamp.frameCount
+            + (keepTail
+                ? target.latencyFrames
+                    + min(Int(sessionRate * 30), target.track.realtimeEffects.reduce(0) { $0 + $1.tailFrames }) : 0)
         if keepTail { target.beginExcitationRelease() }
     }
     func newWeight(offset: Int = 0) -> Float { min(1, Float(elapsed + offset + 1) / Float(LiveRamp.frameCount)) }
     func dryWeight(offset: Int) -> Float { startWeight * (1 - newWeight(offset: offset)) }
-    func render(at position: Int, count: Int, left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>,
-        scratchLeft: UnsafeMutablePointer<Float>, scratchRight: UnsafeMutablePointer<Float>, normalization: UnsafePointer<Float>) {
+    func render(
+        at position: Int, count: Int, left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>,
+        scratchLeft: UnsafeMutablePointer<Float>, scratchRight: UnsafeMutablePointer<Float>,
+        normalization: UnsafePointer<Float>
+    ) {
         guard let target, remaining > 0 else { return }
         let active = min(count, remaining)
-        scratchLeft.update(repeating: 0, count: active); scratchRight.update(repeating: 0, count: active)
+        scratchLeft.update(repeating: 0, count: active)
+        scratchRight.update(repeating: 0, count: active)
         target.sourceCache?.advance(to: position)
         target.renderOwn(at: position, count: active, left: scratchLeft, right: scratchRight, audible: true)
         for i in 0..<active {
@@ -787,7 +1074,8 @@ fileprivate final class AlignedRetiredTrack {
             left[i] += (scratchLeft[i] * wet + target.baselineLeft[i] * (dry - wet)) * normalization[i]
             right[i] += (scratchRight[i] * wet + target.baselineRight[i] * (dry - wet)) * normalization[i]
         }
-        elapsed += active; remaining -= active
+        elapsed += active
+        remaining -= active
     }
     func requestRetirementFade() { remaining = min(remaining, LiveRamp.frameCount) }
     func releaseInactiveTarget() { target = nil }
@@ -800,9 +1088,11 @@ fileprivate final class TrackProcessor {
     private let preparedReplacement = AlignedRetiredTrack()
     private var mainCrossfade: AlignedRetiredTrack?
     private var alignedLeft = [Float](repeating: 0, count: 8192), alignedRight = [Float](repeating: 0, count: 8192)
-    private var retirementLeft = [Float](repeating: 0, count: 8192), retirementRight = [Float](repeating: 0, count: 8192)
+    private var retirementLeft = [Float](repeating: 0, count: 8192),
+        retirementRight = [Float](repeating: 0, count: 8192)
     private var normalization = [Float](repeating: 1, count: 8192)
-    fileprivate var baselineLeft = [Float](repeating: 0, count: 8192), baselineRight = [Float](repeating: 0, count: 8192)
+    fileprivate var baselineLeft = [Float](repeating: 0, count: 8192),
+        baselineRight = [Float](repeating: 0, count: 8192)
     private var dryDelayLeft: [Float], dryDelayRight: [Float]
     private var dryDelayIndex = 0
     private var excitationDelay = Int.max, excitationRamp: LiveRamp?, excitationGain: Float = 1
@@ -820,14 +1110,20 @@ fileprivate final class TrackProcessor {
     private let panCursor: AutomationCursor
     private var leftScratch = Array(repeating: Float(0), count: 8192)
     private var rightScratch = Array(repeating: Float(0), count: 8192)
-    init(track: Track, assets: [UUID: AudioSamples], primeFrame: Int = 0, loopRange: Range<Int>? = nil, outputLatencyFrames: Int = 0) {
-        self.track = track; self.loopRange = loopRange
+    init(
+        track: Track, assets: [UUID: AudioSamples], primeFrame: Int = 0, loopRange: Range<Int>? = nil,
+        outputLatencyFrames: Int = 0
+    ) {
+        self.track = track
+        self.loopRange = loopRange
         latencyFrames = track.realtimeEffects.reduce(0) { $0 + $1.latencyFrames }
         dryDelayLeft = [Float](repeating: 0, count: max(1, latencyFrames))
         dryDelayRight = [Float](repeating: 0, count: max(1, latencyFrames))
         pan = track.pan.isFinite ? max(-1, min(1, track.pan)) : 0
         gain = track.gain.isFinite ? track.gain : 0
-        volumeCursor = AutomationCursor(points: track.mixAutomation["volume"] ?? [], baseline: track.baseValue(for: .volume), valueScale: track.volumeAutomationScale ?? .linear)
+        volumeCursor = AutomationCursor(
+            points: track.mixAutomation["volume"] ?? [], baseline: track.baseValue(for: .volume),
+            valueScale: track.volumeAutomationScale ?? .linear)
         panCursor = AutomationCursor(points: track.mixAutomation["pan"] ?? [], baseline: track.baseValue(for: .pan))
         let envelopes = ClipEnvelope.resolve(track: track)
         clips = track.clips.compactMap { clip in
@@ -839,7 +1135,9 @@ fileprivate final class TrackProcessor {
         if outputLatencyFrames > 0 {
             var downstreamLatency = outputLatencyFrames
             for effect in effects.reversed() {
-                if effect.effect.kind == .pitchCorrection { effect.pitchMeterDelay = PitchMeterDelay(frames: downstreamLatency) }
+                if effect.effect.kind == .pitchCorrection {
+                    effect.pitchMeterDelay = PitchMeterDelay(frames: downstreamLatency)
+                }
                 downstreamLatency += effect.effect.latencyFrames
             }
         }
@@ -848,7 +1146,10 @@ fileprivate final class TrackProcessor {
             let block = min(8192, latencyFrames)
             let left = UnsafeMutablePointer<Float>.allocate(capacity: block)
             let right = UnsafeMutablePointer<Float>.allocate(capacity: block)
-            defer { left.deallocate(); right.deallocate() }
+            defer {
+                left.deallocate()
+                right.deallocate()
+            }
             var offset = 0
             while offset < latencyFrames && !Task.isCancelled {
                 let count = min(block, latencyFrames - offset)
@@ -861,18 +1162,26 @@ fileprivate final class TrackProcessor {
     /// directly from its finite lookahead window on the preparation worker.
     func primeDryBaseline(at frame: Int) {
         guard latencyFrames > 0 else { return }
-        for i in dryDelayLeft.indices { dryDelayLeft[i] = 0; dryDelayRight[i] = 0 }
+        for i in dryDelayLeft.indices {
+            dryDelayLeft[i] = 0
+            dryDelayRight[i] = 0
+        }
         var offset = 0
         while offset < latencyFrames {
-            let sourceFrame = loopRange.map { $0.lowerBound + ((frame + offset - $0.lowerBound) % $0.count + $0.count) % $0.count } ?? frame + offset
+            let sourceFrame =
+                loopRange.map { $0.lowerBound + ((frame + offset - $0.lowerBound) % $0.count + $0.count) % $0.count }
+                ?? frame + offset
             let block = min(latencyFrames - offset, loopRange.map { $0.upperBound - sourceFrame } ?? latencyFrames)
             for source in clips {
-                let lo = max(sourceFrame, source.clip.start), hi = min(sourceFrame + block, source.clip.end)
+                let lo = max(sourceFrame, source.clip.start)
+                let hi = min(sourceFrame + block, source.clip.end)
                 guard hi > lo else { continue }
                 let start = source.clip.offset + lo - source.clip.start
-                let data = source.audio.readFrames(start..<(start + hi - lo), channels: [0, min(1, source.audio.channelCount - 1)])
+                let data = source.audio.readFrames(
+                    start..<(start + hi - lo), channels: [0, min(1, source.audio.channelCount - 1)])
                 for i in 0..<(hi - lo) {
-                    let fade = source.envelope.gain(at: lo + i - source.clip.start), index = offset + lo + i - sourceFrame
+                    let fade = source.envelope.gain(at: lo + i - source.clip.start)
+                    let index = offset + lo + i - sourceFrame
                     dryDelayLeft[index] += data[0][i].isFinite ? data[0][i] * fade : 0
                     dryDelayRight[index] += data[1][i].isFinite ? data[1][i] * fade : 0
                 }
@@ -882,32 +1191,51 @@ fileprivate final class TrackProcessor {
         dryDelayIndex = 0
     }
     static func layoutChanged(from old: Track, to incoming: Track) -> Bool {
-        guard old.realtimeEffects.contains(where: { $0.latencyFrames > 0 }) || incoming.realtimeEffects.contains(where: { $0.latencyFrames > 0 }) else { return false }
+        guard
+            old.realtimeEffects.contains(where: { $0.latencyFrames > 0 })
+                || incoming.realtimeEffects.contains(where: { $0.latencyFrames > 0 })
+        else { return false }
         guard old.realtimeEffects.count == incoming.realtimeEffects.count else { return true }
-        return zip(old.realtimeEffects, incoming.realtimeEffects).contains { $0.id != $1.id || $0.kind != $1.kind || $0.latencyFrames != $1.latencyFrames }
+        return zip(old.realtimeEffects, incoming.realtimeEffects).contains {
+            $0.id != $1.id || $0.kind != $1.kind || $0.latencyFrames != $1.latencyFrames
+        }
     }
     var alignedTailFrames: Int { retiredGraphs.reduce(0) { max($0, $1?.remaining ?? 0) } }
-    func beginExcitationRelease() { excitationDelay = LiveRamp.frameCount; excitationRamp = LiveRamp(from: 1, to: 0) }
-    func carryAlignedRetirements(from previous: TrackProcessor, discarded: inout [AlignedRetiredTrack?], discardedIndex: inout Int, reserveReplacement: Bool = false) {
+    func beginExcitationRelease() {
+        excitationDelay = LiveRamp.frameCount
+        excitationRamp = LiveRamp(from: 1, to: 0)
+    }
+    func carryAlignedRetirements(
+        from previous: TrackProcessor, discarded: inout [AlignedRetiredTrack?], discardedIndex: inout Int,
+        reserveReplacement: Bool = false
+    ) {
         var next = 0
         for i in previous.retiredGraphs.indices {
             guard let graph = previous.retiredGraphs[i] else { continue }
             if graph.remaining > 0 && next < retiredGraphs.count - (reserveReplacement ? 1 : 0) {
-                retiredGraphs[next] = graph; next += 1
-            } else { discarded[discardedIndex] = graph; discardedIndex += 1 }
+                retiredGraphs[next] = graph
+                next += 1
+            } else {
+                discarded[discardedIndex] = graph
+                discardedIndex += 1
+            }
             previous.retiredGraphs[i] = nil
         }
         mainCrossfade = previous.mainCrossfade
     }
-    func adoptAlignedTransition(from previous: TrackProcessor, discarded: inout [AlignedRetiredTrack?], discardedIndex: inout Int) {
+    func adoptAlignedTransition(
+        from previous: TrackProcessor, discarded: inout [AlignedRetiredTrack?], discardedIndex: inout Int
+    ) {
         let weight = previous.mainCrossfade?.newWeight() ?? 1
-        carryAlignedRetirements(from: previous, discarded: &discarded, discardedIndex: &discardedIndex, reserveReplacement: true)
+        carryAlignedRetirements(
+            from: previous, discarded: &discarded, discardedIndex: &discardedIndex, reserveReplacement: true)
         let keepTail = previous.track.realtimeEffects.contains { old in
             old.tailFrames > 0 && !track.realtimeEffects.contains(where: { $0.id == old.id && $0.kind == old.kind })
         }
         preparedReplacement.configure(target: previous, weight: weight, keepTail: keepTail)
         let slot = retiredGraphs.firstIndex(where: { $0 == nil })!
-        retiredGraphs[slot] = preparedReplacement; mainCrossfade = preparedReplacement
+        retiredGraphs[slot] = preparedReplacement
+        mainCrossfade = preparedReplacement
     }
     func fadeAlignedRetirements() {
         for graph in retiredGraphs { graph?.requestRetirementFade() }
@@ -932,9 +1260,12 @@ fileprivate final class TrackProcessor {
     func reserveCapacity(frameCount: Int) {
         transitionChain.reserveCapacity(frameCount: frameCount)
         if frameCount > alignedLeft.count {
-            alignedLeft = [Float](repeating: 0, count: frameCount); alignedRight = [Float](repeating: 0, count: frameCount)
-            retirementLeft = [Float](repeating: 0, count: frameCount); retirementRight = [Float](repeating: 0, count: frameCount)
-            baselineLeft = [Float](repeating: 0, count: frameCount); baselineRight = [Float](repeating: 0, count: frameCount)
+            alignedLeft = [Float](repeating: 0, count: frameCount)
+            alignedRight = [Float](repeating: 0, count: frameCount)
+            retirementLeft = [Float](repeating: 0, count: frameCount)
+            retirementRight = [Float](repeating: 0, count: frameCount)
+            baselineLeft = [Float](repeating: 0, count: frameCount)
+            baselineRight = [Float](repeating: 0, count: frameCount)
             normalization = [Float](repeating: 1, count: frameCount)
         }
         if frameCount > leftScratch.count {
@@ -942,57 +1273,104 @@ fileprivate final class TrackProcessor {
             rightScratch = Array(repeating: 0, count: frameCount)
         }
     }
-    func render(at position: Int, count: Int, left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, audible: Bool) {
-        guard retiredGraphs.contains(where: { ($0?.remaining ?? 0) > 0 }) else { renderOwn(at: position, count: count, left: left, right: right, audible: audible); return }
-        alignedLeft.withUnsafeMutableBufferPointer { al in alignedRight.withUnsafeMutableBufferPointer { ar in
-            let l = al.baseAddress!, r = ar.baseAddress!
-            l.update(repeating: 0, count: count); r.update(repeating: 0, count: count)
-            renderOwn(at: position, count: count, left: l, right: r, audible: true)
-            for i in 0..<count {
-                let weight = mainCrossfade?.newWeight(offset: i) ?? 1
-                var total = weight
-                for graph in retiredGraphs { total += graph?.dryWeight(offset: i) ?? 0 }
-                normalization[i] = 1 / max(0.000001, total)
-                l[i] *= weight * normalization[i]; r[i] *= weight * normalization[i]
+    func render(
+        at position: Int, count: Int, left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>,
+        audible: Bool
+    ) {
+        guard retiredGraphs.contains(where: { ($0?.remaining ?? 0) > 0 }) else {
+            renderOwn(at: position, count: count, left: left, right: right, audible: audible)
+            return
+        }
+        alignedLeft.withUnsafeMutableBufferPointer { al in
+            alignedRight.withUnsafeMutableBufferPointer { ar in
+                let l = al.baseAddress!
+                let r = ar.baseAddress!
+                l.update(repeating: 0, count: count)
+                r.update(repeating: 0, count: count)
+                renderOwn(at: position, count: count, left: l, right: r, audible: true)
+                for i in 0..<count {
+                    let weight = mainCrossfade?.newWeight(offset: i) ?? 1
+                    var total = weight
+                    for graph in retiredGraphs { total += graph?.dryWeight(offset: i) ?? 0 }
+                    normalization[i] = 1 / max(0.000001, total)
+                    l[i] *= weight * normalization[i]
+                    r[i] *= weight * normalization[i]
+                }
+                retirementLeft.withUnsafeMutableBufferPointer { rl in
+                    retirementRight.withUnsafeMutableBufferPointer { rr in
+                        normalization.withUnsafeBufferPointer { n in
+                            for graph in retiredGraphs {
+                                graph?.render(
+                                    at: position, count: count, left: l, right: r, scratchLeft: rl.baseAddress!,
+                                    scratchRight: rr.baseAddress!, normalization: n.baseAddress!)
+                            }
+                        }
+                    }
+                }
+                if audible {
+                    for i in 0..<count {
+                        left[i] += l[i]
+                        right[i] += r[i]
+                    }
+                }
             }
-            retirementLeft.withUnsafeMutableBufferPointer { rl in retirementRight.withUnsafeMutableBufferPointer { rr in normalization.withUnsafeBufferPointer { n in
-                for graph in retiredGraphs { graph?.render(at: position, count: count, left: l, right: r, scratchLeft: rl.baseAddress!, scratchRight: rr.baseAddress!, normalization: n.baseAddress!) }
-            } } }
-            if audible { for i in 0..<count { left[i] += l[i]; right[i] += r[i] } }
-        } }
+        }
     }
-    func renderOwn(at position: Int, count: Int, left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, audible: Bool) {
+    func renderOwn(
+        at position: Int, count: Int, left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>,
+        audible: Bool
+    ) {
         let sourcePosition = position + latencyFrames
         leftScratch.withUnsafeMutableBufferPointer { l in
             rightScratch.withUnsafeMutableBufferPointer { r in
-                let scratchL = l.baseAddress!, scratchR = r.baseAddress!
-                scratchL.update(repeating: 0, count: count); scratchR.update(repeating: 0, count: count)
+                let scratchL = l.baseAddress!
+                let scratchR = r.baseAddress!
+                scratchL.update(repeating: 0, count: count)
+                scratchR.update(repeating: 0, count: count)
                 var segmentOffset = 0
                 while segmentOffset < count {
                     let sourceFrame: Int
-                    if let loopRange { sourceFrame = loopRange.lowerBound + ((sourcePosition + segmentOffset - loopRange.lowerBound) % loopRange.count + loopRange.count) % loopRange.count }
-                    else { sourceFrame = sourcePosition + segmentOffset }
-                    let segmentCount = min(count - segmentOffset, loopRange.map { $0.upperBound - sourceFrame } ?? count)
+                    if let loopRange {
+                        sourceFrame =
+                            loopRange.lowerBound
+                            + ((sourcePosition + segmentOffset - loopRange.lowerBound) % loopRange.count
+                                + loopRange.count) % loopRange.count
+                    } else {
+                        sourceFrame = sourcePosition + segmentOffset
+                    }
+                    let segmentCount = min(
+                        count - segmentOffset, loopRange.map { $0.upperBound - sourceFrame } ?? count)
                     for source in clips {
-                        let clip = source.clip, audio = source.audio
-                        let lo = max(sourceFrame, clip.start), hi = min(sourceFrame + segmentCount, clip.end)
+                        let clip = source.clip
+                        let audio = source.audio
+                        let lo = max(sourceFrame, clip.start)
+                        let hi = min(sourceFrame + segmentCount, clip.end)
                         guard hi > lo else { continue }
                         let offset = clip.offset + lo - clip.start
                         if audio.isStreamed, let sourceCache {
-                            sourceCache.withSamples(id: clip.assetID, sourceFrame: offset, count: hi - lo) { first, second, copied, frames in
+                            sourceCache.withSamples(id: clip.assetID, sourceFrame: offset, count: hi - lo) {
+                                first, second, copied, frames in
                                 for i in 0..<frames {
-                                    let frame = lo + copied + i, fade = source.envelope.gain(at: frame - clip.start)
-                                    scratchL[segmentOffset + frame - sourceFrame] += first[i].isFinite ? first[i] * fade : 0
-                                    scratchR[segmentOffset + frame - sourceFrame] += second[i].isFinite ? second[i] * fade : 0
+                                    let frame = lo + copied + i
+                                    let fade = source.envelope.gain(at: frame - clip.start)
+                                    scratchL[segmentOffset + frame - sourceFrame] +=
+                                        first[i].isFinite ? first[i] * fade : 0
+                                    scratchR[segmentOffset + frame - sourceFrame] +=
+                                        second[i].isFinite ? second[i] * fade : 0
                                 }
                             }
                         } else {
-                            let workerBlock = audio.isStreamed ? audio.readFrames(offset..<(offset + hi - lo), channels: [0, min(1, audio.channelCount - 1)]) : nil
+                            let workerBlock =
+                                audio.isStreamed
+                                ? audio.readFrames(
+                                    offset..<(offset + hi - lo), channels: [0, min(1, audio.channelCount - 1)]) : nil
                             for frame in lo..<hi {
                                 let index = clip.offset + frame - clip.start
                                 guard index >= 0, index < audio.count else { continue }
                                 let first = workerBlock?[0][frame - lo] ?? audio.sample(channel: 0, frame: index)
-                                let second = workerBlock?[1][frame - lo] ?? audio.sample(channel: min(1, audio.channelCount - 1), frame: index)
+                                let second =
+                                    workerBlock?[1][frame - lo]
+                                    ?? audio.sample(channel: min(1, audio.channelCount - 1), frame: index)
                                 let fade = source.envelope.gain(at: frame - clip.start)
                                 scratchL[segmentOffset + frame - sourceFrame] += first.isFinite ? first * fade : 0
                                 scratchR[segmentOffset + frame - sourceFrame] += second.isFinite ? second * fade : 0
@@ -1003,24 +1381,46 @@ fileprivate final class TrackProcessor {
                 }
                 for i in 0..<count {
                     if excitationDelay != Int.max {
-                        if excitationDelay > 0 { excitationDelay -= 1 }
-                        else if excitationRamp != nil { excitationGain = excitationRamp!.next(); if excitationRamp!.completed { excitationRamp = nil } }
-                        scratchL[i] *= excitationGain; scratchR[i] *= excitationGain
+                        if excitationDelay > 0 {
+                            excitationDelay -= 1
+                        } else if excitationRamp != nil {
+                            excitationGain = excitationRamp!.next()
+                            if excitationRamp!.completed { excitationRamp = nil }
+                        }
+                        scratchL[i] *= excitationGain
+                        scratchR[i] *= excitationGain
                     }
                     if latencyFrames > 0 {
-                        baselineLeft[i] = dryDelayLeft[dryDelayIndex]; baselineRight[i] = dryDelayRight[dryDelayIndex]
-                        dryDelayLeft[dryDelayIndex] = scratchL[i]; dryDelayRight[dryDelayIndex] = scratchR[i]
+                        baselineLeft[i] = dryDelayLeft[dryDelayIndex]
+                        baselineRight[i] = dryDelayRight[dryDelayIndex]
+                        dryDelayLeft[dryDelayIndex] = scratchL[i]
+                        dryDelayRight[dryDelayIndex] = scratchR[i]
                         dryDelayIndex = (dryDelayIndex + 1) % latencyFrames
-                    } else { baselineLeft[i] = scratchL[i]; baselineRight[i] = scratchR[i] }
+                    } else {
+                        baselineLeft[i] = scratchL[i]
+                        baselineRight[i] = scratchR[i]
+                    }
                 }
-                transitionChain.process(left: scratchL, right: scratchR, count: count, position: sourcePosition, loopRange: loopRange)
+                transitionChain.process(
+                    left: scratchL, right: scratchR, count: count, position: sourcePosition, loopRange: loopRange)
                 guard audible else { return }
                 for i in 0..<count {
-                    let timelineFrame = loopRange.map { $0.lowerBound + ((position + i - $0.lowerBound) % $0.count + $0.count) % $0.count } ?? (position + i)
-                    if volumeCursor.hasPoints { gain = TrackAutomationParameter.volume.physical(volumeCursor.value(at: timelineFrame)) }
-                    else if gainRamp != nil { gain = gainRamp!.next(); if gainRamp!.completed { gainRamp = nil } }
-                    if panCursor.hasPoints { pan = TrackAutomationParameter.pan.physical(panCursor.value(at: timelineFrame)) }
-                    else if panRamp != nil { pan = panRamp!.next(); if panRamp!.completed { panRamp = nil } }
+                    let timelineFrame =
+                        loopRange.map {
+                            $0.lowerBound + ((position + i - $0.lowerBound) % $0.count + $0.count) % $0.count
+                        } ?? (position + i)
+                    if volumeCursor.hasPoints {
+                        gain = TrackAutomationParameter.volume.physical(volumeCursor.value(at: timelineFrame))
+                    } else if gainRamp != nil {
+                        gain = gainRamp!.next()
+                        if gainRamp!.completed { gainRamp = nil }
+                    }
+                    if panCursor.hasPoints {
+                        pan = TrackAutomationParameter.pan.physical(panCursor.value(at: timelineFrame))
+                    } else if panRamp != nil {
+                        pan = panRamp!.next()
+                        if panRamp!.completed { panRamp = nil }
+                    }
                     baselineLeft[i] *= gain * (pan > 0 ? 1 - pan : 1)
                     baselineRight[i] *= gain * (pan < 0 ? 1 + pan : 1)
                     left[i] += scratchL[i] * gain * (pan > 0 ? 1 - pan : 1)
@@ -1039,7 +1439,10 @@ struct LiveRamp {
     let target: Float
     private var remaining = frameCount
     var completed: Bool { remaining == 0 }
-    init(from start: Float, to target: Float) { self.start = start; self.target = target }
+    init(from start: Float, to target: Float) {
+        self.start = start
+        self.target = target
+    }
     mutating func next() -> Float {
         guard remaining > 0 else { return target }
         remaining -= 1
@@ -1130,9 +1533,12 @@ final class EffectProcessor {
     var bypassRamp: LiveRamp?
     let noiseSeed: UInt64
     init(effect: RealtimeEffect) {
-        self.effect = effect; state = EffectState(kind: effect.kind)
+        self.effect = effect
+        state = EffectState(kind: effect.kind)
         var uuid = effect.id.uuid
-        noiseSeed = withUnsafeBytes(of: &uuid) { bytes in bytes.reduce(UInt64(0xcbf29ce484222325)) { ($0 ^ UInt64($1)) &* 0x100000001b3 } }
+        noiseSeed = withUnsafeBytes(of: &uuid) { bytes in
+            bytes.reduce(UInt64(0xcbf29ce484222325)) { ($0 ^ UInt64($1)) &* 0x100000001b3 }
+        }
         soundPuttyShape = effect.kind == .soundPutty ? SoundPuttyShape(parameters: effect.parameters) : nil
         descriptors = effect.kind.parameters
         values = Array(repeating: 0, count: descriptors.count)
@@ -1145,9 +1551,13 @@ final class EffectProcessor {
         cachedValues = Array(repeating: .nan, count: descriptors.count)
         legacyCursor = AutomationCursor(points: effect.automation, baseline: normalizedAmount(effect.amount))
         parameterCursors = descriptors.map { descriptor in
-            AutomationCursor(points: effect.parameterAutomation[descriptor.id] ?? [], baseline: descriptor.normalized(base[descriptor.id] ?? descriptor.defaultValue))
+            AutomationCursor(
+                points: effect.parameterAutomation[descriptor.id] ?? [],
+                baseline: descriptor.normalized(base[descriptor.id] ?? descriptor.defaultValue))
         }
-        pitchEditCursor = effect.kind == .pitchCorrection && !effect.pitchEdits.isEmpty ? PitchEditCursor(regions: effect.pitchEdits) : nil
+        pitchEditCursor =
+            effect.kind == .pitchCorrection && !effect.pitchEdits.isEmpty
+            ? PitchEditCursor(regions: effect.pitchEdits) : nil
         bakedRangeCursor = effect.bakedRanges.isEmpty ? nil : PitchBakedRangeCursor(ranges: effect.bakedRanges)
         let legacyKey: String?
         switch effect.kind {
@@ -1159,8 +1569,11 @@ final class EffectProcessor {
         }
         if effect.parameters.isEmpty, let legacyKey, effect.parameterAutomation[legacyKey]?.isEmpty != false {
             legacyParameterIndex = descriptors.firstIndex { $0.id == legacyKey }
-        } else { legacyParameterIndex = nil }
-        automated = parameterCursors.contains(where: \.hasPoints) || (legacyParameterIndex != nil && legacyCursor.hasPoints)
+        } else {
+            legacyParameterIndex = nil
+        }
+        automated =
+            parameterCursors.contains(where: \.hasPoints) || (legacyParameterIndex != nil && legacyCursor.hasPoints)
         usesLegacy = effect.usesLegacyProcessor
     }
     func prepareLiveTransition(from previous: EffectProcessor) {
@@ -1170,7 +1583,9 @@ final class EffectProcessor {
         if targetBlend != bypassBlend { bypassRamp = LiveRamp(from: bypassBlend, to: targetBlend) }
         guard usesLegacy == previous.usesLegacy else { return }
         if usesLegacy {
-            if effect.automation.isEmpty && previous.effect.automation.isEmpty && effect.amount != previous.lastLegacyAmount {
+            if effect.automation.isEmpty && previous.effect.automation.isEmpty
+                && effect.amount != previous.lastLegacyAmount
+            {
                 legacyAmountRamp = LiveRamp(from: previous.lastLegacyAmount, to: normalizedAmount(effect.amount))
             }
             return
@@ -1178,11 +1593,17 @@ final class EffectProcessor {
         for i in descriptors.indices {
             let key = descriptors[i].id
             // User-drawn and Write curves retain their original sample-accurate values.
-            guard effect.parameterAutomation[key]?.isEmpty != false, previous.effect.parameterAutomation[key]?.isEmpty != false else { continue }
+            guard effect.parameterAutomation[key]?.isEmpty != false,
+                previous.effect.parameterAutomation[key]?.isEmpty != false
+            else { continue }
             if legacyParameterIndex == i && (legacyCursor.hasPoints || previous.legacyCursor.hasPoints) { continue }
             guard baseValues[i] != previous.baseValues[i] || previous.parameterRamps[i] != nil else { continue }
-            let start = descriptors[i].normalized(previous.values[i]), target = descriptors[i].normalized(baseValues[i])
-            if start != target { parameterRamps[i] = LiveRamp(from: start, to: target); hasParameterRamps = true }
+            let start = descriptors[i].normalized(previous.values[i])
+            let target = descriptors[i].normalized(baseValues[i])
+            if start != target {
+                parameterRamps[i] = LiveRamp(from: start, to: target)
+                hasParameterRamps = true
+            }
         }
     }
     func blendBypass(dry: Float, wet: Float) -> Float {
@@ -1195,11 +1616,16 @@ final class EffectProcessor {
         let sourceFrame: Int
         if let loop = pitchMeterLoopRange, !loop.isEmpty {
             sourceFrame = loop.lowerBound + ((outputFrame - loop.lowerBound) % loop.count + loop.count) % loop.count
-        } else { sourceFrame = outputFrame }
+        } else {
+            sourceFrame = outputFrame
+        }
         return bakedRangeCursor.contains(sourceFrame)
     }
     func advanceBypass() {
-        if bypassRamp != nil { bypassBlend = bypassRamp!.next(); if bypassRamp!.completed { bypassRamp = nil } }
+        if bypassRamp != nil {
+            bypassBlend = bypassRamp!.next()
+            if bypassRamp!.completed { bypassRamp = nil }
+        }
     }
     /// A partial old-project parameter curve can coexist with legacy amount automation.
     /// Convert the interpolated amount itself so nonlinear drive mappings stay exact.
@@ -1215,33 +1641,47 @@ final class EffectProcessor {
         }
         return descriptors[index].physical(descriptors[index].normalized(physical))
     }
-    func processLegacy(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, position: Int) {
+    func processLegacy(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, position: Int)
+    {
         var measurement = EffectMeterAccumulator()
         for i in 0..<count {
             var amount = legacyCursor.value(at: position + i)
-            if legacyAmountRamp != nil { amount = legacyAmountRamp!.next(); if legacyAmountRamp!.completed { legacyAmountRamp = nil } }
+            if legacyAmountRamp != nil {
+                amount = legacyAmountRamp!.next()
+                if legacyAmountRamp!.completed { legacyAmountRamp = nil }
+            }
             lastLegacyAmount = amount
-            let dryL = left[i].isFinite ? left[i] : 0, dryR = right[i].isFinite ? right[i] : 0
-            var wetL = dryL, wetR = dryR
+            let dryL = left[i].isFinite ? left[i] : 0
+            let dryR = right[i].isFinite ? right[i] : 0
+            var wetL = dryL
+            var wetR = dryR
             switch effect.kind {
             case .gain:
                 let gain = pow(Float(10), (amount * 48 - 24) / 20)
-                wetL *= gain; wetR *= gain
+                wetL *= gain
+                wetR *= gain
             case .lowPass:
                 let hz: Float = 200 * pow(80, 1 - amount)
                 let coefficient = 1 - exp(-2 * Float.pi * hz / Float(sessionRate))
-                state.filterL += coefficient * (dryL - state.filterL); state.filterR += coefficient * (dryR - state.filterR)
-                wetL = state.filterL; wetR = state.filterR
+                state.filterL += coefficient * (dryL - state.filterL)
+                state.filterR += coefficient * (dryR - state.filterR)
+                wetL = state.filterL
+                wetR = state.filterR
             case .echo:
-                let delayedL = state.delayL[state.delayIndex], delayedR = state.delayR[state.delayIndex]
+                let delayedL = state.delayL[state.delayIndex]
+                let delayedR = state.delayR[state.delayIndex]
                 state.delayL[state.delayIndex] = dryL + delayedL * 0.4
                 state.delayR[state.delayIndex] = dryR + delayedR * 0.4
                 state.delayIndex = (state.delayIndex + 1) % state.delayL.count
-                wetL += delayedL * amount * 0.65; wetR += delayedR * amount * 0.65
-            case .highPass, .compressor, .room, .equalizer, .chorus, .dither, .pitchCorrection, .limiter, .resonance, .vocalEnhancer, .sourceIsolator, .soundPutty, .gate, .utility, .guitarRig: break
+                wetL += delayedL * amount * 0.65
+                wetR += delayedR * amount * 0.65
+            case .highPass, .compressor, .room, .equalizer, .chorus, .dither, .pitchCorrection, .limiter, .resonance,
+                .vocalEnhancer, .sourceIsolator, .soundPutty, .gate, .utility, .guitarRig:
+                break
             case .warmth:
                 let drive: Float = 1 + amount * 8
-                wetL = tanh(dryL * drive) / tanh(drive); wetR = tanh(dryR * drive) / tanh(drive)
+                wetL = tanh(dryL * drive) / tanh(drive)
+                wetR = tanh(dryR * drive) / tanh(drive)
             }
             // Bypass remains dry while the state advances, avoiding stale echoes on re-enable.
             advanceBypass()

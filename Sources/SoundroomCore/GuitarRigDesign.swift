@@ -5,11 +5,15 @@ public enum GuitarRigDesign {
     public static let parameters: [EffectParameter] = [
         .init("input", "Input", -24, 18, 0, "dB"),
         .init("gate", "Noise gate", -90, -20, -75, "dB"),
-        .init("pedal", "Drive pedal", 0, 3, 0, "", choices: ["Bypass", "Green overdrive", "Hard distortion", "Triangle fuzz"]),
+        .init(
+            "pedal", "Drive pedal", 0, 3, 0, "",
+            choices: ["Bypass", "Green overdrive", "Hard distortion", "Triangle fuzz"]),
         .init("pedalDrive", "Pedal drive", 0, 30, 12, "dB"),
         .init("pedalTone", "Pedal tone", 400, 12000, 4500, "Hz", logarithmic: true),
         .init("pedalLevel", "Pedal level", -18, 12, 0, "dB"),
-        .init("amp", "Amplifier", 0, 4, 1, "", choices: ["Direct / bypass", "American clean", "British chime", "British crunch", "Modern high gain"]),
+        .init(
+            "amp", "Amplifier", 0, 4, 1, "",
+            choices: ["Direct / bypass", "American clean", "British chime", "British crunch", "Modern high gain"]),
         .init("ampDrive", "Amp gain", 0, 36, 9, "dB"),
         .init("bass", "Bass", -12, 12, 0, "dB"),
         .init("mid", "Mid", -12, 12, 0, "dB"),
@@ -17,7 +21,9 @@ public enum GuitarRigDesign {
         .init("presence", "Presence", -12, 12, 0, "dB"),
         .init("sag", "Power sag", 0, 1, 0.2, "%"),
         .init("master", "Amp master", -24, 6, -3, "dB"),
-        .init("cabinet", "Cabinet", 0, 4, 1, "", choices: ["Direct / bypass", "Open 1×12", "Chime 2×12", "Vintage 4×12", "Modern 4×12"]),
+        .init(
+            "cabinet", "Cabinet", 0, 4, 1, "",
+            choices: ["Direct / bypass", "Open 1×12", "Chime 2×12", "Vintage 4×12", "Modern 4×12"]),
         .init("mic", "Mic position", 0, 1, 0.35, "%"),
         .init("lowCut", "Cab low-cut", 20, 200, 60, "Hz", logarithmic: true),
         .init("highCut", "Cab high-cut", 2000, 16000, 8000, "Hz", logarithmic: true),
@@ -35,16 +41,104 @@ public enum GuitarRigDesign {
         .init("mix", "Dry / rig mix", 0, 1, 1, "%"),
     ]
     public static let presets: [EffectPreset] = [
-        .init(name: "American glass · black-panel clean", values: ["input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 1, "ampDrive": 3, "bass": 1, "mid": -2, "treble": 2, "presence": 1, "sag": 0.2, "master": -1, "cabinet": 1, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0.12, "output": 0, "mix": 1]),
-        .init(name: "British jangle · top-boost chime", values: ["input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 2, "ampDrive": 12, "bass": -2, "mid": 1, "treble": 2, "presence": 0, "sag": 0.2, "master": -5, "cabinet": 2, "mic": 0.55, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0.1, "output": 0, "mix": 1]),
-        .init(name: "British 800 · classic crunch", values: ["input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 3, "ampDrive": 17, "bass": 1, "mid": 3, "treble": -1, "presence": 0, "sag": 0.2, "master": -7, "cabinet": 3, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0.06, "output": 0, "mix": 1]),
-        .init(name: "Green blues · mid-boost drive", values: ["input": 0, "gate": -75, "pedal": 1, "pedalDrive": 8, "pedalTone": 4800, "pedalLevel": -3, "amp": 1, "ampDrive": 7, "bass": 0, "mid": 1, "treble": 0, "presence": 0, "sag": 0.2, "master": -5, "cabinet": 1, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0.1, "output": 0, "mix": 1]),
-        .init(name: "Triangle wall · sustaining fuzz", values: ["input": 0, "gate": -75, "pedal": 3, "pedalDrive": 22, "pedalTone": 3500, "pedalLevel": -8, "amp": 1, "ampDrive": 4, "bass": 0, "mid": -4, "treble": 0, "presence": 0, "sag": 0.2, "master": -7, "cabinet": 3, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0.06, "output": 0, "mix": 1]),
-        .init(name: "Modern tight · high-gain rhythm", values: ["input": 0, "gate": -55, "pedal": 1, "pedalDrive": 0, "pedalTone": 4500, "pedalLevel": -2, "amp": 4, "ampDrive": 24, "bass": 2, "mid": -2, "treble": 1, "presence": 1, "sag": 0.08, "master": -9, "cabinet": 4, "mic": 0.5, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0, "output": 0, "mix": 1]),
-        .init(name: "Wide clean · eighties chorus", values: ["input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 1, "ampDrive": 2, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": -3, "cabinet": 1, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 1, "modRate": 0.7, "modDepth": 0.6, "modMix": 0.35, "delayTone": 4500, "delayTime": 310, "delayFeedback": 0.3, "delayMix": 0.13, "reverbDecay": 1.4, "reverbMix": 0.16, "output": 0, "mix": 1]),
-        .init(name: "Surf pulse · tremolo combo", values: ["input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 1, "ampDrive": 4, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": -3, "cabinet": 1, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 2, "modRate": 4.2, "modDepth": 0.65, "modMix": 1, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 2.4, "reverbMix": 0.22, "output": 0, "mix": 1]),
-        .init(name: "Dotted-eighth · ambient chime", values: ["input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 2, "ampDrive": 6, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": -6, "cabinet": 2, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 375, "delayFeedback": 0.52, "delayMix": 0.32, "reverbDecay": 3.2, "reverbMix": 0.24, "output": 0, "mix": 1]),
-        .init(name: "Pedalboard only · no amp or cab", values: ["input": 0, "gate": -75, "pedal": 1, "pedalDrive": 6, "pedalTone": 4500, "pedalLevel": -3, "amp": 0, "ampDrive": 9, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": 0, "cabinet": 0, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0, "output": 0, "mix": 1]),
-        .init(name: "Empty rig · build from direct", values: ["input": 0, "gate": -90, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 0, "ampDrive": 9, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": 0, "cabinet": 0, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0, "output": 0, "mix": 1]),
+        .init(
+            name: "American glass · black-panel clean",
+            values: [
+                "input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 1,
+                "ampDrive": 3, "bass": 1, "mid": -2, "treble": 2, "presence": 1, "sag": 0.2, "master": -1, "cabinet": 1,
+                "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35,
+                "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0,
+                "reverbDecay": 1.4, "reverbMix": 0.12, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "British jangle · top-boost chime",
+            values: [
+                "input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 2,
+                "ampDrive": 12, "bass": -2, "mid": 1, "treble": 2, "presence": 0, "sag": 0.2, "master": -5,
+                "cabinet": 2, "mic": 0.55, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9,
+                "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3,
+                "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0.1, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "British 800 · classic crunch",
+            values: [
+                "input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 3,
+                "ampDrive": 17, "bass": 1, "mid": 3, "treble": -1, "presence": 0, "sag": 0.2, "master": -7,
+                "cabinet": 3, "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9,
+                "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3,
+                "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0.06, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "Green blues · mid-boost drive",
+            values: [
+                "input": 0, "gate": -75, "pedal": 1, "pedalDrive": 8, "pedalTone": 4800, "pedalLevel": -3, "amp": 1,
+                "ampDrive": 7, "bass": 0, "mid": 1, "treble": 0, "presence": 0, "sag": 0.2, "master": -5, "cabinet": 1,
+                "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35,
+                "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0,
+                "reverbDecay": 1.4, "reverbMix": 0.1, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "Triangle wall · sustaining fuzz",
+            values: [
+                "input": 0, "gate": -75, "pedal": 3, "pedalDrive": 22, "pedalTone": 3500, "pedalLevel": -8, "amp": 1,
+                "ampDrive": 4, "bass": 0, "mid": -4, "treble": 0, "presence": 0, "sag": 0.2, "master": -7, "cabinet": 3,
+                "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35,
+                "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0,
+                "reverbDecay": 1.4, "reverbMix": 0.06, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "Modern tight · high-gain rhythm",
+            values: [
+                "input": 0, "gate": -55, "pedal": 1, "pedalDrive": 0, "pedalTone": 4500, "pedalLevel": -2, "amp": 4,
+                "ampDrive": 24, "bass": 2, "mid": -2, "treble": 1, "presence": 1, "sag": 0.08, "master": -9,
+                "cabinet": 4, "mic": 0.5, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9,
+                "modDepth": 0.35, "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3,
+                "delayMix": 0, "reverbDecay": 1.4, "reverbMix": 0, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "Wide clean · eighties chorus",
+            values: [
+                "input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 1,
+                "ampDrive": 2, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": -3, "cabinet": 1,
+                "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 1, "modRate": 0.7, "modDepth": 0.6,
+                "modMix": 0.35, "delayTone": 4500, "delayTime": 310, "delayFeedback": 0.3, "delayMix": 0.13,
+                "reverbDecay": 1.4, "reverbMix": 0.16, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "Surf pulse · tremolo combo",
+            values: [
+                "input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 1,
+                "ampDrive": 4, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": -3, "cabinet": 1,
+                "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 2, "modRate": 4.2, "modDepth": 0.65,
+                "modMix": 1, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0,
+                "reverbDecay": 2.4, "reverbMix": 0.22, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "Dotted-eighth · ambient chime",
+            values: [
+                "input": 0, "gate": -75, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 2,
+                "ampDrive": 6, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": -6, "cabinet": 2,
+                "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35,
+                "modMix": 0.25, "delayTone": 4500, "delayTime": 375, "delayFeedback": 0.52, "delayMix": 0.32,
+                "reverbDecay": 3.2, "reverbMix": 0.24, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "Pedalboard only · no amp or cab",
+            values: [
+                "input": 0, "gate": -75, "pedal": 1, "pedalDrive": 6, "pedalTone": 4500, "pedalLevel": -3, "amp": 0,
+                "ampDrive": 9, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": 0, "cabinet": 0,
+                "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35,
+                "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0,
+                "reverbDecay": 1.4, "reverbMix": 0, "output": 0, "mix": 1,
+            ]),
+        .init(
+            name: "Empty rig · build from direct",
+            values: [
+                "input": 0, "gate": -90, "pedal": 0, "pedalDrive": 12, "pedalTone": 4500, "pedalLevel": 0, "amp": 0,
+                "ampDrive": 9, "bass": 0, "mid": 0, "treble": 0, "presence": 0, "sag": 0.2, "master": 0, "cabinet": 0,
+                "mic": 0.35, "lowCut": 60, "highCut": 8000, "modulation": 0, "modRate": 0.9, "modDepth": 0.35,
+                "modMix": 0.25, "delayTone": 4500, "delayTime": 380, "delayFeedback": 0.3, "delayMix": 0,
+                "reverbDecay": 1.4, "reverbMix": 0, "output": 0, "mix": 1,
+            ]),
     ]
 }

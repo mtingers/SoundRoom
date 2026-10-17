@@ -9,16 +9,26 @@ enum ProjectFileSelection {
     static func validate(_ url: URL) throws {
         var directory: ObjCBool = false
         guard url.isFileURL, url.pathExtension == "soundroom",
-              FileManager.default.fileExists(atPath: url.path, isDirectory: &directory), directory.boolValue else {
-            throw NSError(domain: "Soundroom.ProjectOpen", code: 1,
-                          userInfo: [NSLocalizedDescriptionKey: "Choose a .soundroom project folder, rather than an audio file or its containing folder."])
+            FileManager.default.fileExists(atPath: url.path, isDirectory: &directory), directory.boolValue
+        else {
+            throw NSError(
+                domain: "Soundroom.ProjectOpen", code: 1,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "Choose a .soundroom project folder, rather than an audio file or its containing folder."
+                ])
         }
         let document = url.appendingPathComponent("session.json")
         directory = false
         guard FileManager.default.fileExists(atPath: document.path, isDirectory: &directory), !directory.boolValue,
-              FileManager.default.isReadableFile(atPath: document.path) else {
-            throw NSError(domain: "Soundroom.ProjectOpen", code: 2,
-                          userInfo: [NSLocalizedDescriptionKey: "This project has no readable session.json. Choose the complete .soundroom project folder."])
+            FileManager.default.isReadableFile(atPath: document.path)
+        else {
+            throw NSError(
+                domain: "Soundroom.ProjectOpen", code: 2,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "This project has no readable session.json. Choose the complete .soundroom project folder."
+                ])
         }
     }
 }
@@ -51,7 +61,10 @@ enum ProjectFileSelection {
         let finished: (NSApplication.ModalResponse) -> Void = { response in
             completion(response == .OK ? self.panel.url : nil)
         }
-        if let window { panel.beginSheetModal(for: window, completionHandler: finished) }
-        else { panel.begin(completionHandler: finished) }
+        if let window {
+            panel.beginSheetModal(for: window, completionHandler: finished)
+        } else {
+            panel.begin(completionHandler: finished)
+        }
     }
 }

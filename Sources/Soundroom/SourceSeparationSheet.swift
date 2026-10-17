@@ -1,7 +1,7 @@
 import AppKit
-import SwiftUI
 import SoundroomCore
 import SoundroomRemote
+import SwiftUI
 
 enum SeparatedSource: String, CaseIterable, Identifiable {
     case vocals, drums, bass, other, guitar, piano
@@ -45,7 +45,10 @@ enum SourceSeparationOperation: String, CaseIterable, Identifiable {
 }
 
 private struct SourceSeparationRuntime: Decodable {
-    struct Model: Decodable { var name: String?; var available: Bool }
+    struct Model: Decodable {
+        var name: String?
+        var available: Bool
+    }
     var available: Bool
     var models: Set<String>
     var message: String
@@ -54,8 +57,9 @@ private struct SourceSeparationRuntime: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         available = try container.decode(Bool.self, forKey: .available)
         message = try container.decode(String.self, forKey: .message)
-        if let names = try? container.decode([String].self, forKey: .models) { models = Set(names) }
-        else {
+        if let names = try? container.decode([String].self, forKey: .models) {
+            models = Set(names)
+        } else {
             let entries = try container.decode([String: Model].self, forKey: .models)
             models = Set(entries.filter { $0.value.available }.keys)
             for entry in entries.values where entry.available { if let name = entry.name { models.insert(name) } }
@@ -91,21 +95,26 @@ private struct SourceSeparationRuntime: Decodable {
     private var processingFence: RemoteGestureRevisionFence?
 
     private init(store: SessionStore, remote: RemoteGUIController, track: Track, range: Range<Int>) {
-        self.store = store; trackName = track.name; self.range = range
-        source = RemoteWorkspaceSource(remote: remote, trackID: track.id, clipID: store.currentClip?.id, frame: range.lowerBound)
-        context = .init(trackID: track.id, clipID: store.currentClip?.id,
-                        clipIDs: store.currentClip.map { [$0.id] } ?? [], cursorFrame: range.lowerBound,
-                        rangeStart: range.lowerBound, rangeEnd: range.upperBound)
+        self.store = store
+        trackName = track.name
+        self.range = range
+        source = RemoteWorkspaceSource(
+            remote: remote, trackID: track.id, clipID: store.currentClip?.id, frame: range.lowerBound)
+        context = .init(
+            trackID: track.id, clipID: store.currentClip?.id,
+            clipIDs: store.currentClip.map { [$0.id] } ?? [], cursorFrame: range.lowerBound,
+            rangeStart: range.lowerBound, rangeEnd: range.upperBound)
     }
 
     static func capture(store: SessionStore) -> SourceSeparationController? {
         guard store.effectMode != .master,
-              let track = store.currentTrack, track.id != Session.masterTrackID,
-              store.selection.map({ $0.range.isEmpty || $0.trackID == track.id }) ?? true,
-              let range = store.selectedRange, !range.isEmpty, range.lowerBound >= 0, store.hasAudioSelection,
-              !store.busy, !store.isRecording,
-              let remote = store.remoteGUI, remote.connected,
-              !remote.hasPendingEdits(for: track.id) else {
+            let track = store.currentTrack, track.id != Session.masterTrackID,
+            store.selection.map({ $0.range.isEmpty || $0.trackID == track.id }) ?? true,
+            let range = store.selectedRange, !range.isEmpty, range.lowerBound >= 0, store.hasAudioSelection,
+            !store.busy, !store.isRecording,
+            let remote = store.remoteGUI, remote.connected,
+            !remote.hasPendingEdits(for: track.id)
+        else {
             store.status = "Select audio on a track and wait for pending edits before separating a source."
             return nil
         }
@@ -145,13 +154,16 @@ private struct SourceSeparationRuntime: Decodable {
     var canApply: Bool { canRun }
 
     func intent(apply: Bool) -> RemoteEditorIntent {
-        var strings = ["kind": "sourceIsolator", "separationTarget": target.rawValue,
-                       "separationModel": effectiveQuality.rawValue, "separationOperation": operation.rawValue]
+        var strings = [
+            "kind": "sourceIsolator", "separationTarget": target.rawValue,
+            "separationModel": effectiveQuality.rawValue, "separationOperation": operation.rawValue,
+        ]
         if let processingID { strings["separationJobID"] = processingID.uuidString }
         var capturedContext = context
         if !apply, previewIsPartial { capturedContext.rangeEnd = range.lowerBound + Self.previewFrames }
-        return .init(operation: apply ? "effects.apply" : "effects.preview", context: capturedContext,
-                     strings: strings, flags: ["separateSource": true], payload: Data("{}".utf8))
+        return .init(
+            operation: apply ? "effects.apply" : "effects.preview", context: capturedContext,
+            strings: strings, flags: ["separateSource": true], payload: Data("{}".utf8))
     }
 
     func checkRuntime() {
@@ -160,18 +172,26 @@ private struct SourceSeparationRuntime: Decodable {
         remote.route(.init(operation: "sources.status")) { [weak self] reply in
             guard let self else { return }
             checkingRuntime = false
-            if reply.accepted, let payload = reply.payload, let status = try? JSONDecoder().decode(SourceSeparationRuntime.self, from: payload) {
-                runtimeAvailable = status.available; availableModels = status.models; runtimeMessage = status.message
+            if reply.accepted, let payload = reply.payload,
+                let status = try? JSONDecoder().decode(SourceSeparationRuntime.self, from: payload)
+            {
+                runtimeAvailable = status.available
+                availableModels = status.models
+                runtimeMessage = status.message
             } else {
-                runtimeAvailable = false; availableModels = []
-                runtimeMessage = reply.message.isEmpty ? "The connected server does not provide local source separation." : reply.message
+                runtimeAvailable = false
+                availableModels = []
+                runtimeMessage =
+                    reply.message.isEmpty
+                    ? "The connected server does not provide local source separation." : reply.message
             }
         }
     }
 
     func run(apply: Bool) {
         guard let store, let remote = store.remoteGUI, let trackID = context.trackID,
-              let version = source.fence.versions[trackID] else { return }
+            let version = source.fence.versions[trackID]
+        else { return }
         guard source.ready(in: remote) else {
             message = "The source changed. Your choices are retained; reopen the current audio to process it."
             return
@@ -180,29 +200,46 @@ private struct SourceSeparationRuntime: Decodable {
             message = "An Editor or Operator connection is required to separate a source."
             return
         }
-        guard canRun else { message = "Wait for pending work and the local separation engine before processing."; return }
+        guard canRun else {
+            message = "Wait for pending work and the local separation engine before processing."
+            return
+        }
         processingID = UUID()
         // A failed or cancelled run invalidates its command fence, while this
         // sheet retains its opening source and choices for a safe retry.
         let runFence = RemoteGestureRevisionFence(versions: source.fence.versions)
         processingFence = runFence
-        pending = true; cancellationRequested = false; message = apply ? "Separating and applying…" : "Preparing separated preview…"
+        pending = true
+        cancellationRequested = false
+        message = apply ? "Separating and applying…" : "Preparing separated preview…"
         store.workProgress = nil
         let command = intent(apply: apply)
         remote.send(.editor(command), expecting: [trackID: version], gesture: runFence) { [weak self] reply in
             guard let self else { return }
-            pending = false; cancellationRequested = false; processingID = nil; processingFence = nil
+            pending = false
+            cancellationRequested = false
+            processingID = nil
+            processingFence = nil
             if reply.accepted {
-                message = apply ? "Separated audio applied. Undo restores the source."
+                message =
+                    apply
+                    ? "Separated audio applied. Undo restores the source."
                     : previewIsPartial ? "Preview ready · first 10 minutes of the selection." : "Preview ready."
-                if apply { completed = true; previewing = false }
-                else { previewing = true }
+                if apply {
+                    completed = true
+                    previewing = false
+                } else {
+                    previewing = true
+                }
                 self.store?.activity.record(message, kind: .success)
             } else {
-                message = reply.message.isEmpty ? "Processing did not complete. Your choices are retained." : reply.message
-                self.store?.activity.record(message, kind: .failure, recoveryTitle: "Review and retry separation…", recovery: { [weak owner = self.store] in
-                    owner?.sourceSeparationRequest = self
-                })
+                message =
+                    reply.message.isEmpty ? "Processing did not complete. Your choices are retained." : reply.message
+                self.store?.activity.record(
+                    message, kind: .failure, recoveryTitle: "Review and retry separation…",
+                    recovery: { [weak owner = self.store] in
+                        owner?.sourceSeparationRequest = self
+                    })
             }
         }
     }
@@ -211,11 +248,14 @@ private struct SourceSeparationRuntime: Decodable {
         guard pending, !cancellationRequested else { return }
         guard let remote = store?.remoteGUI, let jobID = processingID, let runFence = processingFence else { return }
         if remote.cancelQueuedSeparation(fence: runFence) { return }
-        cancellationRequested = true; message = "Cancelling separation…"
+        cancellationRequested = true
+        message = "Cancelling separation…"
         remote.route(.init(operation: "jobs.cancel", strings: ["id": jobID.uuidString])) { [weak self] reply in
             guard let self, processingID == jobID, pending, !reply.accepted else { return }
             cancellationRequested = false
-            message = reply.message.isEmpty ? "Cancellation was not accepted. You can try again while processing continues." : reply.message
+            message =
+                reply.message.isEmpty
+                ? "Cancellation was not accepted. You can try again while processing continues." : reply.message
         }
     }
 
@@ -223,8 +263,11 @@ private struct SourceSeparationRuntime: Decodable {
         guard previewing else { return }
         store?.remoteGUI?.route(.init(operation: "audition.stop", strings: ["kind": "effects"])) { [weak self] reply in
             guard let self else { return }
-            if reply.accepted { previewing = false }
-            else { message = reply.message.isEmpty ? "The separated preview could not be stopped." : reply.message }
+            if reply.accepted {
+                previewing = false
+            } else {
+                message = reply.message.isEmpty ? "The separated preview could not be stopped." : reply.message
+            }
         }
     }
 }
@@ -238,7 +281,10 @@ struct SourceSeparationSheet: View {
             HStack {
                 Label("Separate source", systemImage: "waveform.path").font(.system(size: 21, weight: .semibold))
                 Spacer()
-                Button("Done") { request.stopPreview(); dismiss() }.disabled(request.pending)
+                Button("Done") {
+                    request.stopPreview()
+                    dismiss()
+                }.disabled(request.pending)
             }
             Text("\(request.trackName) · \(String(format: "%.2f", Double(request.range.count) / sessionRate)) seconds")
                 .font(.system(size: 12)).foregroundStyle(Theme.secondary)
@@ -249,8 +295,10 @@ struct SourceSeparationSheet: View {
             Picker("Model", selection: $request.quality) {
                 ForEach(SourceSeparationQuality.allCases) { Text($0.name).tag($0) }
             }.disabled(request.target.needsSixSources || request.pending)
-            Picker("Result", selection: $request.operation) { ForEach(SourceSeparationOperation.allCases) { Text($0.name).tag($0) } }
-                .pickerStyle(.segmented).disabled(request.pending)
+            Picker("Result", selection: $request.operation) {
+                ForEach(SourceSeparationOperation.allCases) { Text($0.name).tag($0) }
+            }
+            .pickerStyle(.segmented).disabled(request.pending)
             if request.target == .piano {
                 Text("Piano separation is experimental and often retains other instruments. Preview before applying.")
                     .font(.system(size: 12)).foregroundStyle(Theme.secondary)
@@ -261,18 +309,24 @@ struct SourceSeparationSheet: View {
                 Text("Preview processes the first 10 minutes. Apply processes the entire selected range.")
                     .font(.system(size: 12)).foregroundStyle(Theme.secondary)
             }
-            if request.checkingRuntime { ProgressView().controlSize(.small) }
-            else if !request.runtimeAvailable || !request.selectedModelAvailable {
+            if request.checkingRuntime {
+                ProgressView().controlSize(.small)
+            } else if !request.runtimeAvailable || !request.selectedModelAvailable {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(request.runtimeAvailable ? "Install the selected source model." : "Install the local separation engine once.")
-                        .font(.system(size: 12, weight: .semibold))
+                    Text(
+                        request.runtimeAvailable
+                            ? "Install the selected source model." : "Install the local separation engine once."
+                    )
+                    .font(.system(size: 12, weight: .semibold))
                     Text("bash scripts/setup-source-separation.sh --models all")
                         .font(.system(size: 11, design: .monospaced)).textSelection(.enabled)
-                    Text("Run this command from the Soundroom project folder.").font(.system(size: 11)).foregroundStyle(Theme.secondary)
+                    Text("Run this command from the Soundroom project folder.").font(.system(size: 11)).foregroundStyle(
+                        Theme.secondary)
                     Text(request.runtimeAvailable ? "The selected model is not installed." : request.runtimeMessage)
                         .font(.system(size: 11)).foregroundStyle(Theme.secondary).textSelection(.enabled)
                     Button("Check again") { request.checkRuntime() }.disabled(request.pending)
-                }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(Theme.well, in: RoundedRectangle(cornerRadius: 8))
+                }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(
+                    Theme.well, in: RoundedRectangle(cornerRadius: 8))
             }
             if !request.sourceIsCurrent {
                 Text("The source changed. Close this sheet and reopen the current audio before processing.")
@@ -281,17 +335,24 @@ struct SourceSeparationSheet: View {
             if !request.message.isEmpty { Text(request.message).font(.system(size: 12)).textSelection(.enabled) }
             if request.pending {
                 HStack {
-                    if let progress = store.workProgress { ProgressView(value: progress) }
-                    else { ProgressView().controlSize(.small); Spacer() }
-                    Button(request.cancellationRequested ? "Cancelling…" : "Cancel processing") { request.cancelProcessing() }
-                        .disabled(request.cancellationRequested)
+                    if let progress = store.workProgress {
+                        ProgressView(value: progress)
+                    } else {
+                        ProgressView().controlSize(.small)
+                        Spacer()
+                    }
+                    Button(request.cancellationRequested ? "Cancelling…" : "Cancel processing") {
+                        request.cancelProcessing()
+                    }
+                    .disabled(request.cancellationRequested)
                 }
             }
             HStack {
                 Button("Preview") { request.run(apply: false) }.disabled(!request.canPreview)
                 if request.previewing { Button("Stop preview") { request.stopPreview() }.disabled(request.pending) }
                 Spacer()
-                Button("Apply to audio") { request.run(apply: true) }.disabled(!request.canApply).keyboardShortcut(.defaultAction)
+                Button("Apply to audio") { request.run(apply: true) }.disabled(!request.canApply).keyboardShortcut(
+                    .defaultAction)
             }
         }.padding(24).frame(width: 510).background(Theme.paper)
             .interactiveDismissDisabled(request.pending)

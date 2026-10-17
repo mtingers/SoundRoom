@@ -1,7 +1,8 @@
-import XCTest
-@testable import Soundroom
 import SoundroomCore
 import SoundroomRemote
+import XCTest
+
+@testable import Soundroom
 
 final class TimelineViewportTests: XCTestCase {
     func testSelectionPrecisionFieldsRetainExactSampleBoundaries() {
@@ -17,11 +18,15 @@ final class TimelineViewportTests: XCTestCase {
         }
     }
     @MainActor func testLoopPrecisionIsSentToServerWithoutAnOptimisticLocalLoop() async throws {
-        let store = SessionStore(headless: true), serverID = UUID()
+        let store = SessionStore(headless: true)
+        let serverID = UUID()
         var commands: [RemoteCommand] = []
-        let remote = RemoteGUIController(store: store, credential: .native(try RemoteCredential.generate()), host: "fixture", commandSender: { command, _, _, _ in
-            commands.append(command); return .init(requestID: UUID(), revision: 0)
-        })
+        let remote = RemoteGUIController(
+            store: store, credential: .native(try RemoteCredential.generate()), host: "fixture",
+            commandSender: { command, _, _, _ in
+                commands.append(command)
+                return .init(requestID: UUID(), revision: 0)
+            })
         store.remoteGUI = remote
         remote.receiveState(.connected(serverID: serverID, name: "Fixture", role: .operator))
         defer { remote.disconnect() }
@@ -53,22 +58,26 @@ final class TimelineViewportTests: XCTestCase {
         let view = TimelineViewport(offset: 400, width: 800, contentWidth: 3000)
         let loop = frame(4.1)..<frame(11.9)
         for seconds in [4.1, 6, 11.89, 4.1] {
-            XCTAssertNil(view.followDestination(frame: frame(seconds), zoom: 100, playing: true, enabled: true, loop: loop))
+            XCTAssertNil(
+                view.followDestination(frame: frame(seconds), zoom: 100, playing: true, enabled: true, loop: loop))
         }
         let initial = TimelineViewport(offset: 0, width: 800, contentWidth: 3000)
         let short = frame(0.5)..<frame(1.5)
         for seconds in [0.5, 1, 1.49, 0.5] {
-            XCTAssertNil(initial.followDestination(frame: frame(seconds), zoom: 85, playing: true, enabled: true, loop: short))
+            XCTAssertNil(
+                initial.followDestination(frame: frame(seconds), zoom: 85, playing: true, enabled: true, loop: short))
         }
     }
     func testOffscreenShortLoopRevealsWholeRangeOnceAndLongLoopFollows() {
         let view = TimelineViewport(offset: 0, width: 800, contentWidth: 3000)
         let short = frame(10)..<frame(17.9)
-        let desired = try! XCTUnwrap(view.followDestination(frame: frame(10), zoom: 100, playing: true, enabled: true, loop: short))
+        let desired = try! XCTUnwrap(
+            view.followDestination(frame: frame(10), zoom: 100, playing: true, enabled: true, loop: short))
         XCTAssertEqual(desired, Double(short.upperBound) / sessionRate * 100 - 800, accuracy: 0.000001)
         XCTAssertLessThanOrEqual(desired, 1000)
         let revealed = TimelineViewport(offset: desired, width: 800, contentWidth: 3000)
-        XCTAssertNil(revealed.followDestination(frame: frame(17.89), zoom: 100, playing: true, enabled: true, loop: short))
+        XCTAssertNil(
+            revealed.followDestination(frame: frame(17.89), zoom: 100, playing: true, enabled: true, loop: short))
         XCTAssertNil(revealed.followDestination(frame: frame(10), zoom: 100, playing: true, enabled: true, loop: short))
         let long = frame(0)..<frame(25)
         XCTAssertNotNil(view.followDestination(frame: frame(8), zoom: 100, playing: true, enabled: true, loop: long))
@@ -94,10 +103,14 @@ final class TimelineViewportTests: XCTestCase {
     func testDragAutoScrollClampsContentAndElapsedAndRejectsInvalidGeometry() {
         let left = TimelineViewport(offset: 5, width: 800, contentWidth: 3000)
         XCTAssertEqual(left.dragScrollDestination(pointerX: -1000, elapsed: 1), 0)
-        XCTAssertNil(TimelineViewport(offset: 0, width: 800, contentWidth: 3000).dragScrollDestination(pointerX: -20, elapsed: 1 / 30))
+        XCTAssertNil(
+            TimelineViewport(offset: 0, width: 800, contentWidth: 3000).dragScrollDestination(
+                pointerX: -20, elapsed: 1 / 30))
         let right = TimelineViewport(offset: 2195, width: 800, contentWidth: 3000)
         XCTAssertEqual(right.dragScrollDestination(pointerX: 1000, elapsed: 1 / 30), 2200)
-        XCTAssertNil(TimelineViewport(offset: 0, width: 800, contentWidth: 800).dragScrollDestination(pointerX: 1000, elapsed: 1 / 30))
+        XCTAssertNil(
+            TimelineViewport(offset: 0, width: 800, contentWidth: 800).dragScrollDestination(
+                pointerX: 1000, elapsed: 1 / 30))
         XCTAssertNil(left.dragScrollDestination(pointerX: .nan, elapsed: 0.1))
         XCTAssertNil(left.dragScrollDestination(pointerX: 10, elapsed: 0))
         XCTAssertNil(TimelineViewport().dragScrollDestination(pointerX: 10, elapsed: 0.1))
@@ -137,7 +150,8 @@ final class TimelineViewportTests: XCTestCase {
             let store = SessionStore()
             let track = store.session.tracks[0].id
             store.selectTimelineDrag(track: track, start: 24_000, end: 96_000)
-            store.isPlaying = true; store.status = "Playing"
+            store.isPlaying = true
+            store.status = "Playing"
             store.playbackPosition.update(400_000)
             store.setSelectionEdge(start: false, seconds: 3)
             XCTAssertEqual(store.selection?.range, 24_000..<144_000)
@@ -150,7 +164,8 @@ final class TimelineViewportTests: XCTestCase {
         MainActor.assumeIsolated {
             let interaction = TimelineScrollInteraction()
             interaction.viewport = TimelineViewport(offset: 100, width: 800, contentWidth: 3000)
-            var destinations: [Double] = [], dragPoints: [Double] = []
+            var destinations: [Double] = []
+            var dragPoints: [Double] = []
             interaction.requestScroll = { destinations.append($0) }
             interaction.pointerDown(at: 100)
             interaction.beginDrag { dragPoints.append($0) }
@@ -183,9 +198,15 @@ final class TimelineViewportTests: XCTestCase {
         let after = TimelineViewport(offset: 500, width: 800, contentWidth: 3000)
         XCTAssertTrue(after.isUnrequestedScroll(from: before, pendingDestination: nil))
         XCTAssertFalse(after.isUnrequestedScroll(from: before, pendingDestination: 500))
-        XCTAssertFalse(TimelineViewport(offset: 500, width: 900, contentWidth: 3000).isUnrequestedScroll(from: before, pendingDestination: nil))
-        XCTAssertFalse(TimelineViewport(offset: 500, width: 800, contentWidth: 6000).isUnrequestedScroll(from: before, pendingDestination: nil))
-        XCTAssertFalse(TimelineViewport(offset: 101, width: 800, contentWidth: 3000).isUnrequestedScroll(from: before, pendingDestination: nil))
+        XCTAssertFalse(
+            TimelineViewport(offset: 500, width: 900, contentWidth: 3000).isUnrequestedScroll(
+                from: before, pendingDestination: nil))
+        XCTAssertFalse(
+            TimelineViewport(offset: 500, width: 800, contentWidth: 6000).isUnrequestedScroll(
+                from: before, pendingDestination: nil))
+        XCTAssertFalse(
+            TimelineViewport(offset: 101, width: 800, contentWidth: 3000).isUnrequestedScroll(
+                from: before, pendingDestination: nil))
     }
     func testManualRevealSameFrameProducesDistinctRequestsAndFitUsesSamePath() {
         MainActor.assumeIsolated {
@@ -230,13 +251,16 @@ final class TimelineViewportTests: XCTestCase {
         }
     }
     @MainActor func testReturnWhileRemotePlaybackRevealsTheSeekDestination() async throws {
-        let store = SessionStore(headless: true), serverID = UUID()
+        let store = SessionStore(headless: true)
+        let serverID = UUID()
         var seeks: [Int] = []
-        let remote = RemoteGUIController(store: store, credential: .native(try RemoteCredential.generate()), host: "fixture", commandSender: { command, _, _, _ in
-            guard case .seek(let frame) = command else { throw RemoteError.invalidFrame }
-            seeks.append(frame)
-            return .init(requestID: UUID(), revision: 0)
-        })
+        let remote = RemoteGUIController(
+            store: store, credential: .native(try RemoteCredential.generate()), host: "fixture",
+            commandSender: { command, _, _, _ in
+                guard case .seek(let frame) = command else { throw RemoteError.invalidFrame }
+                seeks.append(frame)
+                return .init(requestID: UUID(), revision: 0)
+            })
         store.remoteGUI = remote
         remote.receiveState(.connected(serverID: serverID, name: "Fixture", role: .operator))
         defer { remote.disconnect() }
@@ -271,9 +295,12 @@ final class TimelineViewportTests: XCTestCase {
     }
     func testZoomToLongSelectionFitsWholeRangeWithRevealMargin() {
         MainActor.assumeIsolated {
-            let store = SessionStore(), asset = UUID()
+            let store = SessionStore()
+            let asset = UUID()
             let track = store.session.tracks[0].id
-            store.session.tracks[0].clips = [Clip(assetID: asset, name: "Long", start: 0, length: frame(80), edgeFadeFrames: 0)]
+            store.session.tracks[0].clips = [
+                Clip(assetID: asset, name: "Long", start: 0, length: frame(80), edgeFadeFrames: 0)
+            ]
             store.selectedTrack = track
             let range = frame(10)..<frame(70)
             store.selection = EditSelection(trackID: track, range: range)

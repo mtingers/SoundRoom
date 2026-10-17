@@ -1,19 +1,31 @@
-import XCTest
 import SoundroomCore
 import SoundroomRemote
+import XCTest
+
 @testable import Soundroom
 
 final class WorkspacePresentationTests: XCTestCase {
     @MainActor private func settle() async { for _ in 0..<60 { await Task.yield() } }
-    @MainActor private func fixture(role: RemoteRole = .operator, sender: @escaping RemoteGUIController.CommandSender = { _, _, _, _ in .init(requestID: UUID(), revision: 0) }) throws -> (SessionStore, RemoteGUIController) {
-        let store = SessionStore(headless: true), server = UUID()
+    @MainActor private func fixture(
+        role: RemoteRole = .operator,
+        sender: @escaping RemoteGUIController.CommandSender = { _, _, _, _ in .init(requestID: UUID(), revision: 0) }
+    ) throws -> (SessionStore, RemoteGUIController) {
+        let store = SessionStore(headless: true)
+        let server = UUID()
         store.session.tracks[0].name = "Lead vocal"
         store.session.tracks[0].clips = [Clip(assetID: UUID(), name: "Verse", start: 48_000, length: 96_000)]
-        store.session.tracks[0].realtimeEffects = [RealtimeEffect(kind: .vocalEnhancer, parameters: RealtimeEffectKind.vocalEnhancer.defaultParameters)]
-        let remote = RemoteGUIController(store: store, credential: .native(try RemoteCredential.generate()), host: "fixture", commandSender: sender)
+        store.session.tracks[0].realtimeEffects = [
+            RealtimeEffect(kind: .vocalEnhancer, parameters: RealtimeEffectKind.vocalEnhancer.defaultParameters)
+        ]
+        let remote = RemoteGUIController(
+            store: store, credential: .native(try RemoteCredential.generate()), host: "fixture", commandSender: sender)
         store.remoteGUI = remote
         remote.receiveState(.connected(serverID: server, name: "Fixture", role: role))
-        remote.receive(.snapshot(.init(serverID: server, serverName: "Fixture", session: store.session, revision: 0, trackRevisions: [store.session.tracks[0].id: 0], projectName: "Existing.soundroom")))
+        remote.receive(
+            .snapshot(
+                .init(
+                    serverID: server, serverName: "Fixture", session: store.session, revision: 0,
+                    trackRevisions: [store.session.tracks[0].id: 0], projectName: "Existing.soundroom")))
         return (store, remote)
     }
 
@@ -30,9 +42,12 @@ final class WorkspacePresentationTests: XCTestCase {
     }
     @MainActor func testOverviewNavigationNeverSeeksOrChangesZoomOrSelection() {
         let store = SessionStore(headless: true)
-        store.playhead = 96_000; store.zoom = 240; store.isPlaying = true
+        store.playhead = 96_000
+        store.zoom = 240
+        store.isPlaying = true
         store.selection = EditSelection(trackID: store.session.tracks[0].id, range: 48_000..<96_000)
-        let selection = store.selection, initial = store.timelineScrollSerial
+        let selection = store.selection
+        let initial = store.timelineScrollSerial
         store.requestTimelineScroll(1_200)
         XCTAssertEqual(store.timelineScrollOffset, 1_200)
         XCTAssertEqual(store.timelineScrollSerial, initial + 1)
@@ -46,8 +61,10 @@ final class WorkspacePresentationTests: XCTestCase {
         XCTAssertEqual(store.timelineScrollSerial, initial + 1)
     }
     @MainActor func testScopeDistinguishesWholeTrackClipRangeAndMaster() {
-        let store = SessionStore(headless: true), clip = Clip(assetID: UUID(), name: "Verse", start: 48_000, length: 96_000)
-        store.session.tracks[0].name = "Lead vocal"; store.session.tracks[0].clips = [clip]
+        let store = SessionStore(headless: true)
+        let clip = Clip(assetID: UUID(), name: "Verse", start: 48_000, length: 96_000)
+        store.session.tracks[0].name = "Lead vocal"
+        store.session.tracks[0].clips = [clip]
         XCTAssertEqual(store.editingScope.detail, "Whole track · live processing")
         store.selectedClip = clip.id
         XCTAssertEqual(store.editingScope.detail, "Verse")
@@ -64,8 +81,12 @@ final class WorkspacePresentationTests: XCTestCase {
         store.session.tracks.append(Track(name: "Second", color: 1))
         for size in TrackSize.allCases {
             store.trackSize = size
-            XCTAssertEqual(store.trackForVerticalMove(from: store.session.tracks[0].id, delta: size.height), store.session.tracks[1].id)
-            XCTAssertEqual(store.trackForVerticalMove(from: store.session.tracks[1].id, delta: -size.height), store.session.tracks[0].id)
+            XCTAssertEqual(
+                store.trackForVerticalMove(from: store.session.tracks[0].id, delta: size.height),
+                store.session.tracks[1].id)
+            XCTAssertEqual(
+                store.trackForVerticalMove(from: store.session.tracks[1].id, delta: -size.height),
+                store.session.tracks[0].id)
             let lane = AudioLaneGeometry(height: size.height)
             XCTAssertEqual(lane.bottom, size.height - 8)
             XCTAssertLessThan(lane.center + lane.amplitude, lane.bottom)
@@ -79,7 +100,8 @@ final class WorkspacePresentationTests: XCTestCase {
         store.requestVocalEnhancement()
         let request = try XCTUnwrap(store.vocalEnhancementRequest)
         XCTAssertEqual(request.trackName, "Lead vocal")
-        XCTAssertEqual(request.target, .realtime(trackID: store.session.tracks[0].id, effectID: id, kind: .vocalEnhancer))
+        XCTAssertEqual(
+            request.target, .realtime(trackID: store.session.tracks[0].id, effectID: id, kind: .vocalEnhancer))
         XCTAssertEqual(store.session.tracks[0].realtimeEffects.count, 1)
         store.selectedTrack = Session.masterTrackID
         XCTAssertFalse(request.target.matches(store), "A stale sheet must not edit a different target")
@@ -121,7 +143,8 @@ final class WorkspacePresentationTests: XCTestCase {
         remote.send(.saveProject(name: store.session.name), expectedRevision: 0)
         await settle()
         XCTAssertEqual(remote.projectSaveStatus, .saved)
-        var track = store.session.tracks[0]; track.gain = 0.25
+        var track = store.session.tracks[0]
+        track.gain = 0.25
         remote.receive(.delta(.init(revision: 1, tracks: [track], trackRevisions: [track.id: 1])))
         XCTAssertEqual(remote.projectSaveStatus, .modified)
         remote.disconnect()
@@ -133,10 +156,13 @@ final class WorkspacePresentationTests: XCTestCase {
         defer { remote.disconnect() }
         remote.send(.saveProject(name: store.session.name), expectedRevision: 0)
         await settle()
-        XCTAssertNotNil(held); XCTAssertNotNil(remote.activeWork)
-        var track = store.session.tracks[0]; track.name = "A newer edit"
+        XCTAssertNotNil(held)
+        XCTAssertNotNil(remote.activeWork)
+        var track = store.session.tracks[0]
+        track.name = "A newer edit"
         remote.receive(.delta(.init(revision: 1, tracks: [track], trackRevisions: [track.id: 1])))
-        held?.resume(returning: .init(requestID: UUID(), revision: 1)); held = nil
+        held?.resume(returning: .init(requestID: UUID(), revision: 1))
+        held = nil
         await settle()
         XCTAssertEqual(remote.projectSaveStatus, .modified)
         XCTAssertNil(remote.activeWork)
@@ -145,21 +171,28 @@ final class WorkspacePresentationTests: XCTestCase {
         var processingRequests = 0
         let (store, remote) = try fixture { command, _, _, _ in
             if case .editor(let intent) = command, intent.operation == "sources.status" {
-                return .init(requestID: UUID(), revision: 0, payload: Data(#"{"available":true,"models":["htdemucs_ft"],"message":"Ready"}"#.utf8))
+                return .init(
+                    requestID: UUID(), revision: 0,
+                    payload: Data(#"{"available":true,"models":["htdemucs_ft"],"message":"Ready"}"#.utf8))
             }
             if case .editor(let intent) = command, intent.operation == "effects.apply" {
                 processingRequests += 1
-                return .init(requestID: UUID(), status: .rejected, revision: 0, message: "The source model is unavailable. Check installation and retry.")
+                return .init(
+                    requestID: UUID(), status: .rejected, revision: 0,
+                    message: "The source model is unavailable. Check installation and retry.")
             }
             return .init(requestID: UUID(), revision: 0)
         }
         defer { remote.disconnect() }
         store.requestSourceSeparation(trackID: store.selectedTrack, wholeTrack: true)
         let request = try XCTUnwrap(store.sourceSeparationRequest)
-        request.target = .bass; request.operation = .remove
-        request.checkRuntime(); await settle()
+        request.target = .bass
+        request.operation = .remove
+        request.checkRuntime()
+        await settle()
         XCTAssertTrue(request.canApply)
-        request.run(apply: true); await settle()
+        request.run(apply: true)
+        await settle()
         XCTAssertEqual(processingRequests, 1)
         XCTAssertEqual(store.activity.unreadFailures, 1, "A failure and its recovery action are one notification")
         store.sourceSeparationRequest = nil
@@ -169,9 +202,11 @@ final class WorkspacePresentationTests: XCTestCase {
         XCTAssertEqual(store.sourceSeparationRequest?.target, .bass)
         XCTAssertEqual(store.sourceSeparationRequest?.operation, .remove)
         XCTAssertEqual(processingRequests, 1, "Recovery must reopen choices, not replay an authored operation")
-        var track = store.session.tracks[0]; track.name = "Changed source"
+        var track = store.session.tracks[0]
+        track.name = "Changed source"
         remote.receive(.delta(.init(revision: 1, tracks: [track], trackRevisions: [track.id: 1])))
-        request.run(apply: true); await settle()
+        request.run(apply: true)
+        await settle()
         XCTAssertEqual(processingRequests, 1, "A recovered workspace must retain its original source fence")
     }
 }

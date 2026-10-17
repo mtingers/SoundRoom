@@ -17,19 +17,27 @@ final class EffectTransitionStage {
         excitation = LiveRamp(from: 1, to: 0)
         remainingFrames = LiveRamp.frameCount + min(Int(sessionRate * 30), processor.effect.tailFrames)
     }
-    func process(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, position: Int,
-                 originalLeft: UnsafeMutablePointer<Float>, originalRight: UnsafeMutablePointer<Float>, gains: UnsafeMutablePointer<Float>) {
-        guard retiring else { processor.process(left: left, right: right, count: count, position: position); return }
+    func process(
+        left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, position: Int,
+        originalLeft: UnsafeMutablePointer<Float>, originalRight: UnsafeMutablePointer<Float>,
+        gains: UnsafeMutablePointer<Float>
+    ) {
+        guard retiring else {
+            processor.process(left: left, right: right, count: count, position: position)
+            return
+        }
         let active = min(count, remainingFrames)
         guard active > 0 else { return }
         for i in 0..<active {
-            originalLeft[i] = left[i]; originalRight[i] = right[i]
+            originalLeft[i] = left[i]
+            originalRight[i] = right[i]
             if excitation != nil {
                 excitationGain = excitation!.next()
                 if excitation!.completed { excitation = nil }
             }
             gains[i] = excitationGain
-            left[i] *= excitationGain; right[i] *= excitationGain
+            left[i] *= excitationGain
+            right[i] *= excitationGain
         }
         processor.process(left: left, right: right, count: active, position: position)
         for i in 0..<active {

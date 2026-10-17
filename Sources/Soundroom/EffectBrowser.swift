@@ -1,5 +1,5 @@
-import SwiftUI
 import SoundroomCore
+import SwiftUI
 
 enum EffectSymbol {
     static func of(_ rawValue: String) -> String {
@@ -33,7 +33,11 @@ enum EffectSymbol {
 }
 
 enum EffectFamily: String, CaseIterable, Identifiable {
-    case level = "Level", tone = "Tone", space = "Space", pitch = "Pitch", utility = "Utility"
+    case level = "Level"
+    case tone = "Tone"
+    case space = "Space"
+    case pitch = "Pitch"
+    case utility = "Utility"
     var id: String { rawValue }
     var icon: String {
         switch self {
@@ -56,7 +60,9 @@ enum EffectFamily: String, CaseIterable, Identifiable {
     static func of(_ rawValue: String) -> Self {
         switch rawValue {
         case "normalize", "gain", "fadeIn", "fadeOut", "compressor", "gate", "limiter": return .level
-        case "lowPass", "highPass", "equalizer", "warmth", "resonance", "vocalEnhancer", "sourceIsolator", "soundPutty", "guitarRig": return .tone
+        case "lowPass", "highPass", "equalizer", "warmth", "resonance", "vocalEnhancer", "sourceIsolator", "soundPutty",
+            "guitarRig":
+            return .tone
         case "echo", "room", "chorus": return .space
         case "pitchCorrection": return .pitch
         default: return .utility
@@ -80,8 +86,9 @@ struct EffectBrowser: View {
     @Environment(\.dismiss) private var dismiss
     private var matches: [Entry] {
         entries.filter { entry in
-            (family == nil || entry.family == family) &&
-                (search.isEmpty || entry.name.localizedCaseInsensitiveContains(search) || entry.family.rawValue.localizedCaseInsensitiveContains(search))
+            (family == nil || entry.family == family)
+                && (search.isEmpty || entry.name.localizedCaseInsensitiveContains(search)
+                    || entry.family.rawValue.localizedCaseInsensitiveContains(search))
         }
     }
     var body: some View {
@@ -91,7 +98,11 @@ struct EffectBrowser: View {
                 TextField("Search effects", text: $search).textFieldStyle(.plain).focused($searchFocused)
                     .onSubmit { if let entry = matches.first { choose(entry) } }
                 if !search.isEmpty {
-                    Button { search = "" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain)
+                    Button {
+                        search = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                    }.buttonStyle(.plain)
                         .accessibilityLabel("Clear effect search")
                 }
             }.padding(9).background(Theme.background, in: RoundedRectangle(cornerRadius: 6))
@@ -104,9 +115,12 @@ struct EffectBrowser: View {
             ScrollView {
                 LazyVStack(spacing: 3) {
                     ForEach(matches) { entry in
-                        Button { choose(entry) } label: {
+                        Button {
+                            choose(entry)
+                        } label: {
                             HStack(spacing: 10) {
-                                Image(systemName: EffectSymbol.of(entry.id)).foregroundStyle(entry.family.color).frame(width: 22, height: 26)
+                                Image(systemName: EffectSymbol.of(entry.id)).foregroundStyle(entry.family.color).frame(
+                                    width: 22, height: 26)
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(entry.name).fontWeight(.medium)
                                     if let effect = BuiltInEffect(rawValue: entry.id) {
@@ -116,7 +130,9 @@ struct EffectBrowser: View {
                                 }.frame(maxWidth: .infinity, alignment: .leading)
                                 if entry.id == selected { Image(systemName: "checkmark").foregroundStyle(Theme.accent) }
                             }.padding(.horizontal, 9).padding(.vertical, 9).contentShape(Rectangle())
-                                .background(entry.id == selected ? Theme.accent.opacity(0.09) : Color.clear, in: RoundedRectangle(cornerRadius: 5))
+                                .background(
+                                    entry.id == selected ? Theme.accent.opacity(0.09) : Color.clear,
+                                    in: RoundedRectangle(cornerRadius: 5))
                         }.buttonStyle(.plain).accessibilityAddTraits(entry.id == selected ? .isSelected : [])
                     }
                     if matches.isEmpty { Text("No effects found").foregroundStyle(Theme.secondary).padding(20) }
@@ -126,7 +142,10 @@ struct EffectBrowser: View {
             .foregroundStyle(Theme.ink).background(Theme.paper).preferredColorScheme(.dark)
             .onAppear { searchFocused = true }.onExitCommand { dismiss() }
     }
-    private func choose(_ entry: Entry) { onSelect(entry.id); dismiss() }
+    private func choose(_ entry: Entry) {
+        onSelect(entry.id)
+        dismiss()
+    }
 }
 
 struct EffectIdentity: View {
@@ -134,7 +153,8 @@ struct EffectIdentity: View {
     let rawValue: String
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: EffectSymbol.of(rawValue)).foregroundStyle(EffectFamily.of(rawValue).color).frame(width: 18)
+            Image(systemName: EffectSymbol.of(rawValue)).foregroundStyle(EffectFamily.of(rawValue).color).frame(
+                width: 18)
             Text(name).fontWeight(.semibold)
         }.font(.system(size: 12))
     }

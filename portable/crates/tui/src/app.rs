@@ -2671,7 +2671,11 @@ impl App {
                     stereo,
                 }
             }
-            "save" => RemoteCommand::SaveProject { name: arg(1)?, replace_existing: None, title: None },
+            "save" => RemoteCommand::SaveProject {
+                name: arg(1)?,
+                replace_existing: None,
+                title: None,
+            },
             "projects" => RemoteCommand::ListProjects,
             "open" => {
                 let raw = arg(1)?;

@@ -229,8 +229,12 @@ fn delayed_voice_released_before_onset_sounds_then_finishes() {
     let mut voice = Voice::new(60, 0.8, &p, 8000., 0.).with_delay(0.05);
     voice.note_off();
     assert!(!voice.is_finished());
-    for _ in 0..400 { assert_eq!(voice.render_next(), 0.); }
-    let peak = (0..4000).map(|_| voice.render_next().abs()).fold(0_f32, f32::max);
+    for _ in 0..400 {
+        assert_eq!(voice.render_next(), 0.);
+    }
+    let peak = (0..4000)
+        .map(|_| voice.render_next().abs())
+        .fold(0_f32, f32::max);
     assert!(peak > 0.02);
     assert!(voice.is_finished());
 }
@@ -267,5 +271,8 @@ fn generated_instruments_sound_every_string_of_overlapping_strums() {
     };
     let chord = [40, 47, 52, 55, 59, 64];
     let (eight, twelve) = (strum(&chord, 8), strum(&chord, 12));
-    assert!(twelve > eight * 1.2, "later strings were dropped: {eight} vs {twelve}");
+    assert!(
+        twelve > eight * 1.2,
+        "later strings were dropped: {eight} vs {twelve}"
+    );
 }

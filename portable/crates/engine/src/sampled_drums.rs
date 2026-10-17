@@ -100,16 +100,26 @@ fn load(root: &Path) -> Option<Library> {
         let voice = parse_voice(value["voice"].as_str()?)?;
         let articulation = parse_articulation(value["articulation"].as_str()?)?;
         let file = value["file"].as_str()?.to_string();
-        let power = value["power"].as_f64().filter(|p| p.is_finite() && *p > 0.)?;
+        let power = value["power"]
+            .as_f64()
+            .filter(|p| p.is_finite() && *p > 0.)?;
         // Recorded stems are stored at half scale; exported kits say so.
-        let gain = value["gain"].as_f64().filter(|g| g.is_finite() && *g > 0. && *g < 1e4).unwrap_or(2.) as f32;
+        let gain = value["gain"]
+            .as_f64()
+            .filter(|g| g.is_finite() && *g > 0. && *g < 1e4)
+            .unwrap_or(2.) as f32;
         // Hit files stay inside the kit directory.
         if file.contains("..") || file.starts_with('/') {
             return None;
         }
-        hits.entry((voice, articulation))
-            .or_default()
-            .push(Hit { file, power, gain, velocity: value["velocity"].as_f64().filter(|v| (0. ..=1.).contains(v)) });
+        hits.entry((voice, articulation)).or_default().push(Hit {
+            file,
+            power,
+            gain,
+            velocity: value["velocity"]
+                .as_f64()
+                .filter(|v| (0. ..=1.).contains(v)),
+        });
     }
     for list in hits.values_mut() {
         list.sort_by(|a, b| a.power.total_cmp(&b.power));
@@ -146,7 +156,9 @@ fn custom_library(id: &str) -> Option<Arc<Library>> {
     if let Some(found) = map.lock().ok().and_then(|m| m.get(id).cloned()) {
         return found;
     }
-    let library = custom_root().and_then(|root| load(&root.join(id))).map(Arc::new);
+    let library = custom_root()
+        .and_then(|root| load(&root.join(id)))
+        .map(Arc::new);
     if let Ok(mut m) = map.lock() {
         m.insert(id.to_owned(), library.clone());
     }
@@ -186,8 +198,13 @@ impl Library {
         let mut reader = WaveReader::open(&self.root.join(file))?;
         let info = reader.info.clone();
         // 6 channels: close/overhead/room stems; 2: an exported stereo kit.
-        if !matches!(info.channels, 2 | 6) || info.sample_rate != RATE as u32 || info.frames > 20 * RATE as u64 {
-            return Err(Error::Invalid("Recorded drum hit has an unexpected format".into()));
+        if !matches!(info.channels, 2 | 6)
+            || info.sample_rate != RATE as u32
+            || info.frames > 20 * RATE as u64
+        {
+            return Err(Error::Invalid(
+                "Recorded drum hit has an unexpected format".into(),
+            ));
         }
         let frames = info.frames as usize;
         let mut stems = vec![vec![0f32; frames]; info.channels as usize];
@@ -212,7 +229,13 @@ impl Library {
     }
     /// The recorded layer nearest the requested dynamic, varied by `robin`
     /// among its neighbours, plus the gain that bridges the remaining gap.
-    fn choose(&self, voice: Voice, articulation: Articulation, velocity: f64, robin: i32) -> Option<(&Hit, f32)> {
+    fn choose(
+        &self,
+        voice: Voice,
+        articulation: Articulation,
+        velocity: f64,
+        robin: i32,
+    ) -> Option<(&Hit, f32)> {
         let list = self
             .hits
             .get(&(voice, articulation))
@@ -224,7 +247,11 @@ impl Library {
         // Velocity is linear in log power (i.e. in decibels).
         let target = low + (high - low) * velocity.clamp(0., 1.);
         let mut order: Vec<&Hit> = list.iter().collect();
-        order.sort_by(|a, b| (a.power.ln() - target).abs().total_cmp(&(b.power.ln() - target).abs()));
+        order.sort_by(|a, b| {
+            (a.power.ln() - target)
+                .abs()
+                .total_cmp(&(b.power.ln() - target).abs())
+        });
         let neighbours = order.len().min(3);
         let hit = order[robin.rem_euclid(neighbours as i32) as usize];
         let gain = ((target - hit.power.ln()) / 2.).exp().clamp(0.6, 1.6) as f32;
@@ -240,18 +267,36 @@ impl Library {
         layers.sort_by(f64::total_cmp);
         layers.dedup();
         let mean_ln = |v: f64| {
-            let hits: Vec<f64> = list.iter().filter(|h| h.velocity == Some(v)).map(|h| h.power.ln()).collect();
+            let hits: Vec<f64> = list
+                .iter()
+                .filter(|h| h.velocity == Some(v))
+                .map(|h| h.power.ln())
+                .collect();
             hits.iter().sum::<f64>() / hits.len().max(1) as f64
         };
         let v = velocity.clamp(0., 1.);
-        let nearest = *layers.iter().min_by(|a, b| (*a - v).abs().total_cmp(&(*b - v).abs()))?;
-        let takes: Vec<&Hit> = list.iter().filter(|h| h.velocity == Some(nearest)).collect();
+        let nearest = *layers
+            .iter()
+            .min_by(|a, b| (*a - v).abs().total_cmp(&(*b - v).abs()))?;
+        let takes: Vec<&Hit> = list
+            .iter()
+            .filter(|h| h.velocity == Some(nearest))
+            .collect();
         let hit = takes[robin.rem_euclid(takes.len() as i32) as usize];
         // Target log power on the line through the bracketing layers
         // (extrapolated below the softest layer).
-        let upper = layers.iter().position(|l| *l >= v).unwrap_or(layers.len() - 1).max(1).min(layers.len() - 1);
+        let upper = layers
+            .iter()
+            .position(|l| *l >= v)
+            .unwrap_or(layers.len() - 1)
+            .max(1)
+            .min(layers.len() - 1);
         let (a, b) = (layers[upper.saturating_sub(1)], layers[upper]);
-        let target = if b > a { mean_ln(a) + (mean_ln(b) - mean_ln(a)) * (v - a) / (b - a) } else { mean_ln(a) };
+        let target = if b > a {
+            mean_ln(a) + (mean_ln(b) - mean_ln(a)) * (v - a) / (b - a)
+        } else {
+            mean_ln(a)
+        };
         let gain = ((target - mean_ln(nearest)) / 2.).exp().clamp(0.05, 2.) as f32;
         Some((hit, gain))
     }
@@ -270,7 +315,16 @@ pub fn render(
     let (Some(mix), Some(library)) = (kit.stem_mix(), library()) else {
         return Ok(None);
     };
-    render_library(library, mix, voice, velocity, robin, articulation, damping, cancelled)
+    render_library(
+        library,
+        mix,
+        voice,
+        velocity,
+        robin,
+        articulation,
+        damping,
+        cancelled,
+    )
 }
 /// A hit from an exported kit-designer kit, or `None` if it is not installed.
 pub fn render_custom(
@@ -282,9 +336,26 @@ pub fn render_custom(
     damping: f64,
     cancelled: &AtomicBool,
 ) -> Result<Option<[Vec<f32>; 2]>> {
-    let Some(library) = custom_library(id) else { return Ok(None) };
-    let mix = StemMix { close: 1., overhead: 0., room: 0., width: 1., vintage: false };
-    render_library(&library, mix, voice, velocity, robin, articulation, damping, cancelled)
+    let Some(library) = custom_library(id) else {
+        return Ok(None);
+    };
+    let mix = StemMix {
+        close: 1.,
+        overhead: 0.,
+        room: 0.,
+        width: 1.,
+        vintage: false,
+    };
+    render_library(
+        &library,
+        mix,
+        voice,
+        velocity,
+        robin,
+        articulation,
+        damping,
+        cancelled,
+    )
 }
 #[allow(clippy::too_many_arguments)] // render's inputs plus the library and mix
 fn render_library(
@@ -303,7 +374,11 @@ fn render_library(
     if cancelled.load(Ordering::Relaxed) {
         return Err(Error::Invalid("Drum render cancelled".into()));
     }
-    let velocity = if velocity.is_finite() { velocity.clamp(0., 1.) } else { 0.8 };
+    let velocity = if velocity.is_finite() {
+        velocity.clamp(0., 1.)
+    } else {
+        0.8
+    };
     // A rimshot is the head and rim struck together: a full snare hit
     // layered with the rim click.
     let layers: Vec<(Articulation, f64, f32)> = match (voice, articulation) {
@@ -350,7 +425,11 @@ fn render_library(
         return Ok(None);
     }
     // Damping above the default shortens the ring with a gentle extra decay.
-    let damping = if damping.is_finite() { damping.clamp(0., 1.) } else { 0.5 };
+    let damping = if damping.is_finite() {
+        damping.clamp(0., 1.)
+    } else {
+        0.5
+    };
     if damping > 0.5 {
         let rate = (damping - 0.5) * 2. * 9. / RATE;
         for channel in &mut out {

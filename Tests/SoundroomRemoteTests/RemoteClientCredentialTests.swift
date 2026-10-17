@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import SoundroomRemote
 
 final class RemoteClientCredentialTests: XCTestCase {
@@ -13,12 +14,16 @@ final class RemoteClientCredentialTests: XCTestCase {
         try RemotePrivateFile.write(JSONEncoder().encode(web), to: file)
         let loaded = try RemoteClientCredential.load(from: file)
         XCTAssertEqual(loaded, .web(web))
-        XCTAssertEqual(loaded.credentialID, native.clientID); XCTAssertEqual(loaded.role, .editor)
+        XCTAssertEqual(loaded.credentialID, native.clientID)
+        XCTAssertEqual(loaded.role, .editor)
         XCTAssertThrowsError(try loaded.requireNativeCredential())
         XCTAssertEqual(try RemoteClientCredential.native(native).requireNativeCredential(), native)
         XCTAssertThrowsError(try loaded.connectionName(nil, nativeDefault: "Soundroom TUI"))
-        XCTAssertEqual(try loaded.connectionName("Approved portable TUI", nativeDefault: "ignored"), "Approved portable TUI")
-        XCTAssertEqual(try RemoteClientCredential.native(native).connectionName(nil, nativeDefault: "Soundroom GUI"), "Soundroom GUI")
+        XCTAssertEqual(
+            try loaded.connectionName("Approved portable TUI", nativeDefault: "ignored"), "Approved portable TUI")
+        XCTAssertEqual(
+            try RemoteClientCredential.native(native).connectionName(nil, nativeDefault: "Soundroom GUI"),
+            "Soundroom GUI")
     }
     func testPrivateFileAndStrictGrammarValidation() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -34,24 +39,31 @@ final class RemoteClientCredentialTests: XCTestCase {
         try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: file)
         XCTAssertThrowsError(try RemoteClientCredential.load(from: alias))
         let original = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
-        for mutation in ["version": 99, "secret": "unexpected", "clientSecret": Data([1]).base64EncodedString(), "role": "admin"] as [String: Any] {
-            var invalid = original; invalid[mutation.key] = mutation.value
+        for mutation in [
+            "version": 99, "secret": "unexpected", "clientSecret": Data([1]).base64EncodedString(), "role": "admin",
+        ] as [String: Any] {
+            var invalid = original
+            invalid[mutation.key] = mutation.value
             try RemotePrivateFile.write(JSONSerialization.data(withJSONObject: invalid), to: file)
             XCTAssertThrowsError(try RemoteClientCredential.load(from: file), mutation.key)
         }
     }
     func testAuthenticationHasIdenticalNativeAndPortableScopeAndUppercaseUUIDs() throws {
-        let native = RemoteCredential(serverID: UUID(uuidString: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")!,
-            clientID: UUID(uuidString: "11111111-2222-3333-4444-555555555555")!, secret: Data(repeating: 255, count: 32),
+        let native = RemoteCredential(
+            serverID: UUID(uuidString: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")!,
+            clientID: UUID(uuidString: "11111111-2222-3333-4444-555555555555")!,
+            secret: Data(repeating: 255, count: 32),
             clientSecret: Data(0..<32), role: .editor)
-        let peer = RemotePeer(id: UUID(uuidString: "abcdefab-cdef-abcd-efab-cdefabcdefab")!, name: "Studio TUI", role: .operator)
+        let peer = RemotePeer(
+            id: UUID(uuidString: "abcdefab-cdef-abcd-efab-cdefabcdefab")!, name: "Studio TUI", role: .operator)
         let challenge = Data(repeating: 7, count: 32)
         let web = RemoteClientCredential.web(RemoteBrowserCredential(native))
         let proof = web.proof(for: peer, challenge: challenge)
         XCTAssertEqual(proof, "ZKS+wrNJQ8m/9nYWhpEUXvRew0+0T+9gEd3nIr2DZ64=", "Canonical cross-language HMAC vector")
         XCTAssertEqual(proof, native.proof(for: peer, challenge: challenge))
         XCTAssertTrue(native.authenticates(peer: peer, proof: proof, challenge: challenge))
-        var other = peer; other.name = "Other TUI"
+        var other = peer
+        other.name = "Other TUI"
         XCTAssertFalse(native.authenticates(peer: other, proof: proof, challenge: challenge))
         XCTAssertEqual(web.proof(for: peer, challenge: Data([7])), "")
     }
@@ -67,7 +79,9 @@ final class RemoteClientCredentialTests: XCTestCase {
         let name = String(repeating: "n", count: 100)
         let client = RemoteClient(credential: .web(web), name: name)
         XCTAssertEqual(client.name, name)
-        do { try await client.connect(host: "localhost"); XCTFail("v3-only credential must fail before opening a socket") }
-        catch { XCTAssertEqual(client.state, .disconnected) }
+        do {
+            try await client.connect(host: "localhost")
+            XCTFail("v3-only credential must fail before opening a socket")
+        } catch { XCTAssertEqual(client.state, .disconnected) }
     }
 }

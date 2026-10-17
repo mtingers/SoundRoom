@@ -1016,7 +1016,8 @@ fn checked_loop_live_update_splices_on_unwrapped_clock_and_rejects_stale_baselin
                 1. - 0.7 * fraction
             };
             // The output dips through a short fade at each loop wrap.
-            let gain = gain * soundroom_engine::realtime::loop_wrap_gain(range, range.start + 512 + i as u64);
+            let gain = gain
+                * soundroom_engine::realtime::loop_wrap_gain(range, range.start + 512 + i as u64);
             assert!((left[i] - rl[i] * gain).abs() < 0.000005, "left {i}");
             assert!((right[i] - rr[i] * gain).abs() < 0.000005, "right {i}");
         }
@@ -1381,7 +1382,10 @@ fn live_patch_edits_parameters_in_place_without_rebuilding() {
         assert_eq!(after[c][480..], target[c][480..]);
         for i in 0..480 {
             let gain = 0.82 - 0.32 * (i + 1) as f32 / 480.;
-            assert!((after[c][i] - target[c][i] * gain / 0.5).abs() < 1e-5, "frame {i}");
+            assert!(
+                (after[c][i] - target[c][i] * gain / 0.5).abs() < 1e-5,
+                "frame {i}"
+            );
         }
     }
     assert!(after[0].iter().any(|v| v.abs() > 0.001));
@@ -1434,14 +1438,23 @@ fn live_mute_and_solo_glide_without_rebuilding() {
         let level = 1. - (i + 1) as f32 / 480.;
         assert!((after[0][i] - open[0][i] * level).abs() < 1e-5, "fade {i}");
     }
-    assert!(after[0][480..].iter().chain(&after[1][480..]).all(|v| *v == 0.));
+    assert!(after[0][480..]
+        .iter()
+        .chain(&after[1][480..])
+        .all(|v| *v == 0.));
     assert!(open[0][480..].iter().any(|v| v.abs() > 1e-3));
     // Unmuting glides back in.
     let mut patch = LivePatch::between(&muted, &base.session).unwrap();
     assert!(running.apply_live(&mut patch));
     let back = render_no_alloc(&mut running, 1024, 128);
     let open = render_no_alloc(&mut reference, 1024, 128);
-    assert!((back[0][479] - open[0][479]).abs() < 1e-5 && back[0][..479].iter().zip(&open[0]).all(|(a, b)| a.abs() <= b.abs() + 1e-6));
+    assert!(
+        (back[0][479] - open[0][479]).abs() < 1e-5
+            && back[0][..479]
+                .iter()
+                .zip(&open[0])
+                .all(|(a, b)| a.abs() <= b.abs() + 1e-6)
+    );
     // Solo is live too.
     let mut soloed = base.session.clone();
     soloed.tracks[0].solo = true;
@@ -1461,9 +1474,14 @@ fn history_and_alternate_takes_stay_in_custody_without_loading_their_pcm_for_pla
         let id = format!("30000000-0000-4000-8000-{index:012X}");
         project.media.insert(id.clone(), media.clone());
         if index < 5 {
-            project.session.tracks[0].clips[0].previous_states.push(ClipHistory {
-                asset_id: id.clone(), offset: 0, length: 100, extra: Extra::new(),
-            });
+            project.session.tracks[0].clips[0]
+                .previous_states
+                .push(ClipHistory {
+                    asset_id: id.clone(),
+                    offset: 0,
+                    length: 100,
+                    extra: Extra::new(),
+                });
         }
         let mut take = project.session.tracks[0].clips[0].clone();
         take.id = format!("40000000-0000-4000-8000-{index:012X}");
@@ -1471,27 +1489,40 @@ fn history_and_alternate_takes_stay_in_custody_without_loading_their_pcm_for_pla
         take.previous_states.clear();
         alternatives.push(take);
     }
-    project.session.tracks[0].recording_takes.push(Take { clips: alternatives, extra: Extra::new() });
+    project.session.tracks[0].recording_takes.push(Take {
+        clips: alternatives,
+        extra: Extra::new(),
+    });
     let saved = project.session.clone();
     assert_eq!(project.session.asset_ids().len(), 257);
     assert_eq!(project.session.playback_asset_ids().len(), 1);
-    let mut resident = PreparedGraph::prepare_resident(&project, pcm_bytes, &AtomicBool::new(false)).unwrap();
+    let mut resident =
+        PreparedGraph::prepare_resident(&project, pcm_bytes, &AtomicBool::new(false)).unwrap();
     assert_eq!(resident.source_storage_bytes(), pcm_bytes);
-    let (mut paged, mut loader) = PreparedGraph::prepare_paged(&project, 512 * 1024, &AtomicBool::new(false), None).unwrap();
+    let (mut paged, mut loader) =
+        PreparedGraph::prepare_paged(&project, 512 * 1024, &AtomicBool::new(false), None).unwrap();
     let reference = render_no_alloc(&mut expected.fork(), 8192, 128);
     assert_eq!(render_no_alloc(&mut resident, 8192, 128), reference);
-    loader.prepare_graph(&paged, 32768, &AtomicBool::new(false)).unwrap();
+    loader
+        .prepare_graph(&paged, 32768, &AtomicBool::new(false))
+        .unwrap();
     assert_eq!(render_no_alloc(&mut paged, 8192, 128), reference);
     REQUESTED_BYTES.with(|v| v.set(0));
     TRACK.with(|v| v.set(true));
     let offline = soundroom_engine::render::Renderer::new(&project);
     TRACK.with(|v| v.set(false));
     offline.unwrap();
-    assert!(REQUESTED_BYTES.with(Cell::get) < 4 * 1024 * 1024,
-        "Offline preparation retained decoder buffers for historical sources");
-    assert_eq!(project.session, saved, "Playback projection cannot discard undo or take metadata");
+    assert!(
+        REQUESTED_BYTES.with(Cell::get) < 4 * 1024 * 1024,
+        "Offline preparation retained decoder buffers for historical sources"
+    );
+    assert_eq!(
+        project.session, saved,
+        "Playback projection cannot discard undo or take metadata"
+    );
     // Promoting a historical source to a current clip prepares that source.
     project.session.tracks[0].clips[0].asset_id = "30000000-0000-4000-8000-000000000000".into();
-    let promoted = PreparedGraph::prepare_resident(&project, pcm_bytes, &AtomicBool::new(false)).unwrap();
+    let promoted =
+        PreparedGraph::prepare_resident(&project, pcm_bytes, &AtomicBool::new(false)).unwrap();
     assert_eq!(promoted.source_storage_bytes(), pcm_bytes);
 }

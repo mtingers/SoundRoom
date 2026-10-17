@@ -7,8 +7,16 @@ struct RemoteWebSnapshotStream {
     private let lease: RemoteSnapshotLease?
     private let overlays: [Data]
     private var index = -1
-    init(snapshot: RemoteSnapshot) throws { pages = try .init(snapshot: snapshot); lease = nil; overlays = [] }
-    init(lease: RemoteSnapshotLease) { self.lease = lease; pages = lease.pages; overlays = lease.overlays }
+    init(snapshot: RemoteSnapshot) throws {
+        pages = try .init(snapshot: snapshot)
+        lease = nil
+        overlays = []
+    }
+    init(lease: RemoteSnapshotLease) {
+        self.lease = lease
+        pages = lease.pages
+        overlays = lease.overlays
+    }
     var retainedBytes: Int { pages.bytes.count + overlays.reduce(0) { $0 + $1.count } }
     mutating func next() throws -> Data? {
         if index >= 0 && index < overlays.count {
@@ -17,10 +25,15 @@ struct RemoteWebSnapshotStream {
         }
         let pageIndex = index - overlays.count
         let page: RemoteSnapshotPage
-        if index == -1 { page = pages.begin() }
-        else if pageIndex < pages.pageCount { page = try pages.page(at: pageIndex) }
-        else if pageIndex == pages.pageCount { page = pages.end() }
-        else { return nil }
+        if index == -1 {
+            page = pages.begin()
+        } else if pageIndex < pages.pageCount {
+            page = try pages.page(at: pageIndex)
+        } else if pageIndex == pages.pageCount {
+            page = pages.end()
+        } else {
+            return nil
+        }
         index += 1
         return try JSONEncoder().encode(page)
     }

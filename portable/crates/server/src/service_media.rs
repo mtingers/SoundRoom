@@ -58,9 +58,10 @@ impl Staged {
                     // A successful link retains the exact verified inode. A
                     // copy, replacement or modification must be checked again.
                     let reused = linked
-                        && (before.same_file(&source_before) || verified.0.get(&id).is_some_and(|value| {
-                            value.home == before && value.source == source_before
-                        }));
+                        && (before.same_file(&source_before)
+                            || verified.0.get(&id).is_some_and(|value| {
+                                value.home == before && value.source == source_before
+                            }));
                     if !reused
                         && (hash_file(&home)? != hash_file(&media.path)?
                             || stamp(&home)? != before
@@ -131,7 +132,8 @@ pub(super) fn rekey_conflicts(
         let home = root.join("Media").join(format!("{id}.wav"));
         if home.exists() {
             let (home_before, source_before) = (stamp(&home)?, stamp(&media.path)?);
-            let equal = home_before.same_file(&source_before) || hash_file(&home)? == hash_file(&media.path)?;
+            let equal = home_before.same_file(&source_before)
+                || hash_file(&home)? == hash_file(&media.path)?;
             if stamp(&home)? != home_before || stamp(&media.path)? != source_before {
                 return Err(protocol("Audio changed while checking project custody"));
             }
@@ -341,13 +343,16 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn linked_project_reopen_avoids_reading_the_entire_audio_twice() {
-        let root = std::env::temp_dir().join(format!("soundroom-linked-reopen-{}", new_id().unwrap()));
+        let root =
+            std::env::temp_dir().join(format!("soundroom-linked-reopen-{}", new_id().unwrap()));
         private_directory(&root).unwrap();
         private_directory(&root.join("Media")).unwrap();
         let source = root.join("source.wav");
         let frames = 4 * 1024 * 1024;
         let mut writer = WaveWriter::create(&source, frames).unwrap();
-        for _ in 0..frames / 8192 { writer.write(&[0.25; 8192], &[0.125; 8192]).unwrap(); }
+        for _ in 0..frames / 8192 {
+            writer.write(&[0.25; 8192], &[0.125; 8192]).unwrap();
+        }
         writer.finish().unwrap();
         let id = new_id().unwrap();
         let home = root.join("Media").join(format!("{id}.wav"));
@@ -358,12 +363,23 @@ mod tests {
         super::super::TEST_HASHED_BYTES.with(|count| count.set(0));
         let mut project = soundroom_engine::project::Project {
             session: Default::default(),
-            media: [(id, Media { info: WaveReader::open(&source).unwrap().info, path: source.clone() })].into_iter().collect(),
+            media: [(
+                id,
+                Media {
+                    info: WaveReader::open(&source).unwrap().info,
+                    path: source.clone(),
+                },
+            )]
+            .into_iter()
+            .collect(),
         };
         let start = std::time::Instant::now();
         let (renamed, verified) = rekey_conflicts(&root, &mut project).unwrap();
         assert_eq!(renamed, 0);
-        Staged::load_verified(&root, project.media, verified).unwrap().commit(&root).unwrap();
+        Staged::load_verified(&root, project.media, verified)
+            .unwrap()
+            .commit(&root)
+            .unwrap();
         let elapsed = start.elapsed();
         assert_eq!(super::super::TEST_HASHED_BYTES.with(|count| count.get()), 0);
         println!("Linked 32 MiB project verification: previous_two_hashes_ms={:.3} inode_verified_reopen_ms={:.3} previous_audio_bytes_read={} current_audio_bytes_read=0", baseline.as_secs_f64()*1000., elapsed.as_secs_f64()*1000., fs::metadata(&source).unwrap().len()*2);

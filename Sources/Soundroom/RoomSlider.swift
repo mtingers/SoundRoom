@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 /// A compact drawing over native slider tracking, focus and accessibility.
 struct RoomSlider: NSViewRepresentable {
@@ -9,8 +9,14 @@ struct RoomSlider: NSViewRepresentable {
     var onEditingChanged: (Bool) -> Void = { _ in }
     @Environment(\.isEnabled) private var enabled
 
-    init(value: Binding<Double>, in range: ClosedRange<Double>, label: String = "", onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
-        self._value = value; self.range = range; self.label = label; self.onEditingChanged = onEditingChanged
+    init(
+        value: Binding<Double>, in range: ClosedRange<Double>, label: String = "",
+        onEditingChanged: @escaping (Bool) -> Void = { _ in }
+    ) {
+        self._value = value
+        self.range = range
+        self.label = label
+        self.onEditingChanged = onEditingChanged
     }
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeNSView(context: Context) -> RoomNativeSlider {
@@ -31,20 +37,24 @@ struct RoomSlider: NSViewRepresentable {
     }
     func updateNSView(_ slider: RoomNativeSlider, context: Context) {
         context.coordinator.parent = self
-        slider.minValue = range.lowerBound; slider.maxValue = range.upperBound
+        slider.minValue = range.lowerBound
+        slider.maxValue = range.upperBound
         slider.doubleValue = value.isFinite ? min(range.upperBound, max(range.lowerBound, value)) : range.lowerBound
         slider.isEnabled = enabled
         slider.setAccessibilityLabel(label.isEmpty ? nil : label)
     }
     static func dismantleNSView(_ slider: RoomNativeSlider, coordinator: Coordinator) {
-        slider.finishTracking(); slider.onTrackingChanged = nil; slider.target = nil
+        slider.finishTracking()
+        slider.onTrackingChanged = nil
+        slider.target = nil
     }
     final class Coordinator: NSObject {
         var parent: RoomSlider
         init(_ parent: RoomSlider) { self.parent = parent }
         @objc func changed(_ slider: RoomNativeSlider) {
             // Native arrow keys and accessibility actions arrive outside mouse tracking.
-            let focusedWindow = !slider.trackingGesture && slider.window?.firstResponder === slider ? slider.window : nil
+            let focusedWindow =
+                !slider.trackingGesture && slider.window?.firstResponder === slider ? slider.window : nil
             if !slider.trackingGesture { parent.onEditingChanged(true) }
             parent.value = slider.doubleValue
             if !slider.trackingGesture { parent.onEditingChanged(false) }
@@ -90,11 +100,13 @@ final class RoomNativeSlider: NSSlider {
     }
     func beginTracking() {
         guard !trackingGesture else { return }
-        trackingGesture = true; onTrackingChanged?(true)
+        trackingGesture = true
+        onTrackingChanged?(true)
     }
     func finishTracking() {
         guard trackingGesture else { return }
-        trackingGesture = false; onTrackingChanged?(false)
+        trackingGesture = false
+        onTrackingChanged?(false)
     }
 }
 
@@ -106,19 +118,23 @@ final class RoomSliderCell: NSSliderCell {
         NSBezierPath(roundedRect: track, xRadius: 1.5, yRadius: 1.5).fill()
         let position = min(track.maxX, max(track.minX, knobRect(flipped: flipped).midX))
         let rtl = controlView?.userInterfaceLayoutDirection == .rightToLeft
-        let filled = NSRect(x: rtl ? position : track.minX, y: track.minY,
-                            width: rtl ? track.maxX - position : position - track.minX, height: track.height)
+        let filled = NSRect(
+            x: rtl ? position : track.minX, y: track.minY,
+            width: rtl ? track.maxX - position : position - track.minX, height: track.height)
         NSColor(Theme.accent).withAlphaComponent(isEnabled ? 1 : 0.35).setFill()
         NSBezierPath(roundedRect: filled, xRadius: 1.5, yRadius: 1.5).fill()
     }
     override func drawKnob(_ knobRect: NSRect) {
         // Do not override knobRect or hit-testing: the full native target remains.
         let diameter = Self.visualDiameter
-        let visual = NSRect(x: knobRect.midX - diameter / 2, y: knobRect.midY - diameter / 2,
-                            width: diameter, height: diameter)
+        let visual = NSRect(
+            x: knobRect.midX - diameter / 2, y: knobRect.midY - diameter / 2,
+            width: diameter, height: diameter)
         let path = NSBezierPath(ovalIn: visual)
         (isEnabled ? NSColor(white: 0.86, alpha: 1) : NSColor(white: 0.46, alpha: 1)).setFill()
         path.fill()
-        NSColor(white: 0.1, alpha: 0.45).setStroke(); path.lineWidth = 0.5; path.stroke()
+        NSColor(white: 0.1, alpha: 0.45).setStroke()
+        path.lineWidth = 0.5
+        path.stroke()
     }
 }

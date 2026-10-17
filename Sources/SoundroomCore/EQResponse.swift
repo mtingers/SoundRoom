@@ -7,7 +7,9 @@ public enum EQResponse {
         private let indices: [Int]
         private let output: Double
         public init(parameters: [String: Float]) {
-            let values = RealtimeEffectKind.equalizer.parameters.map { $0.clamped(parameters[$0.id] ?? $0.defaultValue) }
+            let values = RealtimeEffectKind.equalizer.parameters.map {
+                $0.clamped(parameters[$0.id] ?? $0.defaultValue)
+            }
             var filters = Array(repeating: EQSection(), count: 10)
             EqualizerDSP.configure(&filters, values: values)
             sections = filters
@@ -15,7 +17,8 @@ public enum EQResponse {
             if values[13] >= 0.5 { active.append(5) }
             if values[15] >= 0.5 { active.append(6) }
             active += [7, 8, 9]
-            indices = active; output = Double(values[5])
+            indices = active
+            output = Double(values[5])
         }
         public func decibels(at frequency: Double) -> Double {
             var result = output

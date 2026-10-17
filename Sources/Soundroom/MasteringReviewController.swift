@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 import SoundroomCore
 import SoundroomRemote
 
@@ -26,11 +26,17 @@ import SoundroomRemote
     private var generation = UUID()
     private var isOpen = true
     private var verificationTask: Task<Void, Never>?
-    init(owner: SessionStore, verify: @escaping Verifier = { $0.matches($1) }) { self.owner = owner; self.verify = verify }
+    init(owner: SessionStore, verify: @escaping Verifier = { $0.matches($1) }) {
+        self.owner = owner
+        self.verify = verify
+    }
     var ready: Bool {
         guard isOpen, let owner, let report, !report.isSilent, verified, !sourceChanged, !working,
-              !owner.busy, !owner.isRecording else { return false }
-        guard let remote = owner.remoteGUI, remote.connected, remote.client.credential.role != .viewer else { return false }
+            !owner.busy, !owner.isRecording
+        else { return false }
+        guard let remote = owner.remoteGUI, remote.connected, remote.client.credential.role != .viewer else {
+            return false
+        }
         return remote.client.capabilities?.supports(.editor(.init(operation: "master.applyProposal"))) != false
     }
     private func currentDocument() -> Session? {
@@ -40,29 +46,46 @@ import SoundroomRemote
     private func sourceIsCurrent(excludingMaster: Bool = false) -> Bool {
         guard let owner, let document = currentDocument(), document.tracks.map(\.id) == trackIDs else { return false }
         guard let remote = owner.remoteGUI, remote.connected, remote.connectionGeneration == epoch else { return false }
-        return versions.allSatisfy { id, version in excludingMaster && id == Session.masterTrackID || remote.trackRevisions[id] == version }
+        return versions.allSatisfy { id, version in
+            excludingMaster && id == Session.masterTrackID || remote.trackRevisions[id] == version
+        }
     }
     func synchronize() {
         guard report != nil else { return }
         guard sourceIsCurrent(), currentDocument()?.masteringAnalysis == report else {
             sourceChanged = true
-            if !working { message = "The mix or Master rack changed. Your private proposal is retained; reload the review or analyze again." }
+            if !working {
+                message =
+                    "The mix or Master rack changed. Your private proposal is retained; reload the review or analyze again."
+            }
             return
         }
     }
     func reload() {
         guard !working, !verifying, let owner, let document = currentDocument() else { return }
-        generation = UUID(); verificationTask?.cancel()
+        generation = UUID()
+        verificationTask?.cancel()
         isOpen = true
         let token = generation
-        report = document.masteringAnalysis; included = [:]; sourceChanged = false; verified = false
-        message = ""; trackIDs = document.tracks.map(\.id)
+        report = document.masteringAnalysis
+        included = [:]
+        sourceChanged = false
+        verified = false
+        message = ""
+        trackIDs = document.tracks.map(\.id)
         let currentIDs = Set(trackIDs).union([Session.masterTrackID])
-        versions = owner.remoteGUI?.trackRevisions.filter { currentIDs.contains($0.key) } ?? [:]; epoch = owner.remoteGUI?.connectionGeneration
+        versions = owner.remoteGUI?.trackRevisions.filter { currentIDs.contains($0.key) } ?? [:]
+        epoch = owner.remoteGUI?.connectionGeneration
         rebuild()
-        guard let report else { verifying = false; return }
+        guard let report else {
+            verifying = false
+            return
+        }
         if !currentIDs.allSatisfy({ versions[$0] != nil }) {
-            sourceChanged = true; verifying = false; message = "Refresh the server snapshot before using this review."; return
+            sourceChanged = true
+            verifying = false
+            message = "Refresh the server snapshot before using this review."
+            return
         }
         verifying = true
         let verify = self.verify
@@ -72,48 +95,80 @@ import SoundroomRemote
                 let matches = verify(report, document)
                 return !Task.isCancelled && matches
             }
-            let matches = await withTaskCancellationHandler(operation: { await worker.value }, onCancel: { worker.cancel() })
+            let matches = await withTaskCancellationHandler(
+                operation: { await worker.value }, onCancel: { worker.cancel() })
             guard let self, token == generation, !Task.isCancelled else { return }
-            verifying = false; verified = matches
+            verifying = false
+            verified = matches
             synchronize()
-            if !matches { sourceChanged = true; message = "The analysis belongs to an earlier mix. Analyze again; your private proposal is retained." }
+            if !matches {
+                sourceChanged = true
+                message = "The analysis belongs to an earlier mix. Analyze again; your private proposal is retained."
+            }
         }
     }
     func waitForSourceVerification() async { await verificationTask?.value }
     private func rebuild() {
-        guard let report else { proposed = []; return }
+        guard let report else {
+            proposed = []
+            return
+        }
         let aim = target.isFinite ? max(-24, min(-8, target)) : -14
         let amount = intensity.isFinite ? max(0, min(1, intensity)) : 0.65
         proposed = report.proposal(targetLUFS: Float(aim), intensity: Float(amount)).map { original in
-            var effect = original; if let enabled = included[effect.kind] { effect.enabled = enabled }; return effect
+            var effect = original
+            if let enabled = included[effect.kind] { effect.enabled = enabled }
+            return effect
         }
     }
     func setIncluded(_ index: Int, _ enabled: Bool) {
         guard isOpen, !working, proposed.indices.contains(index) else { return }
-        included[proposed[index].kind] = enabled; proposed[index].enabled = enabled
+        included[proposed[index].kind] = enabled
+        proposed[index].enabled = enabled
     }
     func analyze() {
         guard isOpen, let owner, !working, !verifying, !owner.busy, !owner.isRecording else { return }
-        guard owner.session.end > 0 else { message = "Add audio before analyzing the mix."; return }
-        generation = UUID(); verificationTask?.cancel(); verifying = false
-        let token = generation; working = true; message = "Analyzing mix…"
-
+        guard owner.session.end > 0 else {
+            message = "Add audio before analyzing the mix."
+            return
+        }
+        generation = UUID()
+        verificationTask?.cancel()
+        verifying = false
+        let token = generation
+        working = true
+        message = "Analyzing mix…"
 
         guard let remote = owner.remoteGUI, let document = remote.authoritativeSession,
-              remote.connected, remote.client.credential.role != .viewer else {
-            working = false; message = "Connect with edit access to analyze this mix."; return
+            remote.connected, remote.client.credential.role != .viewer
+        else {
+            working = false
+            message = "Connect with edit access to analyze this mix."
+            return
         }
-        let openingIDs = document.tracks.map(\.id), guardedIDs = Set(openingIDs).union([Session.masterTrackID])
-        let openingVersions = remote.trackRevisions.filter { guardedIDs.contains($0.key) }, openingEpoch = remote.connectionGeneration
+        let openingIDs = document.tracks.map(\.id)
+        let guardedIDs = Set(openingIDs).union([Session.masterTrackID])
+        let openingVersions = remote.trackRevisions.filter { guardedIDs.contains($0.key) }
+        let openingEpoch = remote.connectionGeneration
         let fence = RemoteGestureRevisionFence(versions: openingVersions)
-        remote.send(.editor(.init(operation: "master.analyze")), expecting: openingVersions, gesture: fence, expectedRevision: remote.revision) { [weak self, weak remote] reply in
+        remote.send(
+            .editor(.init(operation: "master.analyze")), expecting: openingVersions, gesture: fence,
+            expectedRevision: remote.revision
+        ) { [weak self, weak remote] reply in
             guard let self, token == generation else { return }
             working = false
-            guard reply.accepted, let remote else { message = reply.message; return }
+            guard reply.accepted, let remote else {
+                message = reply.message
+                return
+            }
             guard remote.connectionGeneration == openingEpoch, remote.revision == reply.revision,
-                  remote.authoritativeSession?.tracks.map(\.id) == openingIDs,
-                  openingVersions.allSatisfy({ remote.trackRevisions[$0.key] == $0.value }) else {
-                message = "The source changed after analysis. Your private proposal is retained; reload the current review."; sourceChanged = true; return
+                remote.authoritativeSession?.tracks.map(\.id) == openingIDs,
+                openingVersions.allSatisfy({ remote.trackRevisions[$0.key] == $0.value })
+            else {
+                message =
+                    "The source changed after analysis. Your private proposal is retained; reload the current review."
+                sourceChanged = true
+                return
             }
             reload()
         }
@@ -121,22 +176,42 @@ import SoundroomRemote
     func apply() {
         synchronize()
         guard let owner, ready else { return }
-        let effects = proposed, token = generation
-
+        let effects = proposed
+        let token = generation
 
         guard let remote = owner.remoteGUI, let payload = try? JSONEncoder().encode(effects) else { return }
-        working = true; message = "Applying proposal…"
+        working = true
+        message = "Applying proposal…"
         let fence = RemoteGestureRevisionFence(versions: versions)
-        remote.send(.editor(.init(operation: "master.applyProposal", context: .init(trackID: Session.masterTrackID), payload: payload)), expecting: versions, gesture: fence, expectedRevision: remote.revision) { [weak self, weak remote] reply in
+        remote.send(
+            .editor(
+                .init(
+                    operation: "master.applyProposal", context: .init(trackID: Session.masterTrackID), payload: payload)
+            ), expecting: versions, gesture: fence, expectedRevision: remote.revision
+        ) { [weak self, weak remote] reply in
             guard let self, token == generation else { return }
             working = false
-            guard reply.accepted, let remote else { message = reply.message; return }
-            guard sourceIsCurrent(excludingMaster: true), remote.trackRevisions[Session.masterTrackID] == reply.revision,
-                  remote.authoritativeSession?.masterTrack.realtimeEffects == effects else {
-                sourceChanged = true; message = "The source changed after Apply. Your private proposal is retained for review."; return
+            guard reply.accepted, let remote else {
+                message = reply.message
+                return
             }
-            completedApplyID = UUID(); message = "Mastering proposal applied"
+            guard sourceIsCurrent(excludingMaster: true),
+                remote.trackRevisions[Session.masterTrackID] == reply.revision,
+                remote.authoritativeSession?.masterTrack.realtimeEffects == effects
+            else {
+                sourceChanged = true
+                message = "The source changed after Apply. Your private proposal is retained for review."
+                return
+            }
+            completedApplyID = UUID()
+            message = "Mastering proposal applied"
         }
     }
-    func close() { isOpen = false; generation = UUID(); verificationTask?.cancel(); verifying = false; working = false }
+    func close() {
+        isOpen = false
+        generation = UUID()
+        verificationTask?.cancel()
+        verifying = false
+        working = false
+    }
 }

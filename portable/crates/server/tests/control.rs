@@ -124,7 +124,15 @@ fn catalog_parity_and_directional_framing() {
         assert!(soundroom_client::contract::COMMANDS.contains(&command.as_str().unwrap()));
     }
     assert_eq!(cap["effects"].as_array().unwrap().len(), 19);
-    for (kind, parameters) in [("vocalEnhancer", 9), ("sourceIsolator", 7), ("soundPutty", 16), ("gate", 7), ("utility", 8), ("guitarRig", 30), ("equalizer", 33)] {
+    for (kind, parameters) in [
+        ("vocalEnhancer", 9),
+        ("sourceIsolator", 7),
+        ("soundPutty", 16),
+        ("gate", 7),
+        ("utility", 8),
+        ("guitarRig", 30),
+        ("equalizer", 33),
+    ] {
         let effect = cap["effects"]
             .as_array()
             .unwrap()
@@ -390,43 +398,154 @@ fn opened_project_saves_to_the_same_filename_after_a_session_rename() {
     let f = Fixture::new();
     let (out, inbox) = f.channel();
     let saved = f.root.join("Projects/Original filename.soundroom");
-    let mut document = soundroom_engine::project::Project { session: Default::default(), media: BTreeMap::new() };
+    let mut document = soundroom_engine::project::Project {
+        session: Default::default(),
+        media: BTreeMap::new(),
+    };
     document.session.name = "An intentional title".into();
     document.save_new(&saved).unwrap();
-    let opened = request(&f, &f.operator, &out, &inbox, Some(0), json!({}), json!({"type":"openProject","id":"Original filename.soundroom"}));
+    let opened = request(
+        &f,
+        &f.operator,
+        &out,
+        &inbox,
+        Some(0),
+        json!({}),
+        json!({"type":"openProject","id":"Original filename.soundroom"}),
+    );
     assert_eq!(opened["status"], "accepted");
-    assert_eq!(f.service.lock().unwrap().snapshot().unwrap()["projectName"], "Original filename.soundroom");
+    assert_eq!(
+        f.service.lock().unwrap().snapshot().unwrap()["projectName"],
+        "Original filename.soundroom"
+    );
     let revision = f.service.lock().unwrap().authority.revision;
-    assert_eq!(request(&f, &f.operator, &out, &inbox, Some(revision), json!({}), rename_command("Renamed session"))["status"], "accepted");
+    assert_eq!(
+        request(
+            &f,
+            &f.operator,
+            &out,
+            &inbox,
+            Some(revision),
+            json!({}),
+            rename_command("Renamed session")
+        )["status"],
+        "accepted"
+    );
     let revision = f.service.lock().unwrap().authority.revision;
-    let save = json!({"type":"saveProject","name":"Original filename.soundroom","replaceExisting":true});
-    assert_eq!(request(&f, &f.operator, &out, &inbox, Some(revision), json!({}), save.clone())["status"], "accepted");
-    assert_eq!(soundroom_engine::project::Project::open(&saved).unwrap().session.name, "Renamed session");
+    let save =
+        json!({"type":"saveProject","name":"Original filename.soundroom","replaceExisting":true});
+    assert_eq!(
+        request(
+            &f,
+            &f.operator,
+            &out,
+            &inbox,
+            Some(revision),
+            json!({}),
+            save.clone()
+        )["status"],
+        "accepted"
+    );
+    assert_eq!(
+        soundroom_engine::project::Project::open(&saved)
+            .unwrap()
+            .session
+            .name,
+        "Renamed session"
+    );
     assert!(!f.root.join("Projects/Renamed session.soundroom").exists());
-    assert_eq!(request(&f, &f.operator, &out, &inbox, Some(revision), json!({}), save)["status"], "accepted");
-    assert_eq!(request(&f, &f.operator, &out, &inbox, Some(0), json!({}), json!({"type":"saveProject","name":"Original filename","replaceExisting":true}))["status"], "conflict");
-    assert_eq!(soundroom_engine::project::Project::open(&saved).unwrap().session.name, "Renamed session");
+    assert_eq!(
+        request(
+            &f,
+            &f.operator,
+            &out,
+            &inbox,
+            Some(revision),
+            json!({}),
+            save
+        )["status"],
+        "accepted"
+    );
+    assert_eq!(
+        request(
+            &f,
+            &f.operator,
+            &out,
+            &inbox,
+            Some(0),
+            json!({}),
+            json!({"type":"saveProject","name":"Original filename","replaceExisting":true})
+        )["status"],
+        "conflict"
+    );
+    assert_eq!(
+        soundroom_engine::project::Project::open(&saved)
+            .unwrap()
+            .session
+            .name,
+        "Renamed session"
+    );
 }
 #[cfg(target_os = "macos")]
 #[test]
 fn project_package_download_is_a_project_with_metadata_not_an_audio_mix() {
     let f = Fixture::new();
     let (out, inbox) = f.channel();
-    let response = request(&f, &f.operator, &out, &inbox, Some(0), json!({}), json!({"type":"editor","intent":{"operation":"project.package","context":{"cursorFrame":0,"clipIDs":[]},"integers":{},"numbers":{},"strings":{},"flags":{}}}));
+    let response = request(
+        &f,
+        &f.operator,
+        &out,
+        &inbox,
+        Some(0),
+        json!({}),
+        json!({"type":"editor","intent":{"operation":"project.package","context":{"cursorFrame":0,"clipIDs":[]},"integers":{},"numbers":{},"strings":{},"flags":{}}}),
+    );
     assert_eq!(response["status"], "accepted", "{response}");
-    let payload = base64::engine::general_purpose::STANDARD.decode(response["payload"].as_str().unwrap()).unwrap();
+    let payload = base64::engine::general_purpose::STANDARD
+        .decode(response["payload"].as_str().unwrap())
+        .unwrap();
     let artifact: Value = serde_json::from_slice(&payload).unwrap();
-    let file = f.root.join("Artifacts").join(format!("{}.soundroom.zip", artifact["id"].as_str().unwrap()));
+    let file = f.root.join("Artifacts").join(format!(
+        "{}.soundroom.zip",
+        artifact["id"].as_str().unwrap()
+    ));
     assert!(file.is_file());
-    assert_eq!(file.metadata().unwrap().len(), artifact["bytes"].as_u64().unwrap());
+    assert_eq!(
+        file.metadata().unwrap().len(),
+        artifact["bytes"].as_u64().unwrap()
+    );
     let extracted = f.root.join("extracted");
-    assert!(std::process::Command::new("/usr/bin/ditto").args(["-x","-k"]).arg(&file).arg(&extracted).status().unwrap().success());
-    let restored = soundroom_engine::project::Project::open(&extracted.join("Session.soundroom")).unwrap();
-    assert_eq!(restored.session, f.service.lock().unwrap().authority.session);
+    assert!(std::process::Command::new("/usr/bin/ditto")
+        .args(["-x", "-k"])
+        .arg(&file)
+        .arg(&extracted)
+        .status()
+        .unwrap()
+        .success());
+    let restored =
+        soundroom_engine::project::Project::open(&extracted.join("Session.soundroom")).unwrap();
+    assert_eq!(
+        restored.session,
+        f.service.lock().unwrap().authority.session
+    );
     let release = json!({"type":"editor","intent":{"operation":"project.package","context":{"cursorFrame":0,"clipIDs":[]},"integers":{},"numbers":{},"strings":{"release":artifact["id"]},"flags":{}}});
-    assert_eq!(request(&f, &f.operator, &out, &inbox, None, json!({}), release)["status"], "accepted");
+    assert_eq!(
+        request(&f, &f.operator, &out, &inbox, None, json!({}), release)["status"],
+        "accepted"
+    );
     assert!(!file.exists());
-    assert_eq!(request(&f, &f.viewer, &out, &inbox, None, json!({}), json!({"type":"editor","intent":{"operation":"project.package","context":{"cursorFrame":0,"clipIDs":[]},"integers":{},"numbers":{},"strings":{},"flags":{}}}))["status"], "rejected");
+    assert_eq!(
+        request(
+            &f,
+            &f.viewer,
+            &out,
+            &inbox,
+            None,
+            json!({}),
+            json!({"type":"editor","intent":{"operation":"project.package","context":{"cursorFrame":0,"clipIDs":[]},"integers":{},"numbers":{},"strings":{},"flags":{}}})
+        )["status"],
+        "rejected"
+    );
 }
 #[test]
 fn scoped_history_receipts_and_authentication_cannot_be_bypassed() {
@@ -1053,24 +1172,38 @@ fn inline_instrument_edits_preserve_slices_copies_and_live_transport_and_can_rem
     let f = Fixture::new();
     let _pump = Pump::attach(&f);
     let (out, inbox) = f.channel();
-    let mut pattern: Value = serde_json::from_str(include_str!("../../../fixtures/instruments/voice-studioPiano.json")).unwrap();
+    let mut pattern: Value = serde_json::from_str(include_str!(
+        "../../../fixtures/instruments/voice-studioPiano.json"
+    ))
+    .unwrap();
     pattern["instrument"] = json!("synthesizer");
-    pattern["bpm"] = json!(120); pattern["beats"] = json!(4);
+    pattern["bpm"] = json!(120);
+    pattern["beats"] = json!(4);
     soundroom_server::service::normalize_seeds(&mut pattern, true);
     let commit = |pattern: &Value, track: Option<&str>, clip: Option<&str>| {
-        let mut strings = json!({}); let mut expected = json!({});
+        let mut strings = json!({});
+        let mut expected = json!({});
         if let Some(track) = track {
             strings["trackID"] = json!(track);
             expected[track] = json!(f.service.lock().unwrap().authority.track_revisions[track]);
         }
-        if let Some(clip) = clip { strings["clipID"] = json!(clip); }
+        if let Some(clip) = clip {
+            strings["clipID"] = json!(clip);
+        }
         let revision = f.service.lock().unwrap().authority.revision;
-        request(&f, &f.editor, &out, &inbox, Some(revision), expected,
+        request(
+            &f,
+            &f.editor,
+            &out,
+            &inbox,
+            Some(revision),
+            expected,
             json!({"type":"editor","intent":{
                 "operation":"designer.commit", "context":{"clipIDs":[],"cursorFrame":4800},
                 "integers":{},"numbers":{},"strings":strings,"flags":{},
                 "payload":base64::engine::general_purpose::STANDARD.encode(serde_json::to_vec(pattern).unwrap())
-            }}))
+            }}),
+        )
     };
     let inserted = commit(&pattern, None, None);
     assert_eq!(inserted["status"], "accepted", "{inserted}");
@@ -1079,32 +1212,61 @@ fn inline_instrument_edits_preserve_slices_copies_and_live_transport_and_can_rem
     let track_id = track.id.clone();
     let original = track.clips[0].clone();
     track.clips[0].name = "Trimmed keys".into();
-    track.clips[0].offset = 24000; track.clips[0].length = 48000;
+    track.clips[0].offset = 24000;
+    track.clips[0].length = 48000;
     track.clips[0].fade_in_frames = Some(1000);
-    let mut copy = track.clips[0].clone(); copy.id = new_id().unwrap(); copy.start = 200000;
+    let mut copy = track.clips[0].clone();
+    copy.id = new_id().unwrap();
+    copy.start = 200000;
     track.clips.push(copy.clone());
     // An older trim may have the source pattern only in its original PCM history.
     let mut history = serde_json::to_value(&original).unwrap();
     history.as_object_mut().unwrap().remove("previousStates");
     history.as_object_mut().unwrap().remove("start");
-    history["operation"] = json!("Trim clip"); history["createdAt"] = json!(0.);
+    history["operation"] = json!("Trim clip");
+    history["createdAt"] = json!(0.);
     track.clips[0].previous_states = vec![serde_json::from_value(history).unwrap()];
     track.clips[0].extra.remove("soundDesign");
     let mut wire_track = serde_json::to_value(track).unwrap();
     soundroom_server::service::normalize_seeds(&mut wire_track, true);
     let version = f.service.lock().unwrap().authority.track_revisions[&track_id];
-    assert_eq!(request(&f, &f.editor, &out, &inbox, None, json!({track_id.clone():version}),
-        json!({"type":"replaceTracks","tracks":[wire_track]}))["status"], "accepted");
-    let copy_before = serde_json::to_value(&f.service.lock().unwrap().authority.session.tracks[0].clips[1]).unwrap();
-    assert_eq!(request(&f, &f.operator, &out, &inbox, None, json!({}), json!({"type":"play"}))["status"], "accepted");
+    assert_eq!(
+        request(
+            &f,
+            &f.editor,
+            &out,
+            &inbox,
+            None,
+            json!({track_id.clone():version}),
+            json!({"type":"replaceTracks","tracks":[wire_track]})
+        )["status"],
+        "accepted"
+    );
+    let copy_before =
+        serde_json::to_value(&f.service.lock().unwrap().authority.session.tracks[0].clips[1])
+            .unwrap();
+    assert_eq!(
+        request(
+            &f,
+            &f.operator,
+            &out,
+            &inbox,
+            None,
+            json!({}),
+            json!({"type":"play"})
+        )["status"],
+        "accepted"
+    );
     pattern["notes"][0]["velocity"] = json!(0.31);
     let edited = commit(&pattern, Some(&track_id), Some(&clip_id));
     assert_eq!(edited["status"], "accepted", "{edited}");
     {
-        let state = f.service.lock().unwrap(); let track = &state.authority.session.tracks[0];
+        let state = f.service.lock().unwrap();
+        let track = &state.authority.session.tracks[0];
         let clip = &track.clips[0];
         assert_eq!((clip.start, clip.offset, clip.length), (4800, 24000, 48000));
-        assert_eq!(clip.name, "Trimmed keys"); assert_eq!(clip.fade_in_frames, Some(1000));
+        assert_eq!(clip.name, "Trimmed keys");
+        assert_eq!(clip.fade_in_frames, Some(1000));
         assert_ne!(clip.asset_id, original.asset_id);
         assert_eq!(clip.extra["soundDesign"]["notes"][0]["velocity"], 0.31);
         assert_eq!(serde_json::to_value(&track.clips[1]).unwrap(), copy_before);
@@ -1113,10 +1275,35 @@ fn inline_instrument_edits_preserve_slices_copies_and_live_transport_and_can_rem
     pattern["notes"] = json!([]);
     let silent = commit(&pattern, Some(&track_id), Some(&clip_id));
     assert_eq!(silent["status"], "accepted", "{silent}");
-    assert!(f.service.lock().unwrap().authority.session.tracks[0].clips[0].extra["soundDesign"]["notes"].as_array().unwrap().is_empty());
-    assert_eq!(commit(&pattern, None, None)["status"], "rejected", "Only replacements can remove the last note");
-    assert_eq!(request(&f, &f.editor, &out, &inbox, None, json!({}), json!({"type":"undo"}))["status"], "accepted");
-    assert_eq!(f.service.lock().unwrap().authority.session.tracks[0].clips[0].extra["soundDesign"]["notes"][0]["velocity"], 0.31);
+    assert!(
+        f.service.lock().unwrap().authority.session.tracks[0].clips[0].extra["soundDesign"]
+            ["notes"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(
+        commit(&pattern, None, None)["status"],
+        "rejected",
+        "Only replacements can remove the last note"
+    );
+    assert_eq!(
+        request(
+            &f,
+            &f.editor,
+            &out,
+            &inbox,
+            None,
+            json!({}),
+            json!({"type":"undo"})
+        )["status"],
+        "accepted"
+    );
+    assert_eq!(
+        f.service.lock().unwrap().authority.session.tracks[0].clips[0].extra["soundDesign"]
+            ["notes"][0]["velocity"],
+        0.31
+    );
 }
 
 #[test]
@@ -3104,7 +3291,10 @@ fn live_open_normalizes_project_ids_and_preserves_device_identity() {
     let measured = payload(&waveform);
     assert_eq!(measured["channelPeaks"].as_array().unwrap().len(), 2);
     for channel in measured["channelPeaks"].as_array().unwrap() {
-        assert_eq!(channel.as_array().unwrap().len(), measured["peaks"].as_array().unwrap().len());
+        assert_eq!(
+            channel.as_array().unwrap().len(),
+            measured["peaks"].as_array().unwrap().len()
+        );
     }
     let state = f.service.lock().unwrap();
     assert_eq!(state.authority.session.tracks[0].gain, 0.5);

@@ -13,7 +13,10 @@ final class AutomationCursor {
     init(points: [AutomationPoint], baseline: Float, valueScale: AutomationValueScale = .linear) {
         var unique: [Int: AutomationPoint] = [:]
         unique.reserveCapacity(points.count)
-        for point in points { let clean = point.relocated(frame: point.frame); unique[clean.frame] = clean }
+        for point in points {
+            let clean = point.relocated(frame: point.frame)
+            unique[clean.frame] = clean
+        }
         self.points = unique.values.sorted { $0.frame < $1.frame }
         self.axisValues = valueScale == .decibels ? self.points.map { valueScale.axisValue($0.value) } : []
         self.valueScale = valueScale
@@ -21,9 +24,11 @@ final class AutomationCursor {
     }
     func value(at frame: Int) -> Float {
         guard !points.isEmpty else { return baseline }
-        if previousFrame == nil || frame < previousFrame! ||
-            (lower + 2 < points.count && points[lower + 2].frame <= frame) {
-            var lo = 0, hi = points.count
+        if previousFrame == nil || frame < previousFrame!
+            || (lower + 2 < points.count && points[lower + 2].frame <= frame)
+        {
+            var lo = 0
+            var hi = points.count
             while lo < hi {
                 let middle = lo + (hi - lo) / 2
                 if points[middle].frame <= frame { lo = middle + 1 } else { hi = middle }
@@ -35,7 +40,8 @@ final class AutomationCursor {
         previousFrame = frame
         guard lower >= 0 else { return baseline }
         guard lower + 1 < points.count else { return points[lower].value }
-        let first = points[lower], next = points[lower + 1]
+        let first = points[lower]
+        let next = points[lower + 1]
         if first.value == next.value { return first.value }
         let fraction = AutomationInterpolation.fraction(first, next, at: frame)
         if valueScale == .linear { return first.value * (1 - fraction) + next.value * fraction }

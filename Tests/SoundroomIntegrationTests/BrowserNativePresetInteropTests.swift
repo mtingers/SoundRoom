@@ -1,6 +1,7 @@
 import Foundation
-import XCTest
 import SoundroomCore
+import XCTest
+
 @testable import Soundroom
 
 /// The browser's interchange fixtures pass through the actual Mac file codecs,
@@ -15,7 +16,8 @@ final class BrowserNativePresetInteropTests: XCTestCase {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         let library = EffectPresetLibrary(url: root.appendingPathComponent("library.json"))
-        XCTAssertEqual(try library.importPresets(from: fixtures.appendingPathComponent("native-effect-presets.json")), 2)
+        XCTAssertEqual(
+            try library.importPresets(from: fixtures.appendingPathComponent("native-effect-presets.json")), 2)
         let legacy = try XCTUnwrap(library.presets.first { $0.legacyAmount != nil })
         XCTAssertEqual(legacy.legacyAmount, 0.75)
         let physical = try XCTUnwrap(library.presets.first { $0.legacyAmount == nil })
@@ -32,7 +34,8 @@ final class BrowserNativePresetInteropTests: XCTestCase {
             let export = root.appendingPathComponent("\(preset.id).soundpreset")
             try library.exportPreset(preset.id, to: export)
             let reopened = EffectPresetLibrary(url: export)
-            XCTAssertNil(reopened.loadError); XCTAssertEqual(reopened.presets, [preset])
+            XCTAssertNil(reopened.loadError)
+            XCTAssertEqual(reopened.presets, [preset])
         }
     }
 
@@ -44,7 +47,8 @@ final class BrowserNativePresetInteropTests: XCTestCase {
         let chain = try XCTUnwrap(library.chains.first)
         XCTAssertTrue(chain.includesAutomation)
         let effect = try XCTUnwrap(chain.effects.first)
-        XCTAssertEqual(effect.amount, 0.75); XCTAssertTrue(effect.parameters.isEmpty)
+        XCTAssertEqual(effect.amount, 0.75)
+        XCTAssertTrue(effect.parameters.isEmpty)
         XCTAssertEqual(effect.automation[0].curve, .smooth)
         XCTAssertEqual(effect.automation[0].curveStart, 0.2)
         XCTAssertEqual(effect.automation[0].curveEnd, 0.8)
@@ -56,6 +60,7 @@ final class BrowserNativePresetInteropTests: XCTestCase {
         let export = root.appendingPathComponent("chain.soundchain")
         try library.exportChain(chain.id, to: export)
         let reopened = EffectChainLibrary(url: export)
-        XCTAssertNil(reopened.loadError); XCTAssertEqual(reopened.chains, [chain])
+        XCTAssertNil(reopened.loadError)
+        XCTAssertEqual(reopened.chains, [chain])
     }
 }

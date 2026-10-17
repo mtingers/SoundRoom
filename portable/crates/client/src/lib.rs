@@ -1,9 +1,11 @@
 //! Typed control client. Audio and authored project state remain on the server.
 pub mod auth;
 pub mod client;
+#[rustfmt::skip] // Generated binding layout belongs to protocol/generate.py.
 #[path = "../../../../protocol/generated/contract.rs"]
 pub mod contract;
 mod decode;
+#[rustfmt::skip] // Generated binding layout belongs to protocol/generate.py.
 #[path = "../../../../protocol/generated/models.rs"]
 pub mod models;
 pub mod snapshot;

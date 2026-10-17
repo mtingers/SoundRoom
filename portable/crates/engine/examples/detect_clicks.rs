@@ -10,12 +10,41 @@ fn main() {
     if let Some(root) = &recorded {
         soundroom_engine::sampled_drums::set_kit_roots(vec![root.into()]);
     }
-    let note = |pitch, start: f64, length: f64, velocity| Note { id: String::new(), pitch, velocity, start_beat: start, duration_beats: length, articulation: None };
-    for instrument in Instrument::ALL.into_iter().filter(|i| i.recording().is_some()) {
-        let base = if matches!(instrument, Instrument::PickedBass | Instrument::UprightBass) { 36 } else { 60 };
-        let mut notes: Vec<Note> = [0, 4, 7, 12, 7, 4].iter().enumerate().map(|(i, d)| note(base + d, i as f64 * 0.5, 0.45, 0.5 + 0.07 * i as f64)).collect();
+    let note = |pitch, start: f64, length: f64, velocity| Note {
+        id: String::new(),
+        pitch,
+        velocity,
+        start_beat: start,
+        duration_beats: length,
+        articulation: None,
+    };
+    for instrument in Instrument::ALL
+        .into_iter()
+        .filter(|i| i.recording().is_some())
+    {
+        let base = if matches!(instrument, Instrument::PickedBass | Instrument::UprightBass) {
+            36
+        } else {
+            60
+        };
+        let mut notes: Vec<Note> = [0, 4, 7, 12, 7, 4]
+            .iter()
+            .enumerate()
+            .map(|(i, d)| note(base + d, i as f64 * 0.5, 0.45, 0.5 + 0.07 * i as f64))
+            .collect();
         notes.extend([0, 4, 7].iter().map(|d| note(base + d, 3.5, 3.5, 0.8)));
-        let p = Pattern { notes, instrument, bpm: 96., beats: 8., instrument_shape: if recorded.is_some() { None } else { Some(InstrumentShape::default()) }, ..Pattern::default() };
+        let p = Pattern {
+            notes,
+            instrument,
+            bpm: 96.,
+            beats: 8.,
+            instrument_shape: if recorded.is_some() {
+                None
+            } else {
+                Some(InstrumentShape::default())
+            },
+            ..Pattern::default()
+        };
         let x = p.render(48000., &cancel).unwrap().remove(0);
         let d: Vec<f32> = x.windows(2).map(|w| (w[1] - w[0]).abs()).collect();
         let mut clicks = vec![];
@@ -26,6 +55,18 @@ fn main() {
             }
         }
         let tail = x.iter().rposition(|v| v.abs() > 1e-4).map_or(0, |i| i);
-        println!("{:<15} clicks {:3} at {:?}  last audible {:.2}s of {:.2}s, final sample {:.4}", format!("{instrument:?}"), clicks.len(), clicks.iter().take(4).map(|i| format!("{:.3}s", *i as f64 / 48000.)).collect::<Vec<_>>(), tail as f64 / 48000., x.len() as f64 / 48000., x.last().copied().unwrap_or(0.));
+        println!(
+            "{:<15} clicks {:3} at {:?}  last audible {:.2}s of {:.2}s, final sample {:.4}",
+            format!("{instrument:?}"),
+            clicks.len(),
+            clicks
+                .iter()
+                .take(4)
+                .map(|i| format!("{:.3}s", *i as f64 / 48000.))
+                .collect::<Vec<_>>(),
+            tail as f64 / 48000.,
+            x.len() as f64 / 48000.,
+            x.last().copied().unwrap_or(0.)
+        );
     }
 }

@@ -1,5 +1,6 @@
-import XCTest
 import SoundroomCore
+import XCTest
+
 @testable import Soundroom
 
 final class EffectDestinationTests: XCTestCase {

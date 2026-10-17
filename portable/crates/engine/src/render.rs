@@ -844,14 +844,29 @@ impl Processor {
             return self.maximum("delayL").max(self.maximum("delayR")).round() as u64;
         }
         if self.effect.kind == "guitarRig" {
-            let mut seconds = if self.maximum("pedal") > 0. || self.maximum("amp") > 0. || self.maximum("cabinet") > 0. { 0.25 } else { 0. };
-            if self.maximum("modulation") > 0. && self.maximum("modMix") > 0. { seconds += 0.03; }
+            let mut seconds = if self.maximum("pedal") > 0.
+                || self.maximum("amp") > 0.
+                || self.maximum("cabinet") > 0.
+            {
+                0.25
+            } else {
+                0.
+            };
+            if self.maximum("modulation") > 0. && self.maximum("modMix") > 0. {
+                seconds += 0.03;
+            }
             if self.maximum("delayMix") > 0. {
                 let feedback = self.maximum("delayFeedback");
-                let repeats = if feedback > 0. { (0.001_f32.ln() / feedback.ln()).ceil().max(1.) } else { 1. };
+                let repeats = if feedback > 0. {
+                    (0.001_f32.ln() / feedback.ln()).ceil().max(1.)
+                } else {
+                    1.
+                };
                 seconds += self.maximum("delayTime") / 1000. * repeats;
             }
-            if self.maximum("reverbMix") > 0. { seconds += self.maximum("reverbDecay") + 0.15; }
+            if self.maximum("reverbMix") > 0. {
+                seconds += self.maximum("reverbDecay") + 0.15;
+            }
             return (seconds.min(30.) * 48000.) as u64;
         }
         if self.effect.kind == "soundPutty" {
@@ -1053,7 +1068,9 @@ impl Processor {
             }
             // Unrefreshed values equal the ones last compared and configured.
             if refreshed && self.values != self.cached_values {
-                if let Some(rig) = &mut self.guitar_rig { rig.configure(&self.values); }
+                if let Some(rig) = &mut self.guitar_rig {
+                    rig.configure(&self.values);
+                }
                 if let Some(eq) = &mut self.eq {
                     eq.configure(&self.values);
                 }
@@ -1200,7 +1217,8 @@ impl Processor {
                 }
                 Kind::GuitarRig => {
                     let state = self.guitar_rig.as_mut().unwrap();
-                    out = state.sample(input); dry = state.last_dry;
+                    out = state.sample(input);
+                    dry = state.last_dry;
                 }
                 Kind::SoundPutty => out = self.putty.as_mut().unwrap().sample(input),
                 Kind::VocalEnhancer => {
@@ -1399,16 +1417,29 @@ impl TrackRenderer {
         // A settled dry strip is two constant multiplies per channel. Keep
         // automated lanes, Write, glides and insert history on the sample path.
         // Preserving the multiplication order retains the existing PCM bits.
-        if self.processors.is_empty() && !self.volume.has_points() && !self.pan.has_points()
-            && self.volume_write.is_none() && self.pan_write.is_none()
-            && self.gain_ramp.is_none() && self.pan_ramp.is_none()
-            && self.level == if audible { 1. } else { 0. } {
-            if !audible { left.fill(0.); right.fill(0.); return; }
+        if self.processors.is_empty()
+            && !self.volume.has_points()
+            && !self.pan.has_points()
+            && self.volume_write.is_none()
+            && self.pan_write.is_none()
+            && self.gain_ramp.is_none()
+            && self.pan_ramp.is_none()
+            && self.level == if audible { 1. } else { 0. }
+        {
+            if !audible {
+                left.fill(0.);
+                right.fill(0.);
+                return;
+            }
             let pan = self.pan.value(0) * 2. - 1.;
             let l = if pan > 0. { 1. - pan } else { 1. };
             let r = if pan < 0. { 1. + pan } else { 1. };
-            for value in left { *value = *value * self.track.gain * l; }
-            for value in right { *value = *value * self.track.gain * r; }
+            for value in left {
+                *value = *value * self.track.gain * l;
+            }
+            for value in right {
+                *value = *value * self.track.gain * r;
+            }
             return;
         }
         let source_start = position + self.latency as u64;
@@ -1881,7 +1912,10 @@ impl Renderer {
         // pool, instead of opening and buffering every source at construction.
         // The minimum page cache is unused by worker reads and stays bounded.
         let loader = crate::paged::PagedLoader::new(project, 512 * 1024)?;
-        let readers = loader.sources().map(|(id, source)| (id, Source::Paged(source))).collect();
+        let readers = loader
+            .sources()
+            .map(|(id, source)| (id, Source::Paged(source)))
+            .collect();
         Self::new_with_sources(project, readers, cancel, None)
     }
     fn new_with_sources(
@@ -2071,8 +2105,16 @@ impl Renderer {
                 right,
                 self.loop_range,
             );
-        } else if worker && count >= 1024
-            && self.tracks.iter().filter(|t| !t.processors.is_empty()).take(2).count() > 1 {
+        } else if worker
+            && count >= 1024
+            && self
+                .tracks
+                .iter()
+                .filter(|t| !t.processors.is_empty())
+                .take(2)
+                .count()
+                > 1
+        {
             // Dry tracks have no insert work to distribute. Thread creation,
             // per-track scratch allocation and joining cost more than mixing.
             // Offline/worker renders (seek warm-up, export) run the tracks'
@@ -3162,7 +3204,10 @@ impl PreparedGraph {
         }
         let (state_bytes, immutable_bytes) = graph_admission_budget(project)?;
         let mut loader = crate::paged::PagedLoader::new(project, maximum_pcm_bytes)?;
-        let readers = loader.sources().map(|(id, source)| (id, Source::Paged(source))).collect();
+        let readers = loader
+            .sources()
+            .map(|(id, source)| (id, Source::Paged(source)))
+            .collect();
         let generation = GRAPH_GENERATION
             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
             .map_err(|_| Error::Conflict("Graph generation exhausted".into()))?;

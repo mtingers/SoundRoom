@@ -1,6 +1,6 @@
 import AppKit
-import SwiftUI
 import SoundroomCore
+import SwiftUI
 
 /// UI-only interaction state. The timer exists only while a timeline gesture is
 /// active and never participates in the audio clock or server control stream.
@@ -30,10 +30,17 @@ import SoundroomCore
         updateDrag = update
     }
     func endDrag() {
-        timer?.invalidate(); timer = nil; updateDrag = nil; dragClock.reset()
+        timer?.invalidate()
+        timer = nil
+        updateDrag = nil
+        dragClock.reset()
     }
     func tearDown() {
-        endDrag(); pointerView = nil; requestScroll = nil; manualScroll = nil; zoom = nil
+        endDrag()
+        pointerView = nil
+        requestScroll = nil
+        manualScroll = nil
+        zoom = nil
     }
     /// Pointer events get an immediate response; the held-pointer timer consumes
     /// the same clock budget, so dense events cannot double the scrolling speed.
@@ -42,14 +49,21 @@ import SoundroomCore
         let pointerX = contentX - viewport.offset
         let elapsed = dragClock.consume(at: timestamp)
         if let destination = viewport.dragScrollDestination(pointerX: pointerX, elapsed: elapsed) {
-            viewport.offset = destination; requestScroll?(destination)
+            viewport.offset = destination
+            requestScroll?(destination)
         }
         updateDrag(max(0, min(viewport.contentWidth, viewport.offset + pointerX)))
     }
     private func tick() {
-        guard let updateDrag, let view = pointerView, let window = view.window else { endDrag(); return }
+        guard let updateDrag, let view = pointerView, let window = view.window else {
+            endDrag()
+            return
+        }
         // Mouse-up outside the app must still terminate the gesture timer.
-        guard NSEvent.pressedMouseButtons & 1 != 0 else { endDrag(); return }
+        guard NSEvent.pressedMouseButtons & 1 != 0 else {
+            endDrag()
+            return
+        }
         let elapsed = dragClock.consume(at: ProcessInfo.processInfo.systemUptime)
         let windowPoint = window.convertPoint(fromScreen: NSEvent.mouseLocation)
         let local = view.convert(windowPoint, from: nil)
@@ -58,7 +72,6 @@ import SoundroomCore
         requestScroll?(destination)
         updateDrag(max(0, min(viewport.contentWidth, destination + local.x)))
     }
-
 }
 
 private struct TimelineScrollInteractionKey: EnvironmentKey {
@@ -78,7 +91,8 @@ struct TimelineViewportInput: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(interaction: interaction) }
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)
-        context.coordinator.install(view); return view
+        context.coordinator.install(view)
+        return view
     }
     func updateNSView(_ view: NSView, context: Context) { interaction.attach(view) }
     static func dismantleNSView(_ view: NSView, coordinator: Coordinator) { coordinator.remove() }
@@ -88,19 +102,26 @@ struct TimelineViewportInput: NSViewRepresentable {
         var monitor: Any?
         init(interaction: TimelineScrollInteraction) { self.interaction = interaction }
         func install(_ view: NSView) {
-            self.view = view; interaction.attach(view)
-            monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel, .leftMouseDown, .magnify]) { [weak self] event in
+            self.view = view
+            interaction.attach(view)
+            monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel, .leftMouseDown, .magnify]) {
+                [weak self] event in
                 guard let self, let view = self.view, let window = view.window, event.window === window,
-                      window.attachedSheet == nil else { return event }
+                    window.attachedSheet == nil
+                else { return event }
                 let point = view.convert(event.locationInWindow, from: nil)
                 guard view.bounds.contains(point) else { return event }
                 // Trackpad pinch, or ⌘ + scroll wheel, zooms around the pointer.
                 if event.type == .magnify {
-                    if event.magnification.isFinite { self.interaction.zoom?(max(0.5, 1 + event.magnification), point.x) }
+                    if event.magnification.isFinite {
+                        self.interaction.zoom?(max(0.5, 1 + event.magnification), point.x)
+                    }
                     return nil
                 }
                 if event.type == .scrollWheel, event.modifierFlags.contains(.command) {
-                    let delta = abs(event.scrollingDeltaY) >= abs(event.scrollingDeltaX) ? event.scrollingDeltaY : event.scrollingDeltaX
+                    let delta =
+                        abs(event.scrollingDeltaY) >= abs(event.scrollingDeltaX)
+                        ? event.scrollingDeltaY : event.scrollingDeltaX
                     if abs(delta) > 0.01 {
                         let step = event.hasPreciseScrollingDeltas ? delta * 0.01 : delta * 0.1
                         self.interaction.zoom?(Foundation.pow(2.0, Double(max(-1, min(1, step)))), point.x)
@@ -109,7 +130,9 @@ struct TimelineViewportInput: NSViewRepresentable {
                 }
                 guard self.interaction.viewport.contentWidth > self.interaction.viewport.width else { return event }
                 if event.type == .scrollWheel {
-                    if abs(event.scrollingDeltaX) > 0.01 || (event.modifierFlags.contains(.shift) && abs(event.scrollingDeltaY) > 0.01) {
+                    if abs(event.scrollingDeltaX) > 0.01
+                        || (event.modifierFlags.contains(.shift) && abs(event.scrollingDeltaY) > 0.01)
+                    {
                         self.interaction.manualScroll?()
                     }
                 } else if let root = window.contentView {
@@ -117,7 +140,8 @@ struct TimelineViewportInput: NSViewRepresentable {
                     var hit: NSView? = root.hitTest(root.convert(event.locationInWindow, from: nil))
                     while let candidate = hit {
                         if let scroller = candidate as? NSScroller, scroller.bounds.width > scroller.bounds.height {
-                            self.interaction.manualScroll?(); break
+                            self.interaction.manualScroll?()
+                            break
                         }
                         hit = candidate.superview
                     }
@@ -126,7 +150,8 @@ struct TimelineViewportInput: NSViewRepresentable {
             }
         }
         func remove() {
-            if let monitor { NSEvent.removeMonitor(monitor) }; monitor = nil
+            if let monitor { NSEvent.removeMonitor(monitor) }
+            monitor = nil
             interaction.endDrag()
         }
     }
@@ -138,7 +163,9 @@ struct TimelineViewportInput: NSViewRepresentable {
     func selectTimelineDrag(track: UUID, start: Int, end: Int) {
         guard !isRecording, !busy else { return }
         automationEditing.hasFocus = false
-        selectedTrack = track; selectedClip = nil; selectedClips = []
+        selectedTrack = track
+        selectedClip = nil
+        selectedClips = []
         let range = max(0, min(start, end))..<max(0, max(start, end))
         selection = EditSelection(trackID: track, range: range)
         playhead = range.lowerBound

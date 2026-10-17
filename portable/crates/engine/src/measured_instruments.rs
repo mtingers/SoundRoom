@@ -87,16 +87,32 @@ fn models() -> Option<&'static Loaded> {
     static MODELS: OnceLock<Option<Loaded>> = OnceLock::new();
     MODELS
         .get_or_init(|| {
-            let parsed: Models = serde_json::from_str(include_str!("../assets/measured-instruments.json")).ok()?;
+            let parsed: Models =
+                serde_json::from_str(include_str!("../assets/measured-instruments.json")).ok()?;
             let prepared = parsed
                 .instruments
                 .into_iter()
                 .map(|(id, model)| {
                     let top = model.notes.iter().map(|n| n.velocity).fold(0., f64::max);
-                    let mut loud: Vec<f64> = model.notes.iter().filter(|n| (n.velocity - top).abs() < 1e-9).map(|n| 10f64.powf(n.peak_db / 20.)).collect();
+                    let mut loud: Vec<f64> = model
+                        .notes
+                        .iter()
+                        .filter(|n| (n.velocity - top).abs() < 1e-9)
+                        .map(|n| 10f64.powf(n.peak_db / 20.))
+                        .collect();
                     loud.sort_by(f64::total_cmp);
-                    let typical = loud.get(loud.len() / 2).copied().filter(|v| *v > 1e-9).unwrap_or(1.);
-                    (id, Arc::new(Prepared { model, norm: LOUDEST_PEAK / typical }))
+                    let typical = loud
+                        .get(loud.len() / 2)
+                        .copied()
+                        .filter(|v| *v > 1e-9)
+                        .unwrap_or(1.);
+                    (
+                        id,
+                        Arc::new(Prepared {
+                            model,
+                            norm: LOUDEST_PEAK / typical,
+                        }),
+                    )
                 })
                 .collect();
             Some((parsed.band_edges, prepared))
@@ -105,7 +121,10 @@ fn models() -> Option<&'static Loaded> {
 }
 /// True when `instrument` has a measured model.
 pub fn available(instrument: Instrument) -> bool {
-    instrument.recording().and_then(|id| models()?.1.get(id)).is_some()
+    instrument
+        .recording()
+        .and_then(|id| models()?.1.get(id))
+        .is_some()
 }
 
 /// Instrument-designer adjustments on top of the measured model; the default
@@ -134,7 +153,17 @@ pub struct InstrumentShape {
 }
 impl Default for InstrumentShape {
     fn default() -> Self {
-        Self { brightness: 0., sustain: 1., noise: 0., softness: 0., stiffness: 1., vibrato: 0., vibrato_rate: 5.5, body: 0., detune: 0. }
+        Self {
+            brightness: 0.,
+            sustain: 1.,
+            noise: 0.,
+            softness: 0.,
+            stiffness: 1.,
+            vibrato: 0.,
+            vibrato_rate: 5.5,
+            body: 0.,
+            detune: 0.,
+        }
     }
 }
 impl InstrumentShape {
@@ -156,22 +185,52 @@ impl InstrumentShape {
 
 /// Measured parameters blended for one pitch and velocity.
 fn blend(model: &Model, pitch: f64, velocity: f64, include_held_out: bool) -> Option<Measured> {
-    let notes: Vec<&Measured> = model.notes.iter().filter(|n| include_held_out || !n.held_out).collect();
+    let notes: Vec<&Measured> = model
+        .notes
+        .iter()
+        .filter(|n| include_held_out || !n.held_out)
+        .collect();
     let mut pitches: Vec<i32> = notes.iter().map(|n| n.pitch).collect();
     pitches.sort();
     pitches.dedup();
-    let below = pitches.iter().rev().find(|p| (**p as f64) <= pitch).or(pitches.first()).copied()?;
-    let above = pitches.iter().find(|p| (**p as f64) >= pitch).or(pitches.last()).copied()?;
+    let below = pitches
+        .iter()
+        .rev()
+        .find(|p| (**p as f64) <= pitch)
+        .or(pitches.first())
+        .copied()?;
+    let above = pitches
+        .iter()
+        .find(|p| (**p as f64) >= pitch)
+        .or(pitches.last())
+        .copied()?;
     let at_pitch = |p: i32| -> Option<Measured> {
         let mut layer: Vec<&&Measured> = notes.iter().filter(|n| n.pitch == p).collect();
         layer.sort_by(|a, b| a.velocity.total_cmp(&b.velocity));
-        let lower = layer.iter().rev().find(|n| n.velocity <= velocity).or(layer.first()).copied()?;
-        let upper = layer.iter().find(|n| n.velocity >= velocity).or(layer.last()).copied()?;
-        let t = if upper.velocity > lower.velocity { ((velocity - lower.velocity) / (upper.velocity - lower.velocity)).clamp(0., 1.) } else { 0. };
+        let lower = layer
+            .iter()
+            .rev()
+            .find(|n| n.velocity <= velocity)
+            .or(layer.first())
+            .copied()?;
+        let upper = layer
+            .iter()
+            .find(|n| n.velocity >= velocity)
+            .or(layer.last())
+            .copied()?;
+        let t = if upper.velocity > lower.velocity {
+            ((velocity - lower.velocity) / (upper.velocity - lower.velocity)).clamp(0., 1.)
+        } else {
+            0.
+        };
         Some(mix(lower, upper, t))
     };
     let (a, b) = (at_pitch(below)?, at_pitch(above)?);
-    let t = if above > below { ((pitch - below as f64) / (above - below) as f64).clamp(0., 1.) } else { 0. };
+    let t = if above > below {
+        ((pitch - below as f64) / (above - below) as f64).clamp(0., 1.)
+    } else {
+        0.
+    };
     Some(mix(&a, &b, t))
 }
 fn lerp(a: f64, b: f64, t: f64) -> f64 {
@@ -182,35 +241,80 @@ fn lerp_ln(a: f64, b: f64, t: f64) -> f64 {
 }
 fn mix(a: &Measured, b: &Measured, t: f64) -> Measured {
     let count = a.partials.len().max(b.partials.len());
-    let silent = Partial { ratio: 0., db: -120., start_db: 0., attack: 0., fast: 0.1, slow: 0.1, slow_db: -120., sustain_db: None, wobble: None };
+    let silent = Partial {
+        ratio: 0.,
+        db: -120.,
+        start_db: 0.,
+        attack: 0.,
+        fast: 0.1,
+        slow: 0.1,
+        slow_db: -120.,
+        sustain_db: None,
+        wobble: None,
+    };
     let partials = (0..count)
         .map(|k| {
-            let (p, q) = (a.partials.get(k).unwrap_or(&silent), b.partials.get(k).unwrap_or(&silent));
+            let (p, q) = (
+                a.partials.get(k).unwrap_or(&silent),
+                b.partials.get(k).unwrap_or(&silent),
+            );
             Partial {
-                ratio: if p.ratio > 0. && q.ratio > 0. { lerp(p.ratio, q.ratio, t) } else { p.ratio.max(q.ratio) },
+                ratio: if p.ratio > 0. && q.ratio > 0. {
+                    lerp(p.ratio, q.ratio, t)
+                } else {
+                    p.ratio.max(q.ratio)
+                },
                 db: lerp(p.db, q.db, t),
                 start_db: lerp(p.start_db, q.start_db, t),
                 attack: lerp(p.attack, q.attack, t),
                 fast: lerp_ln(p.fast, q.fast, t),
                 slow: lerp_ln(p.slow, q.slow, t),
                 slow_db: lerp(p.slow_db, q.slow_db, t),
-                sustain_db: match (p.sustain_db, q.sustain_db) { (Some(x), Some(y)) => Some(lerp(x, y, t)), (x, y) => x.or(y) },
-                wobble: match (p.wobble, q.wobble) { (Some(x), Some(y)) => Some(lerp(x, y, t)), (x, y) => x.or(y) },
+                sustain_db: match (p.sustain_db, q.sustain_db) {
+                    (Some(x), Some(y)) => Some(lerp(x, y, t)),
+                    (x, y) => x.or(y),
+                },
+                wobble: match (p.wobble, q.wobble) {
+                    (Some(x), Some(y)) => Some(lerp(x, y, t)),
+                    (x, y) => x.or(y),
+                },
             }
         })
         .collect();
-    let noise = a.noise.iter().zip(&b.noise).map(|(p, q)| Band {
-        db: lerp(p.db, q.db, t),
-        fast: lerp_ln(p.fast, q.fast, t),
-        slow: lerp_ln(p.slow, q.slow, t),
-        slow_db: lerp(p.slow_db, q.slow_db, t),
-        sustain_db: match (p.sustain_db, q.sustain_db) { (Some(x), Some(y)) => Some(lerp(x, y, t)), (x, y) => x.or(y) },
-    }).collect();
+    let noise = a
+        .noise
+        .iter()
+        .zip(&b.noise)
+        .map(|(p, q)| Band {
+            db: lerp(p.db, q.db, t),
+            fast: lerp_ln(p.fast, q.fast, t),
+            slow: lerp_ln(p.slow, q.slow, t),
+            slow_db: lerp(p.slow_db, q.slow_db, t),
+            sustain_db: match (p.sustain_db, q.sustain_db) {
+                (Some(x), Some(y)) => Some(lerp(x, y, t)),
+                (x, y) => x.or(y),
+            },
+        })
+        .collect();
     let vibrato = match (a.vibrato, b.vibrato) {
-        (Some(x), Some(y)) => Some(Vibrato { depth: lerp(x.depth, y.depth, t), rate: lerp(x.rate, y.rate, t), onset: lerp(x.onset, y.onset, t) }),
+        (Some(x), Some(y)) => Some(Vibrato {
+            depth: lerp(x.depth, y.depth, t),
+            rate: lerp(x.rate, y.rate, t),
+            onset: lerp(x.onset, y.onset, t),
+        }),
         (x, y) => x.or(y),
     };
-    Measured { pitch: a.pitch, velocity: lerp(a.velocity, b.velocity, t), held_out: false, b: lerp(a.b, b.b, t), peak_db: lerp(a.peak_db, b.peak_db, t), partials, noise, vibrato, sustained: a.sustained || b.sustained }
+    Measured {
+        pitch: a.pitch,
+        velocity: lerp(a.velocity, b.velocity, t),
+        held_out: false,
+        b: lerp(a.b, b.b, t),
+        peak_db: lerp(a.peak_db, b.peak_db, t),
+        partials,
+        noise,
+        vibrato,
+        sustained: a.sustained || b.sustained,
+    }
 }
 
 #[derive(Clone)]
@@ -266,11 +370,25 @@ impl ModelNote {
     /// Generated note for `instrument`; `include_held_out` is false only for
     /// validation against held-out recordings.
     #[allow(clippy::too_many_arguments)] // note identity plus designer shape
-    pub fn new(instrument: Instrument, pitch: i32, velocity: f64, robin: u64, cents: f64, rate: f64, shape: InstrumentShape, include_held_out: bool) -> Option<Self> {
+    pub fn new(
+        instrument: Instrument,
+        pitch: i32,
+        velocity: f64,
+        robin: u64,
+        cents: f64,
+        rate: f64,
+        shape: InstrumentShape,
+        include_held_out: bool,
+    ) -> Option<Self> {
         let (edges, prepared) = models()?;
         let prepared = prepared.get(instrument.recording()?)?;
         let shape = shape.sanitized();
-        let m = blend(&prepared.model, pitch as f64, velocity.clamp(0., 1.), include_held_out)?;
+        let m = blend(
+            &prepared.model,
+            pitch as f64,
+            velocity.clamp(0., 1.),
+            include_held_out,
+        )?;
         let f0 = 440. * 2f64.powf((pitch as f64 - 69. + cents / 100.) / 12.);
         let b = m.b * shape.stiffness;
         let mut rng = robin.wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ pitch as u64 | 1;
@@ -290,14 +408,22 @@ impl ModelNote {
                 let k = (i + 1) as f64;
                 // Stiffness scales the measured stretch; bar modes keep their ratio.
                 let harmonic = (p.ratio - k).abs() < 0.5 * k;
-                let ratio = if p.ratio <= 0. || (harmonic && m.b > 0.) { k * (1. + b * k * k).sqrt() } else { p.ratio };
+                let ratio = if p.ratio <= 0. || (harmonic && m.b > 0.) {
+                    k * (1. + b * k * k).sqrt()
+                } else {
+                    p.ratio
+                };
                 let hz = ratio * f0;
                 let k = ratio.max(1.);
                 if hz >= rate * 0.45 || p.db < -90. {
                     return None;
                 }
                 let tilt = 10f64.powf(shape.brightness * 4. * k.log2() / 20.);
-                let body = if hz < 600. { 10f64.powf(shape.body / 20.) } else { 1. };
+                let body = if hz < 600. {
+                    10f64.powf(shape.body / 20.)
+                } else {
+                    1.
+                };
                 let level = peak * 10f64.powf(p.db / 20.) * tilt * body;
                 let (fast, slow) = (p.fast * shape.sustain, p.slow.max(p.fast) * shape.sustain);
                 let phase = if m.sustained { uniform() * 2. * PI } else { 0. };
@@ -310,7 +436,9 @@ impl ModelNote {
                     rc: 1.,
                     level,
                     // Bowed/blown notes may swell for a second or more.
-                    attack: (p.attack.min(if m.sustained { 5. } else { 0.4 }) + soft * 0.25).max(0.0015) * rate,
+                    attack: (p.attack.min(if m.sustained { 5. } else { 0.4 }) + soft * 0.25)
+                        .max(0.0015)
+                        * rate,
                     start: 10f64.powf(p.start_db.min(0.) / 20.) * (1. - soft * 0.8),
                     e1: 1.,
                     e2: 10f64.powf(p.slow_db / 10.),
@@ -336,7 +464,13 @@ impl ModelNote {
                 let w0 = 2. * PI * centre / rate;
                 let alpha = w0.sin() * ((2f64).ln() / 2. * octaves * w0 / w0.sin()).sinh();
                 let a0 = 1. + alpha;
-                let filter = [alpha / a0, 0., -alpha / a0, -2. * w0.cos() / a0, (1. - alpha) / a0];
+                let filter = [
+                    alpha / a0,
+                    0.,
+                    -alpha / a0,
+                    -2. * w0.cos() / a0,
+                    (1. - alpha) / a0,
+                ];
                 // White noise through one band-pass: variance ≈ bandwidth share.
                 let share = ((hi - lo) / (rate / 2.)).max(1e-6);
                 NoiseBand {
@@ -354,8 +488,20 @@ impl ModelNote {
             .collect();
         let mut vibrato = m.vibrato;
         if shape.vibrato > 0. {
-            let base = vibrato.unwrap_or(Vibrato { depth: 0., rate: shape.vibrato_rate, onset: 0.25 });
-            vibrato = Some(Vibrato { depth: base.depth + shape.vibrato, rate: if base.depth < 2. { shape.vibrato_rate } else { base.rate }, onset: base.onset.max(0.2) });
+            let base = vibrato.unwrap_or(Vibrato {
+                depth: 0.,
+                rate: shape.vibrato_rate,
+                onset: 0.25,
+            });
+            vibrato = Some(Vibrato {
+                depth: base.depth + shape.vibrato,
+                rate: if base.depth < 2. {
+                    shape.vibrato_rate
+                } else {
+                    base.rate
+                },
+                onset: base.onset.max(0.2),
+            });
         }
         if !m.sustained {
             vibrato = vibrato.filter(|v| v.depth > 3.);
@@ -394,7 +540,16 @@ impl ModelNote {
             });
             for (i, o) in self.oscs.iter_mut().enumerate() {
                 // Detune spread alternates sharp/flat by harmonic.
-                let spread = if self.detune > 0. { 2f64.powf(self.detune * if i % 2 == 0 { 0.5 } else { -0.5 } * ((i as f64 + 1.).ln() / 3.7) / 1200.) } else { 1. };
+                let spread = if self.detune > 0. {
+                    2f64.powf(
+                        self.detune
+                            * if i % 2 == 0 { 0.5 } else { -0.5 }
+                            * ((i as f64 + 1.).ln() / 3.7)
+                            / 1200.,
+                    )
+                } else {
+                    1.
+                };
                 let (s, c) = (2. * PI * o.hz * bend * vib * spread / self.rate).sin_cos();
                 o.rs = s;
                 o.rc = c;
@@ -469,7 +624,12 @@ impl ModelNote {
         }
         self.age += 1;
         // Decaying notes end once inaudible.
-        if self.age % 4800 == 0 && self.oscs.iter().all(|o| o.sustain.is_none() && (o.e1 + o.e2) < 1e-7) {
+        if self.age % 4800 == 0
+            && self
+                .oscs
+                .iter()
+                .all(|o| o.sustain.is_none() && (o.e1 + o.e2) < 1e-7)
+        {
             self.finished = true;
         }
         sum * self.gain * release_gain
@@ -489,14 +649,21 @@ mod tests {
             let w0 = 2. * PI * centre / rate;
             let alpha = w0.sin() * ((2f64).ln() / 2. * octaves * w0 / w0.sin()).sinh();
             let a0 = 1. + alpha;
-            let (b0, b2, a1, a2) = (alpha / a0, -alpha / a0, -2. * w0.cos() / a0, (1. - alpha) / a0);
+            let (b0, b2, a1, a2) = (
+                alpha / a0,
+                -alpha / a0,
+                -2. * w0.cos() / a0,
+                (1. - alpha) / a0,
+            );
             let share: f64 = (hi - lo) / (rate / 2.);
             let norm = 1. / (share.sqrt() * 0.75);
             let mut rng: u64 = 0x1234_5678_9ABC_DEF1;
             let (mut x1, mut x2, mut y1, mut y2) = (0., 0., 0., 0.);
             let mut sum = 0.;
             for _ in 0..200_000 {
-                rng ^= rng << 13; rng ^= rng >> 7; rng ^= rng << 17;
+                rng ^= rng << 13;
+                rng ^= rng >> 7;
+                rng ^= rng << 17;
                 let x = (rng >> 11) as f64 / (1u64 << 52) as f64 - 1.;
                 let y = b0 * x + b2 * x2 - a1 * y1 - a2 * y2;
                 (x2, x1, y2, y1) = (x1, x, y1, y);

@@ -44,7 +44,11 @@ impl KitDesign {
         if name.is_empty() || name.chars().count() > 80 || name.chars().any(char::is_control) {
             return Err(Error::Invalid("Kit name must be 1–80 characters".into()));
         }
-        if self.shapes.keys().any(|k| !Voice::ALL.iter().any(|v| v.name() == k)) {
+        if self
+            .shapes
+            .keys()
+            .any(|k| !Voice::ALL.iter().any(|v| v.name() == k))
+        {
             return Err(Error::Invalid("Unknown drum piece in kit design".into()));
         }
         Ok(())
@@ -66,7 +70,9 @@ fn contents() -> Vec<(Voice, Articulation)> {
                 (voice, Articulation::SideStick),
                 (voice, Articulation::Brush),
             ]),
-            Voice::Ride => list.extend([(voice, Articulation::Center), (voice, Articulation::Bell)]),
+            Voice::Ride => {
+                list.extend([(voice, Articulation::Center), (voice, Articulation::Bell)])
+            }
             _ => list.push((voice, Articulation::Center)),
         }
     }
@@ -110,7 +116,8 @@ fn write_wav16(path: &Path, left: &[f32], right: &[f32], scale: f32) -> std::io:
 /// Returns the number of hits written.
 pub fn export(design: &KitDesign, cancelled: &AtomicBool) -> Result<usize> {
     design.validate()?;
-    let root = sampled_drums::custom_root().ok_or_else(|| Error::Invalid("Kit storage is unavailable".into()))?;
+    let root = sampled_drums::custom_root()
+        .ok_or_else(|| Error::Invalid("Kit storage is unavailable".into()))?;
     std::fs::create_dir_all(&root)?;
     let target = root.join(&design.id);
     if !target.exists() && list().len() >= MAX_KITS {
@@ -121,12 +128,18 @@ pub fn export(design: &KitDesign, cancelled: &AtomicBool) -> Result<usize> {
     std::fs::create_dir_all(&staging)?;
     let jobs: Vec<(Voice, Articulation, f64, i32)> = contents()
         .into_iter()
-        .flat_map(|(v, a)| VELOCITIES.into_iter().flat_map(move |vel| (0..ROBINS).map(move |r| (v, a, vel, r))))
+        .flat_map(|(v, a)| {
+            VELOCITIES
+                .into_iter()
+                .flat_map(move |vel| (0..ROBINS).map(move |r| (v, a, vel, r)))
+        })
         .collect();
     let next = AtomicUsize::new(0);
     let lines = Mutex::new(Vec::new());
     let failure = Mutex::new(None);
-    let workers = std::thread::available_parallelism().map_or(4, |n| n.get()).clamp(1, 8);
+    let workers = std::thread::available_parallelism()
+        .map_or(4, |n| n.get())
+        .clamp(1, 8);
     std::thread::scope(|scope| {
         for _ in 0..workers {
             scope.spawn(|| loop {
@@ -190,7 +203,10 @@ pub fn export(design: &KitDesign, cancelled: &AtomicBool) -> Result<usize> {
     let count = lines.len();
     let text: String = lines.iter().map(|l| format!("{l}\n")).collect();
     std::fs::write(staging.join("hits.jsonl"), text)?;
-    std::fs::write(staging.join("design.json"), serde_json::to_vec_pretty(design)?)?;
+    std::fs::write(
+        staging.join("design.json"),
+        serde_json::to_vec_pretty(design)?,
+    )?;
     let _ = std::fs::remove_dir_all(&target);
     std::fs::rename(&staging, &target)?;
     sampled_drums::forget_custom(&design.id);
@@ -198,8 +214,12 @@ pub fn export(design: &KitDesign, cancelled: &AtomicBool) -> Result<usize> {
 }
 /// Saved kit designs, by name.
 pub fn list() -> Vec<KitDesign> {
-    let Some(root) = sampled_drums::custom_root() else { return vec![] };
-    let Ok(entries) = std::fs::read_dir(root) else { return vec![] };
+    let Some(root) = sampled_drums::custom_root() else {
+        return vec![];
+    };
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return vec![];
+    };
     let mut kits: Vec<KitDesign> = entries
         .flatten()
         .filter(|e| sampled_drums::valid_id(&e.file_name().to_string_lossy()))
@@ -207,7 +227,12 @@ pub fn list() -> Vec<KitDesign> {
         .filter_map(|b| serde_json::from_slice::<KitDesign>(&b).ok())
         .filter(|k| k.validate().is_ok())
         .collect();
-    kits.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()).then(a.id.cmp(&b.id)));
+    kits.sort_by(|a, b| {
+        a.name
+            .to_lowercase()
+            .cmp(&b.name.to_lowercase())
+            .then(a.id.cmp(&b.id))
+    });
     kits
 }
 /// Removes a saved kit and its exported audio.
@@ -215,7 +240,8 @@ pub fn delete(id: &str) -> Result<()> {
     if !sampled_drums::valid_id(id) {
         return Err(Error::Invalid("Kit id must be a UUID".into()));
     }
-    let root = sampled_drums::custom_root().ok_or_else(|| Error::Invalid("Kit storage is unavailable".into()))?;
+    let root = sampled_drums::custom_root()
+        .ok_or_else(|| Error::Invalid("Kit storage is unavailable".into()))?;
     let path = root.join(id);
     if !path.exists() {
         return Err(Error::Invalid("No saved kit with that id".into()));

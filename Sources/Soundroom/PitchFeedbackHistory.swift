@@ -29,14 +29,22 @@ struct PitchFeedbackHistory {
 
     mutating func clear() {
         points.removeAll(keepingCapacity: true)
-        reading = nil; lastFreshTime = nil; lastObserved = nil; lastRevision = nil
+        reading = nil
+        lastFreshTime = nil
+        lastObserved = nil
+        lastRevision = nil
     }
 
-    mutating func update(_ snapshot: PitchMeterSnapshot?, at time: TimeInterval, running: Bool, revision: UInt64? = nil) {
-        guard running, let snapshot else { clear(); return }
+    mutating func update(_ snapshot: PitchMeterSnapshot?, at time: TimeInterval, running: Bool, revision: UInt64? = nil)
+    {
+        guard running, let snapshot else {
+            clear()
+            return
+        }
         guard snapshot != lastObserved || (revision != nil && revision != lastRevision) else {
             if let lastFreshTime, time - lastFreshTime >= 0.35 {
-                points.removeAll(keepingCapacity: true); reading = nil
+                points.removeAll(keepingCapacity: true)
+                reading = nil
             }
             return
         }
@@ -48,7 +56,10 @@ struct PitchFeedbackHistory {
             }
         }
         scale.initialize(notes: Self.notes(for: snapshot))
-        reading = snapshot; lastObserved = snapshot; lastFreshTime = time; lastRevision = revision
+        reading = snapshot
+        lastObserved = snapshot
+        lastFreshTime = time
+        lastRevision = revision
         points.append(Point(time: time, pitch: snapshot))
         points.removeAll { time - $0.time > Self.duration }
         if points.count > 128 { points.removeFirst(points.count - 128) }

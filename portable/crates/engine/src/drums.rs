@@ -7,7 +7,17 @@ use std::{
     sync::atomic::{AtomicBool, Ordering},
 };
 const RATE: f64 = 48000.;
-type SampleKey = (Kit, Voice, u64, i32, u64, Articulation, u64, Option<[u64; 10]>, Option<String>);
+type SampleKey = (
+    Kit,
+    Voice,
+    u64,
+    i32,
+    u64,
+    Articulation,
+    u64,
+    Option<[u64; 10]>,
+    Option<String>,
+);
 /// A rendered voice: mono (panned at mix time) or recorded stereo.
 type Rendered = (Vec<f32>, Option<Vec<f32>>);
 const CACHE_BYTES: usize = 32 * 1024 * 1024;
@@ -811,7 +821,12 @@ impl Pattern {
     }
     /// One hit of `voice` at `velocity` as this pattern plays it: the lane's
     /// kit, damping, kit-designer shape, tuning, gain and pan.
-    pub fn audition(&self, voice: Voice, velocity: f64, cancelled: &AtomicBool) -> Result<[Vec<f32>; 2]> {
+    pub fn audition(
+        &self,
+        voice: Voice,
+        velocity: f64,
+        cancelled: &AtomicBool,
+    ) -> Result<[Vec<f32>; 2]> {
         let mut single = self.clone();
         single.steps = vec![Step {
             articulation: None,
@@ -898,7 +913,11 @@ impl Pattern {
             *counts.entry(step.voice).or_insert(0_i32) += 1;
         }
         let gain = safe(self.master_gain, 0., 1.);
-        let warmup = if warm { (6.4 / self.duration()).ceil() as i32 + 1 } else { 0 };
+        let warmup = if warm {
+            (6.4 / self.duration()).ceil() as i32 + 1
+        } else {
+            0
+        };
         // Modeled hits are expensive to synthesize: a first pass collects every
         // distinct one and renders them in parallel; the mixing pass then reads
         // them from the measured kit's cache.
@@ -906,125 +925,92 @@ impl Pattern {
             || self.lanes.values().any(|l| l.kit == Kit::StudioModeled);
         let mut requests: Vec<crate::measured_drums::Request> = vec![];
         for collecting in [true, false] {
-        if collecting && !modeled {
-            continue;
-        }
-        if !collecting && !requests.is_empty() {
-            crate::measured_drums::prefetch(&requests, cancelled)?;
-        }
-        for cycle in -warmup..repeats {
-            if cancelled.load(Ordering::Relaxed) {
-                return Err(Error::Invalid("Drum render cancelled".into()));
+            if collecting && !modeled {
+                continue;
             }
-            let mut strikes = BTreeMap::new();
-            for step in &valid {
-                let fallback = Lane {
-                    kit: self.kit,
-                    ..Lane::default()
-                };
-                let lane = self.lanes.get(step.voice.name()).unwrap_or(&fallback);
-                if lane.muted {
-                    continue;
+            if !collecting && !requests.is_empty() {
+                crate::measured_drums::prefetch(&requests, cancelled)?;
+            }
+            for cycle in -warmup..repeats {
+                if cancelled.load(Ordering::Relaxed) {
+                    return Err(Error::Invalid("Drum render cancelled".into()));
                 }
-                let strike = *strikes.entry(step.voice).or_insert(0_i32);
-                *strikes.get_mut(&step.voice).unwrap() += 1;
-                let pass = cycle.rem_euclid(variations);
-                let voice_index = Voice::ALL.iter().position(|v| *v == step.voice).unwrap();
-                let hash =
-                    (pass * 7919 + step.index * 977 + voice_index as i32 * 131 + strike * 31 + 17)
-                        as u64;
-                let chance =
-                    (hash.wrapping_mul(1664525).wrapping_add(1013904223) % 10000) as f64 / 10000.;
-                if chance >= safe(step.probability, 0., 1.) {
-                    continue;
-                }
-                let jitter = ((hash.wrapping_mul(1103515245).wrapping_add(12345) % 10000) as f64
-                    / 5000.
-                    - 1.)
-                    * safe(self.humanize, 0., 0.025);
-                let onset = ((self.time_for_step(step.index) + jitter)
-                    .clamp(0., self.duration() - 1. / RATE)
-                    * RATE)
-                    .round() as i64
-                    + cycle as i64 * frames as i64;
-                let velocity_offset =
-                    ((hash.wrapping_mul(214013).wrapping_add(2531011) % 10000) as f64 / 5000. - 1.)
-                        * safe(self.velocity_humanize.unwrap_or(0.), 0., 0.2);
-                let velocity = safe(step.velocity + velocity_offset, 0., 1.);
-                let stride = counts[&step.voice].max(1) | 1;
-                let robin = (strike + pass * stride) % 8;
-                let articulation = step.articulation.unwrap_or_default();
-                let damping = lane.damping.unwrap_or(0.5);
-                let key = (
-                    lane.kit,
-                    step.voice,
-                    velocity.to_bits(),
-                    robin,
-                    lane.tuning.to_bits(),
-                    articulation,
-                    damping.to_bits(),
-                    lane.shape.map(|s| s.sanitized().cache_key()),
-                    lane.custom_kit.clone(),
-                );
-                let exported = lane
-                    .custom_kit
-                    .as_deref()
-                    .filter(|id| crate::sampled_drums::custom_available(id));
-                if collecting {
-                    if lane.kit == Kit::StudioModeled && exported.is_none() {
-                        requests.push(crate::measured_drums::Request {
-                            voice: step.voice,
-                            velocity,
-                            robin,
-                            articulation,
-                            damping,
-                            shape: lane.shape,
-                        });
-                    }
-                    continue;
-                }
-                if !cache.contains_key(&key) {
-                    let custom = match exported {
-                        Some(id) => crate::sampled_drums::render_custom(
-                            id,
-                            step.voice,
-                            velocity,
-                            robin,
-                            articulation,
-                            damping,
-                            cancelled,
-                        )?,
-                        None => None,
+                let mut strikes = BTreeMap::new();
+                for step in &valid {
+                    let fallback = Lane {
+                        kit: self.kit,
+                        ..Lane::default()
                     };
-                    let recorded = match custom {
-                        Some(hit) => Some(hit),
-                        None => match crate::sampled_drums::render(
+                    let lane = self.lanes.get(step.voice.name()).unwrap_or(&fallback);
+                    if lane.muted {
+                        continue;
+                    }
+                    let strike = *strikes.entry(step.voice).or_insert(0_i32);
+                    *strikes.get_mut(&step.voice).unwrap() += 1;
+                    let pass = cycle.rem_euclid(variations);
+                    let voice_index = Voice::ALL.iter().position(|v| *v == step.voice).unwrap();
+                    let hash = (pass * 7919
+                        + step.index * 977
+                        + voice_index as i32 * 131
+                        + strike * 31
+                        + 17) as u64;
+                    let chance = (hash.wrapping_mul(1664525).wrapping_add(1013904223) % 10000)
+                        as f64
+                        / 10000.;
+                    if chance >= safe(step.probability, 0., 1.) {
+                        continue;
+                    }
+                    let jitter = ((hash.wrapping_mul(1103515245).wrapping_add(12345) % 10000)
+                        as f64
+                        / 5000.
+                        - 1.)
+                        * safe(self.humanize, 0., 0.025);
+                    let onset = ((self.time_for_step(step.index) + jitter)
+                        .clamp(0., self.duration() - 1. / RATE)
+                        * RATE)
+                        .round() as i64
+                        + cycle as i64 * frames as i64;
+                    let velocity_offset =
+                        ((hash.wrapping_mul(214013).wrapping_add(2531011) % 10000) as f64 / 5000.
+                            - 1.)
+                            * safe(self.velocity_humanize.unwrap_or(0.), 0., 0.2);
+                    let velocity = safe(step.velocity + velocity_offset, 0., 1.);
+                    let stride = counts[&step.voice].max(1) | 1;
+                    let robin = (strike + pass * stride) % 8;
+                    let articulation = step.articulation.unwrap_or_default();
+                    let damping = lane.damping.unwrap_or(0.5);
+                    let key = (
                         lane.kit,
                         step.voice,
-                        velocity,
+                        velocity.to_bits(),
                         robin,
+                        lane.tuning.to_bits(),
                         articulation,
-                        damping,
-                        cancelled,
-                    )? {
-                        Some(hit) => Some(hit),
-                        None => crate::measured_drums::render(
-                            lane.kit,
-                            step.voice,
-                            velocity,
-                            robin,
-                            articulation,
-                            damping,
-                            lane.shape,
-                            cancelled,
-                        )?,
-                    },
-                    };
-                    let (raw, raw_right) = match recorded {
-                        Some([l, r]) => (l, Some(r)),
-                        None => (
-                            render_voice(
-                                lane.kit,
+                        damping.to_bits(),
+                        lane.shape.map(|s| s.sanitized().cache_key()),
+                        lane.custom_kit.clone(),
+                    );
+                    let exported = lane
+                        .custom_kit
+                        .as_deref()
+                        .filter(|id| crate::sampled_drums::custom_available(id));
+                    if collecting {
+                        if lane.kit == Kit::StudioModeled && exported.is_none() {
+                            requests.push(crate::measured_drums::Request {
+                                voice: step.voice,
+                                velocity,
+                                robin,
+                                articulation,
+                                damping,
+                                shape: lane.shape,
+                            });
+                        }
+                        continue;
+                    }
+                    if !cache.contains_key(&key) {
+                        let custom = match exported {
+                            Some(id) => crate::sampled_drums::render_custom(
+                                id,
                                 step.voice,
                                 velocity,
                                 robin,
@@ -1032,92 +1018,132 @@ impl Pattern {
                                 damping,
                                 cancelled,
                             )?,
-                            None,
-                        ),
-                    };
-                    let ratio = 2_f64.powf(safe(lane.tuning, -12., 12.) / 12.);
-                    let tune = |raw: Vec<f32>| -> Vec<f32> {
-                        if ratio == 1. || raw.is_empty() {
-                            return raw;
-                        }
-                        (0..(raw.len() as f64 / ratio) as usize)
-                            .map(|i| {
-                                let position = i as f64 * ratio;
-                                let a = (position as usize).min(raw.len() - 1);
-                                let b = (a + 1).min(raw.len() - 1);
-                                let f = (position - a as f64) as f32;
-                                raw[a] * (1. - f) + raw[b] * f
-                            })
-                            .collect()
-                    };
-                    let sample = (tune(raw), raw_right.map(tune));
-                    let bytes = (sample.0.len() + sample.1.as_ref().map_or(0, Vec::len))
-                        * std::mem::size_of::<f32>();
-                    if cache_bytes + bytes > CACHE_BYTES {
-                        cache.clear();
-                        cache_bytes = 0;
-                    }
-                    cache_bytes += bytes;
-                    cache.insert(key.clone(), sample);
-                }
-                let (sample, sample_right) = &cache[&key];
-                let pan = safe(step.pan + lane.pan, -1., 1.);
-                let level = gain * safe(lane.gain, 0., 1.5);
-                let (left, right) = if sample_right.is_some() {
-                    // Recorded stereo keeps its image; pan acts as balance.
-                    (
-                        (level * (1. - pan).min(1.)) as f32,
-                        (level * (1. + pan).min(1.)) as f32,
-                    )
-                } else {
-                    (
-                        (((pan + 1.) * std::f64::consts::PI / 4.).cos() * level) as f32,
-                        (((pan + 1.) * std::f64::consts::PI / 4.).sin() * level) as f32,
-                    )
-                };
-                let mut choke = sample.len();
-                if step.voice == Voice::OpenHat {
-                    if let Some(closing) = valid
-                        .iter()
-                        .find(|s| s.voice == Voice::ClosedHat && s.index > step.index)
-                    {
-                        choke = choke.min(
-                            ((self.time_for_step(closing.index) - self.time_for_step(step.index))
-                                * RATE)
-                                .max(0.) as usize,
-                        );
-                    } else if let Some(closing) = valid.iter().find(|s| s.voice == Voice::ClosedHat)
-                    {
-                        choke = choke.min(
-                            ((self.duration() + self.time_for_step(closing.index)
-                                - self.time_for_step(step.index))
-                                * RATE)
-                                .max(0.) as usize,
-                        );
-                    }
-                }
-                for (i, &v) in sample
-                    .iter()
-                    .take(sample.len().min(choke + 120))
-                    .enumerate()
-                {
-                    if i & 8191 == 0 && cancelled.load(Ordering::Relaxed) {
-                        return Err(Error::Invalid("Drum render cancelled".into()));
-                    }
-                    let frame = onset + i as i64;
-                    if frame >= 0 && (frame as usize) < length {
-                        let cg = if i < choke {
-                            1.
-                        } else {
-                            (1. - (i - choke) as f64 / 120.).max(0.) as f32
+                            None => None,
                         };
-                        let r = sample_right.as_ref().map_or(v, |r| r[i]);
-                        output[0][frame as usize] += v * left * cg;
-                        output[1][frame as usize] += r * right * cg;
+                        let recorded = match custom {
+                            Some(hit) => Some(hit),
+                            None => match crate::sampled_drums::render(
+                                lane.kit,
+                                step.voice,
+                                velocity,
+                                robin,
+                                articulation,
+                                damping,
+                                cancelled,
+                            )? {
+                                Some(hit) => Some(hit),
+                                None => crate::measured_drums::render(
+                                    lane.kit,
+                                    step.voice,
+                                    velocity,
+                                    robin,
+                                    articulation,
+                                    damping,
+                                    lane.shape,
+                                    cancelled,
+                                )?,
+                            },
+                        };
+                        let (raw, raw_right) = match recorded {
+                            Some([l, r]) => (l, Some(r)),
+                            None => (
+                                render_voice(
+                                    lane.kit,
+                                    step.voice,
+                                    velocity,
+                                    robin,
+                                    articulation,
+                                    damping,
+                                    cancelled,
+                                )?,
+                                None,
+                            ),
+                        };
+                        let ratio = 2_f64.powf(safe(lane.tuning, -12., 12.) / 12.);
+                        let tune = |raw: Vec<f32>| -> Vec<f32> {
+                            if ratio == 1. || raw.is_empty() {
+                                return raw;
+                            }
+                            (0..(raw.len() as f64 / ratio) as usize)
+                                .map(|i| {
+                                    let position = i as f64 * ratio;
+                                    let a = (position as usize).min(raw.len() - 1);
+                                    let b = (a + 1).min(raw.len() - 1);
+                                    let f = (position - a as f64) as f32;
+                                    raw[a] * (1. - f) + raw[b] * f
+                                })
+                                .collect()
+                        };
+                        let sample = (tune(raw), raw_right.map(tune));
+                        let bytes = (sample.0.len() + sample.1.as_ref().map_or(0, Vec::len))
+                            * std::mem::size_of::<f32>();
+                        if cache_bytes + bytes > CACHE_BYTES {
+                            cache.clear();
+                            cache_bytes = 0;
+                        }
+                        cache_bytes += bytes;
+                        cache.insert(key.clone(), sample);
+                    }
+                    let (sample, sample_right) = &cache[&key];
+                    let pan = safe(step.pan + lane.pan, -1., 1.);
+                    let level = gain * safe(lane.gain, 0., 1.5);
+                    let (left, right) = if sample_right.is_some() {
+                        // Recorded stereo keeps its image; pan acts as balance.
+                        (
+                            (level * (1. - pan).min(1.)) as f32,
+                            (level * (1. + pan).min(1.)) as f32,
+                        )
+                    } else {
+                        (
+                            (((pan + 1.) * std::f64::consts::PI / 4.).cos() * level) as f32,
+                            (((pan + 1.) * std::f64::consts::PI / 4.).sin() * level) as f32,
+                        )
+                    };
+                    let mut choke = sample.len();
+                    if step.voice == Voice::OpenHat {
+                        if let Some(closing) = valid
+                            .iter()
+                            .find(|s| s.voice == Voice::ClosedHat && s.index > step.index)
+                        {
+                            choke = choke.min(
+                                ((self.time_for_step(closing.index)
+                                    - self.time_for_step(step.index))
+                                    * RATE)
+                                    .max(0.) as usize,
+                            );
+                        } else if let Some(closing) =
+                            valid.iter().find(|s| s.voice == Voice::ClosedHat)
+                        {
+                            choke = choke.min(
+                                ((self.duration() + self.time_for_step(closing.index)
+                                    - self.time_for_step(step.index))
+                                    * RATE)
+                                    .max(0.) as usize,
+                            );
+                        }
+                    }
+                    for (i, &v) in sample
+                        .iter()
+                        .take(sample.len().min(choke + 120))
+                        .enumerate()
+                    {
+                        if i & 8191 == 0 && cancelled.load(Ordering::Relaxed) {
+                            return Err(Error::Invalid("Drum render cancelled".into()));
+                        }
+                        let frame = onset + i as i64;
+                        if frame >= 0 && (frame as usize) < length {
+                            let cg = if i < choke {
+                                1.
+                            } else {
+                                (1. - (i - choke) as f64 / 120.).max(0.) as f32
+                            };
+                            let r = sample_right.as_ref().map_or(v, |r| r[i]);
+                            output[0][frame as usize] += v * left * cg;
+                            output[1][frame as usize] += r * right * cg;
+                        }
                     }
                 }
             }
-        }
         }
         Ok(output)
     }

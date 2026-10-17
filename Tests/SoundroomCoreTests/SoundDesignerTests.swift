@@ -1,10 +1,12 @@
 import XCTest
+
 @testable import SoundroomCore
 
 final class SoundDesignerTests: XCTestCase {
     func testTempoTimingRestsAndReleaseTail() {
-        let pattern = SoundDesignPattern(notes: [.init(pitch: 69, startBeat: 1, durationBeats: 0.5)],
-                                         bpm: 120, beats: 2, waveform: .sine, attack: 0.01, release: 0.1)
+        let pattern = SoundDesignPattern(
+            notes: [.init(pitch: 69, startBeat: 1, durationBeats: 0.5)],
+            bpm: 120, beats: 2, waveform: .sine, attack: 0.01, release: 0.1)
         let audio = pattern.render()
         XCTAssertEqual(audio.channels.count, 1)
         XCTAssertEqual(audio.count, 52_800)
@@ -15,8 +17,9 @@ final class SoundDesignerTests: XCTestCase {
 
     func testSinePitchMatchesNoteAndOctave() {
         for (pitch, expected) in [(69, 440.0), (81, 880.0)] {
-            let pattern = SoundDesignPattern(notes: [.init(pitch: pitch, startBeat: 0, durationBeats: 2)],
-                                             bpm: 120, beats: 2, waveform: .sine, tone: 1, attack: 0, release: 0)
+            let pattern = SoundDesignPattern(
+                notes: [.init(pitch: pitch, startBeat: 0, durationBeats: 2)],
+                bpm: 120, beats: 2, waveform: .sine, tone: 1, attack: 0, release: 0)
             let samples = pattern.render().channels[0]
             let crossings = (4_801..<43_200).filter { samples[$0 - 1] <= 0 && samples[$0] > 0 }
             let measured = Double(crossings.count) / 0.8
@@ -26,8 +29,9 @@ final class SoundDesignerTests: XCTestCase {
 
     func testVelocityAndEnvelopeRemainAudibleWithoutNormalization() {
         func rms(velocity: Double) -> Double {
-            let pattern = SoundDesignPattern(notes: [.init(pitch: 60, velocity: velocity, startBeat: 0, durationBeats: 1)],
-                                             bpm: 120, beats: 1, waveform: .sine, attack: 0.01, release: 0.1)
+            let pattern = SoundDesignPattern(
+                notes: [.init(pitch: 60, velocity: velocity, startBeat: 0, durationBeats: 1)],
+                bpm: 120, beats: 1, waveform: .sine, attack: 0.01, release: 0.1)
             let samples = pattern.render().channels[0]
             XCTAssertEqual(samples.first, 0)
             XCTAssertLessThan(abs(samples[samples.count - 1]), 0.001)
@@ -41,12 +45,15 @@ final class SoundDesignerTests: XCTestCase {
             var notes = (0..<20).map { SoundDesignNote(pitch: 60 + $0, velocity: 1, startBeat: 0, durationBeats: 0.25) }
             notes.append(SoundDesignNote(pitch: 69, velocity: .nan, startBeat: .infinity))
             notes.append(SoundDesignNote(pitch: 69, startBeat: 0, durationBeats: .nan))
-            let pattern = SoundDesignPattern(notes: notes, bpm: 300, beats: 0.25, waveform: wave, tone: .nan, attack: .nan, release: 0)
+            let pattern = SoundDesignPattern(
+                notes: notes, bpm: 300, beats: 0.25, waveform: wave, tone: .nan, attack: .nan, release: 0)
             let samples = pattern.render().channels[0]
             XCTAssertTrue(samples.allSatisfy { $0.isFinite && abs($0) < 1 })
             XCTAssertGreaterThan(samples.map(abs).max() ?? 0, 0.1)
-            let firstEight = SoundDesignPattern(notes: Array(notes.prefix(8)), bpm: 300, beats: 0.25,
-                                               waveform: wave, tone: .nan, attack: .nan, release: 0).render()
+            let firstEight = SoundDesignPattern(
+                notes: Array(notes.prefix(8)), bpm: 300, beats: 0.25,
+                waveform: wave, tone: .nan, attack: .nan, release: 0
+            ).render()
             XCTAssertEqual(samples, firstEight.channels[0])
         }
     }

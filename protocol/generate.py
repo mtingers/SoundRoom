@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """Deterministic contract extraction. --check fails when generated artifacts drift."""
 import argparse, json, pathlib, re
+from model_contract import body_at, logical_lines, split_top
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 source = (ROOT/'Sources/SoundroomRemote/RemoteProtocol.swift').read_text()
 aliases = {'editTracks': ['edit'], 'editor': ['intent'], 'snapshot': ['snapshot'], 'delta':['delta'], 'transport':['transport'], 'effectMeters':['metersByEffect'], 'devices':['devices'], 'presence':['peers'], 'midiSources':['sources'], 'status':['message'], 'waveform':['asset'], 'analysis':['analysis'], 'projects':['projects']}
 def cases(name):
-    block = source.split('public enum '+name+':',1)[1].split('\n}',1)[0]
+    declaration=re.search(r'public enum '+re.escape(name)+r':[^{]*\{',source)
+    if declaration is None: raise ValueError('Missing protocol enum '+name)
+    block = body_at(source,declaration.end())
     out={}
-    for line in block.splitlines():
+    for line in logical_lines(block):
         match=re.match(r'\s*case (\w+)(?:\((.*)\))?$',line)
         if not match: continue
         tag,args=match.groups(); fields=[]
         if args:
-            for n,arg in enumerate(args.split(', ')):
+            for n,arg in enumerate(split_top(args)):
                 if re.match(r'^\w+: ',arg): key,typ=arg.split(': ',1)
                 else: key,typ=aliases.get(tag,['value'])[n],arg
                 typ = typ.split(' = ', 1)[0]

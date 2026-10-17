@@ -11,8 +11,11 @@ struct PitchPointEditing: Equatable {
 
     mutating func placeInsertion(frame: Int, note: Float) {
         guard note.isFinite else { return }
-        selected = []; primary = nil; range = nil
-        insertionFrame = frame; insertionNote = max(0, min(95, note))
+        selected = []
+        primary = nil
+        range = nil
+        insertionFrame = frame
+        insertionNote = max(0, min(95, note))
     }
     func insertionTarget(in regions: [PitchEditRegion], defaultFrame: Int) -> (frame: Int, note: Float) {
         let point = selectedPoint(in: regions)
@@ -22,15 +25,19 @@ struct PitchPointEditing: Equatable {
     }
 
     mutating func select(_ id: UUID, extending: Bool) {
-        insertionFrame = nil; insertionNote = nil
+        insertionFrame = nil
+        insertionNote = nil
         if extending {
             if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
-        } else if !selected.contains(id) { selected = [id] }
+        } else if !selected.contains(id) {
+            selected = [id]
+        }
         primary = selected.contains(id) ? id : selected.first
         range = nil
     }
     mutating func select(_ range: Range<Int>, regions: [PitchEditRegion]) {
-        insertionFrame = nil; insertionNote = nil
+        insertionFrame = nil
+        insertionNote = nil
         self.range = range
         selected = Set(regions.flatMap(\.points).filter { range.contains($0.frame) }.map(\.id))
         primary = regions.flatMap(\.points).first { selected.contains($0.id) }?.id
@@ -40,22 +47,31 @@ struct PitchPointEditing: Equatable {
         if let primary, !selected.contains(primary) { self.primary = selected.first }
     }
     func selectedPoint(in regions: [PitchEditRegion]) -> PitchEditPoint? {
-        regions.flatMap(\.points).first { $0.id == primary } ?? regions.flatMap(\.points).first { selected.contains($0.id) }
+        regions.flatMap(\.points).first { $0.id == primary }
+            ?? regions.flatMap(\.points).first { selected.contains($0.id) }
     }
 
     /// Move from the gesture's original snapshot, so repeated UI updates never compound.
     /// Anchors cannot cross another anchor or leave their own voiced region.
-    func moving(_ regions: [PitchEditRegion], frames requestedFrames: Int, notes requestedNotes: Float,
-                snap: Bool = false, noteLimits: ClosedRange<Float> = 0...95) -> [PitchEditRegion] {
+    func moving(
+        _ regions: [PitchEditRegion], frames requestedFrames: Int, notes requestedNotes: Float,
+        snap: Bool = false, noteLimits: ClosedRange<Float> = 0...95
+    ) -> [PitchEditRegion] {
         let chosen = regions.flatMap(\.points).filter { selected.contains($0.id) }
         guard !chosen.isEmpty, requestedNotes.isFinite else { return regions }
-        var minimumFrame = Int.min / 2, maximumFrame = Int.max / 2
+        var minimumFrame = Int.min / 2
+        var maximumFrame = Int.max / 2
         for region in regions {
             let sorted = region.points.sorted { $0.frame < $1.frame }
             for (index, point) in sorted.enumerated() where selected.contains(point.id) {
-                var lower = region.startFrame, upper = region.endFrame
-                if let neighbor = sorted[..<index].last(where: { !selected.contains($0.id) }) { lower = neighbor.frame + 1 }
-                if let neighbor = sorted[(index + 1)...].first(where: { !selected.contains($0.id) }) { upper = neighbor.frame - 1 }
+                var lower = region.startFrame
+                var upper = region.endFrame
+                if let neighbor = sorted[..<index].last(where: { !selected.contains($0.id) }) {
+                    lower = neighbor.frame + 1
+                }
+                if let neighbor = sorted[(index + 1)...].first(where: { !selected.contains($0.id) }) {
+                    upper = neighbor.frame - 1
+                }
                 minimumFrame = max(minimumFrame, lower - point.frame)
                 maximumFrame = min(maximumFrame, upper - point.frame)
             }
@@ -88,7 +104,8 @@ struct PitchPointEditing: Equatable {
         for r in result.indices {
             for p in result[r].points.indices where selected.contains(result[r].points[p].id) {
                 result[r].points[p].curve = curve
-                result[r].points[p].curveStart = 0; result[r].points[p].curveEnd = 1
+                result[r].points[p].curveStart = 0
+                result[r].points[p].curveEnd = 1
             }
         }
         return result
@@ -112,36 +129,59 @@ struct PitchPointEditing: Equatable {
     }
     func adding(to regions: [PitchEditRegion], frame: Int, note: Float) -> (regions: [PitchEditRegion], point: UUID?) {
         guard note.isFinite, let r = regions.firstIndex(where: { ($0.startFrame..<$0.endFrame).contains(frame) }),
-              !regions[r].points.contains(where: { $0.frame == frame }) else { return (regions, nil) }
+            !regions[r].points.contains(where: { $0.frame == frame })
+        else { return (regions, nil) }
         var result = regions
         let point = PitchEditPoint(frame: frame, note: max(0, min(95, note)))
-        result[r].points.append(point); result[r].points.sort { $0.frame < $1.frame }
+        result[r].points.append(point)
+        result[r].points.sort { $0.frame < $1.frame }
         return (result, point.id)
     }
 }
 
 enum PitchCurvePreset: String, CaseIterable, Identifiable {
-    case natural = "Natural", tight = "Tight", robotic = "Robotic", performance = "Keep performance"
+    case natural = "Natural"
+    case tight = "Tight"
+    case robotic = "Robotic"
+    case performance = "Keep performance"
     var id: Self { self }
-    var strength: Float { switch self { case .natural: return 0.5; case .tight, .robotic: return 1; case .performance: return 0 } }
-    var curve: AutomationCurve { switch self { case .natural: return .smooth; case .robotic: return .hold; default: return .linear } }
+    var strength: Float {
+        switch self {
+        case .natural: return 0.5
+        case .tight, .robotic: return 1
+        case .performance: return 0
+        }
+    }
+    var curve: AutomationCurve {
+        switch self {
+        case .natural: return .smooth
+        case .robotic: return .hold
+        default: return .linear
+        }
+    }
 }
 
 enum PitchPointTargets {
     /// Seeds only measured voiced runs; explicit unvoiced decisions split regions.
     /// RDP removes redundant measured knots within a declared cent tolerance.
-    static func seed(contour: [PitchContourPoint], scope: Range<Int>, reference: Float,
-                     preset: PitchCurvePreset = .natural, toleranceCents: Float = 5,
-                     allowedPitchClasses: Int = 4095) -> [PitchEditRegion] {
+    static func seed(
+        contour: [PitchContourPoint], scope: Range<Int>, reference: Float,
+        preset: PitchCurvePreset = .natural, toleranceCents: Float = 5,
+        allowedPitchClasses: Int = 4095
+    ) -> [PitchEditRegion] {
         guard !scope.isEmpty else { return [] }
         let reference = reference.isFinite && reference > 0 ? reference : 440
         let sorted = contour.filter { scope.contains($0.frame) }.sorted { $0.frame < $1.frame }
         let deltas = zip(sorted, sorted.dropFirst()).map { $1.frame - $0.frame }.filter { $0 > 0 }.sorted()
         let hop = deltas.isEmpty ? 256 : deltas[deltas.count / 2]
-        var runs: [[PitchContourPoint]] = [], run: [PitchContourPoint] = []
+        var runs: [[PitchContourPoint]] = []
+        var run: [PitchContourPoint] = []
         for point in sorted {
             if !point.isVoiced || (run.last.map { point.frame - $0.frame > hop * 2 } ?? false) {
-                if !run.isEmpty { runs.append(run); run = [] }
+                if !run.isEmpty {
+                    runs.append(run)
+                    run = []
+                }
             }
             if point.isVoiced { run.append(point) }
         }
@@ -157,7 +197,8 @@ enum PitchPointTargets {
                 return PitchEditPoint(frame: point.frame, note: note)
             }
             let targets: [PitchEditPoint]
-            let stable = preset == .performance ? measured.map(\.note) : stabilizedNotes(measured, mask: allowedPitchClasses)
+            let stable =
+                preset == .performance ? measured.map(\.note) : stabilizedNotes(measured, mask: allowedPitchClasses)
             let prepared = measured.enumerated().map { index, point in
                 var result = point
                 result.note += (stable[index] - point.note) * preset.strength
@@ -165,7 +206,9 @@ enum PitchPointTargets {
             }
             if preset == .robotic {
                 let snapped = prepared.map { point -> PitchEditPoint in
-                    var result = point; result.curve = allowedPitchClasses & 4095 == 0 ? .linear : .hold; return result
+                    var result = point
+                    result.curve = allowedPitchClasses & 4095 == 0 ? .linear : .hold
+                    return result
                 }
                 targets = snapped.enumerated().compactMap { index, point in
                     index == 0 || index == snapped.count - 1 || snapped[index - 1].note != point.note ? point : nil
@@ -187,11 +230,13 @@ enum PitchPointTargets {
     /// The 110 ms confirmation deliberately favors stable notes over very short ornaments.
     private static func stabilizedNotes(_ points: [PitchEditPoint], mask: Int) -> [Float] {
         guard let first = points.first, mask & 4095 != 0 else { return points.map(\.note) }
-        let initialWindow = Int(sessionRate * 0.2), confirmation = Int(sessionRate * 0.11)
+        let initialWindow = Int(sessionRate * 0.2)
+        let confirmation = Int(sessionRate * 0.11)
         let initial = points.prefix { $0.frame - first.frame < initialWindow }.map(\.note).sorted()
         var established = nearestAllowed(initial[initial.count / 2], mask: mask)
         var result = [Float](repeating: established, count: points.count)
-        var pending: Float?, pendingIndex = 0
+        var pending: Float?
+        var pendingIndex = 0
         for (index, point) in points.enumerated() {
             result[index] = established
             let desired = nearestAllowed(point.note, mask: mask)
@@ -200,7 +245,10 @@ enum PitchPointTargets {
                 pending = nil
                 continue
             }
-            if pending != desired { pending = desired; pendingIndex = index }
+            if pending != desired {
+                pending = desired
+                pendingIndex = index
+            }
             if point.frame - points[pendingIndex].frame >= confirmation {
                 established = desired
                 for accepted in pendingIndex...index { result[accepted] = desired }
@@ -209,36 +257,47 @@ enum PitchPointTargets {
         }
         return result
     }
-    static func applying(_ preset: PitchCurvePreset, to regions: [PitchEditRegion], selected: Set<UUID>? = nil,
-                         allowedPitchClasses: Int = 4095) -> [PitchEditRegion] {
+    static func applying(
+        _ preset: PitchCurvePreset, to regions: [PitchEditRegion], selected: Set<UUID>? = nil,
+        allowedPitchClasses: Int = 4095
+    ) -> [PitchEditRegion] {
         regions.map { region in
             var result = region
-            result.points = applying(preset, to: region.points, selected: selected, allowedPitchClasses: allowedPitchClasses)
+            result.points = applying(
+                preset, to: region.points, selected: selected, allowedPitchClasses: allowedPitchClasses)
             return result
         }
     }
-    private static func applying(_ preset: PitchCurvePreset, to points: [PitchEditPoint], selected: Set<UUID>? = nil,
-                                 allowedPitchClasses: Int = 4095) -> [PitchEditPoint] {
+    private static func applying(
+        _ preset: PitchCurvePreset, to points: [PitchEditPoint], selected: Set<UUID>? = nil,
+        allowedPitchClasses: Int = 4095
+    ) -> [PitchEditPoint] {
         points.map { point in
             guard selected == nil || selected!.contains(point.id) else { return point }
             var result = point
             result.note += (nearestAllowed(point.note, mask: allowedPitchClasses) - point.note) * preset.strength
             result.curve = allowedPitchClasses & 4095 == 0 ? .linear : preset.curve
-            result.curveStart = 0; result.curveEnd = 1
+            result.curveStart = 0
+            result.curveEnd = 1
             return result
         }
     }
     static func nearestAllowed(_ note: Float, mask: Int) -> Float {
         guard note.isFinite, mask & 4095 != 0 else { return note }
-        var nearest = note, distance = Float.infinity
+        var nearest = note
+        var distance = Float.infinity
         for target in 0...95 where mask & (1 << (target % 12)) != 0 {
             let delta = abs(Float(target) - note)
-            if delta < distance { nearest = Float(target); distance = delta }
+            if delta < distance {
+                nearest = Float(target)
+                distance = delta
+            }
         }
         return nearest
     }
     static func allowedPitchClasses(parameters: [String: Float]) -> Int {
-        let scaleValue = parameters["scale"] ?? 0, keyValue = parameters["key"] ?? 0
+        let scaleValue = parameters["scale"] ?? 0
+        let keyValue = parameters["key"] ?? 0
         let scale = scaleValue.isFinite ? Int(max(0, min(3, scaleValue))) : 0
         if scale == 0 { return 4095 }
         if scale == 3 {
@@ -251,8 +310,11 @@ enum PitchPointTargets {
     }
     static func simplify(_ points: [PitchEditPoint], toleranceCents: Float) -> [PitchEditPoint] {
         guard points.count > 2, toleranceCents.isFinite, toleranceCents > 0 else { return points }
-        let normalized = points.map { AutomationPoint(frame: $0.frame, value: $0.note / 95,
-            curve: $0.curve, curveStart: $0.curveStart, curveEnd: $0.curveEnd) }
+        let normalized = points.map {
+            AutomationPoint(
+                frame: $0.frame, value: $0.note / 95,
+                curve: $0.curve, curveStart: $0.curveStart, curveEnd: $0.curveEnd)
+        }
         let retained = Set(AutomationSimplifier.simplify(normalized, tolerance: toleranceCents / 9500).map(\.frame))
         return points.filter { retained.contains($0.frame) }
     }
@@ -266,21 +328,29 @@ struct PitchPointViewport: Equatable {
     private(set) var upper: Float = 81
     mutating func fit(scope: Range<Int>, notes: [Float]) {
         guard !scope.isEmpty else { return }
-        self.scope = scope; frames = scope
+        self.scope = scope
+        frames = scope
         let valid = notes.filter { $0.isFinite && (0...95).contains($0) }
-        let lo = valid.min() ?? 65, hi = valid.max() ?? 73
-        let middle = (lo + hi) / 2, span = max(8, hi - lo + 4)
-        lower = floor(middle - span / 2); upper = ceil(middle + span / 2)
+        let lo = valid.min() ?? 65
+        let hi = valid.max() ?? 73
+        let middle = (lo + hi) / 2
+        let span = max(8, hi - lo + 4)
+        lower = floor(middle - span / 2)
+        upper = ceil(middle + span / 2)
     }
     mutating func fitSelected(_ points: [PitchEditPoint]) {
         guard let first = points.map(\.frame).min(), let last = points.map(\.frame).max() else { return }
         let margin = max(2400, (last - first) / 5)
-        let start = max(scope.lowerBound, first - margin), end = min(scope.upperBound, last + margin + 1)
+        let start = max(scope.lowerBound, first - margin)
+        let end = min(scope.upperBound, last + margin + 1)
         frames = start..<max(start + 1, end)
         let notes = points.map(\.note)
-        let lo = notes.min() ?? 65, hi = notes.max() ?? 73
-        let middle = (lo + hi) / 2, span = max(3, hi - lo + 2)
-        lower = middle - span / 2; upper = middle + span / 2
+        let lo = notes.min() ?? 65
+        let hi = notes.max() ?? 73
+        let middle = (lo + hi) / 2
+        let span = max(3, hi - lo + 2)
+        lower = middle - span / 2
+        upper = middle + span / 2
     }
     mutating func zoomTime(_ factor: Double, around frame: Int? = nil) {
         guard factor.isFinite, factor > 0 else { return }
@@ -296,13 +366,16 @@ struct PitchPointViewport: Equatable {
     }
     mutating func zoomPitch(_ factor: Float) {
         guard factor.isFinite, factor > 0 else { return }
-        let middle = (lower + upper) / 2, span = max(0.5, min(96, (upper - lower) / factor))
-        lower = middle - span / 2; upper = middle + span / 2
+        let middle = (lower + upper) / 2
+        let span = max(0.5, min(96, (upper - lower) / factor))
+        lower = middle - span / 2
+        upper = middle + span / 2
     }
     mutating func panPitch(_ notes: Float) {
         guard notes.isFinite else { return }
         let delta = max(-12 - lower, min(107 - upper, notes))
-        lower += delta; upper += delta
+        lower += delta
+        upper += delta
     }
     func frame(_ fraction: Double) -> Int {
         guard fraction.isFinite else { return frames.lowerBound }

@@ -90,14 +90,33 @@ fn library(instrument: Instrument) -> Option<Arc<Library>> {
     let loaded = std::fs::read(root.join("manifest.json"))
         .ok()
         .and_then(|b| serde_json::from_slice::<Manifest>(&b).ok())
-        .filter(|m| !m.regions.is_empty() && m.regions.iter().all(|r| !r.file.contains('/') && !r.file.contains("..")))
+        .filter(|m| {
+            !m.regions.is_empty()
+                && m.regions
+                    .iter()
+                    .all(|r| !r.file.contains('/') && !r.file.contains(".."))
+        })
         .map(|m| {
             // Stored files peak at 0.89, so `gain * 0.89` is the original peak.
             let top = m.regions.iter().map(|r| r.hivel).max().unwrap_or(127);
-            let mut loud: Vec<f64> = m.regions.iter().filter(|r| r.hivel == top).map(|r| r.gain * 0.89).collect();
+            let mut loud: Vec<f64> = m
+                .regions
+                .iter()
+                .filter(|r| r.hivel == top)
+                .map(|r| r.gain * 0.89)
+                .collect();
             loud.sort_by(f64::total_cmp);
-            let typical = loud.get(loud.len() / 2).copied().filter(|g| *g > 1e-6).unwrap_or(1.);
-            Arc::new(Library { root, release: m.release.clamp(0.02, 3.), regions: m.regions, norm: LOUDEST_PEAK / typical })
+            let typical = loud
+                .get(loud.len() / 2)
+                .copied()
+                .filter(|g| *g > 1e-6)
+                .unwrap_or(1.);
+            Arc::new(Library {
+                root,
+                release: m.release.clamp(0.02, 3.),
+                regions: m.regions,
+                norm: LOUDEST_PEAK / typical,
+            })
         });
     if let Ok(mut m) = map.lock() {
         m.insert(id, loaded.clone());
@@ -114,7 +133,10 @@ fn load(path: &PathBuf) -> Option<Arc<Sample>> {
     }
     let mut reader = WaveReader::open(path).ok()?;
     let info = reader.info.clone();
-    if info.sample_rate != RATE as u32 || info.frames > 60 * RATE as u64 || !(1..=2).contains(&info.channels) {
+    if info.sample_rate != RATE as u32
+        || info.frames > 60 * RATE as u64
+        || !(1..=2).contains(&info.channels)
+    {
         return None;
     }
     let frames = info.frames as usize;
@@ -127,7 +149,9 @@ fn load(path: &PathBuf) -> Option<Arc<Sample>> {
         at += n;
     }
     let scale = 1. / planar.len() as f32;
-    let data: Vec<f32> = (0..frames).map(|i| planar.iter().map(|c| c[i]).sum::<f32>() * scale).collect();
+    let data: Vec<f32> = (0..frames)
+        .map(|i| planar.iter().map(|c| c[i]).sum::<f32>() * scale)
+        .collect();
     let sample = Arc::new(Sample { data });
     if let Ok(mut cache) = samples().lock() {
         if cache.1 + frames * 4 > CACHE_BYTES {
@@ -156,7 +180,14 @@ pub struct Note {
 impl Note {
     /// The recording for `pitch` at `velocity` (0…1), varied by `robin`;
     /// `cents` fine-tunes it. `None` if the instrument is not installed.
-    pub fn new(instrument: Instrument, pitch: i32, velocity: f64, robin: u64, cents: f64, rate: f64) -> Option<Self> {
+    pub fn new(
+        instrument: Instrument,
+        pitch: i32,
+        velocity: f64,
+        robin: u64,
+        cents: f64,
+        rate: f64,
+    ) -> Option<Self> {
         let library = library(instrument)?;
         let vel = ((velocity.clamp(0., 1.) * 126.).round() as i32 + 1).clamp(1, 127);
         let mut zone: Vec<&Region> = library
@@ -166,8 +197,16 @@ impl Note {
             .collect();
         if zone.is_empty() {
             // Outside the sampled range: the nearest note at this dynamic.
-            let nearest = library.regions.iter().filter(|r| (r.lovel..=r.hivel).contains(&vel)).min_by_key(|r| (r.centre - pitch).abs())?;
-            zone = library.regions.iter().filter(|r| r.centre == nearest.centre && (r.lovel..=r.hivel).contains(&vel)).collect();
+            let nearest = library
+                .regions
+                .iter()
+                .filter(|r| (r.lovel..=r.hivel).contains(&vel))
+                .min_by_key(|r| (r.centre - pitch).abs())?;
+            zone = library
+                .regions
+                .iter()
+                .filter(|r| r.centre == nearest.centre && (r.lovel..=r.hivel).contains(&vel))
+                .collect();
         }
         zone.sort_by_key(|r| r.robin);
         let region = zone[(robin % zone.len() as u64) as usize];
@@ -176,12 +215,24 @@ impl Note {
         let span = (region.hivel - region.lovel).max(1) as f64;
         let within = (vel - region.lovel) as f64 / span;
         let layer_gain = 10f64.powf((within - 0.5) * 5. / 20.);
-        let step = 2f64.powf(((pitch - region.centre) as f64 + (region.tune + cents) / 100.) / 12.) * RATE / rate;
+        let step = 2f64.powf(((pitch - region.centre) as f64 + (region.tune + cents) / 100.) / 12.)
+            * RATE
+            / rate;
         let looping = match (region.loop_start, region.loop_end) {
-            (Some(start), Some(end)) if end > start + 64 && end <= sample.data.len() => Some((start as f64, end as f64)),
+            (Some(start), Some(end)) if end > start + 64 && end <= sample.data.len() => {
+                Some((start as f64, end as f64))
+            }
             _ => None,
         };
-        Some(Self { sample, position: 0., step, gain: region.gain * layer_gain * library.norm, looping, release: library.release, finished: false })
+        Some(Self {
+            sample,
+            position: 0.,
+            step,
+            gain: region.gain * layer_gain * library.norm,
+            looping,
+            release: library.release,
+            finished: false,
+        })
     }
     /// Next sample at the given pitch-bend ratio (4-point cubic interpolation).
     pub fn next(&mut self, bend: f64) -> f64 {
@@ -202,7 +253,11 @@ impl Note {
         let f = self.position - i as f64;
         let at = |k: isize| data[(i as isize + k).max(0) as usize] as f64;
         let (y0, y1, y2, y3) = (at(-1), at(0), at(1), at(2));
-        let value = y1 + 0.5 * f * (y2 - y0 + f * (2. * y0 - 5. * y1 + 4. * y2 - y3 + f * (3. * (y1 - y2) + y3 - y0)));
+        let value = y1
+            + 0.5
+                * f
+                * (y2 - y0
+                    + f * (2. * y0 - 5. * y1 + 4. * y2 - y3 + f * (3. * (y1 - y2) + y3 - y0)));
         self.position += self.step * bend;
         value * self.gain
     }

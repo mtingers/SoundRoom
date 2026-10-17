@@ -1,0 +1,50 @@
+name: Code quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    name: Rust formatting and Clippy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      RUSTUP_TOOLCHAIN: 1.94.0
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install the checked Rust toolchain
+        run: rustup toolchain install 1.94.0 --profile minimal --component rustfmt,clippy
+      - run: make lint-rust
+
+  macos:
+    name: macOS Swift formatting and protocol
+    runs-on: xcode-27
+    timeout-minutes: 15
+    env:
+      RUSTUP_TOOLCHAIN: 1.94.0
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Show the selected Swift toolchain
+        run: swift --version
+      - name: Install Rust for protocol and staged-hook checks
+        run: rustup toolchain install 1.94.0 --profile minimal --component rustfmt
+      - run: make lint-swift
+      - name: Install the protocol validator's pinned TypeScript compiler
+        run: npm install --global --ignore-scripts --no-audit --no-fund typescript@5.3.3
+      - run: make protocol-check
+      - name: Check the hook's index handling
+        run: python3 scripts/test_style.py

@@ -19,7 +19,10 @@ extension SessionStore {
     }
 
     func setLoopRange(_ range: Range<Int>) {
-        guard let remoteGUI else { status = "Connect to the audio server before changing the loop."; return }
+        guard let remoteGUI else {
+            status = "Connect to the audio server before changing the loop."
+            return
+        }
 
         guard !range.isEmpty, !busy, !isRecording else { return }
         remoteGUI.send(.setLoop(start: max(0, range.lowerBound), end: max(1, range.upperBound)))
@@ -29,6 +32,9 @@ extension SessionStore {
     func setLoopEdge(start: Bool, seconds: Double) {
         guard let range = loopRange, seconds.isFinite else { return }
         let frame = Int(min(Double(Int.max / 4), max(0, seconds * sessionRate)).rounded())
-        setLoopRange(start ? min(frame, range.upperBound - 1)..<range.upperBound : range.lowerBound..<max(range.lowerBound + 1, frame))
+        setLoopRange(
+            start
+                ? min(frame, range.upperBound - 1)..<range.upperBound
+                : range.lowerBound..<max(range.lowerBound + 1, frame))
     }
 }

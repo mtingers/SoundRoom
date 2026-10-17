@@ -1,14 +1,17 @@
-import XCTest
 import SoundroomCore
+import XCTest
+
 @testable import Soundroom
 
 final class NativeChainGuardTests: XCTestCase {
     @MainActor func testChainRecallProcessesNewAudioWithoutSourceBakedGuards() {
         let asset = UUID()
         let audio = AudioSamples(channels: [Array(repeating: Float(0.2), count: 128)])
-        let original = RealtimeEffect(kind: .gain, parameters: ["gain": 6],
+        let original = RealtimeEffect(
+            kind: .gain, parameters: ["gain": 6],
             bakedRanges: [.init(startFrame: 0, endFrame: 128)])
-        var expected = original; expected.bakedRanges = []
+        var expected = original
+        expected.bakedRanges = []
         let reference = render(expected, asset: asset, audio: audio)
         let bypassed = render(original, asset: asset, audio: audio)
         XCTAssertGreaterThan(zip(reference, bypassed).map { abs($0 - $1) }.max() ?? 0, 0.01)
@@ -23,15 +26,19 @@ final class NativeChainGuardTests: XCTestCase {
     }
 
     @MainActor func testSettingsOnlyRecallClearsManualOnlyGateAndCurveState() {
-        let original = RealtimeEffect(kind: .pitchCorrection,
+        let original = RealtimeEffect(
+            kind: .pitchCorrection,
             parameterAutomation: ["mix": [.init(frame: 0, value: 0.5)]],
             pitchEdits: [.init(startFrame: 0, endFrame: 100, points: [.init(frame: 0, note: 60)])],
             pitchEditsOnly: true, bakedRanges: [.init(startFrame: 0, endFrame: 100)])
         let settings = EffectChainLibrary.prepared([original], includeAutomation: false)[0]
-        XCTAssertTrue(settings.pitchEdits.isEmpty); XCTAssertFalse(settings.pitchEditsOnly)
-        XCTAssertTrue(settings.parameterAutomation.isEmpty); XCTAssertTrue(settings.bakedRanges.isEmpty)
+        XCTAssertTrue(settings.pitchEdits.isEmpty)
+        XCTAssertFalse(settings.pitchEditsOnly)
+        XCTAssertTrue(settings.parameterAutomation.isEmpty)
+        XCTAssertTrue(settings.bakedRanges.isEmpty)
         let withCurves = EffectChainLibrary.prepared([original], includeAutomation: true)[0]
-        XCTAssertTrue(withCurves.pitchEditsOnly); XCTAssertEqual(withCurves.pitchEdits.count, 1)
+        XCTAssertTrue(withCurves.pitchEditsOnly)
+        XCTAssertEqual(withCurves.pitchEdits.count, 1)
         XCTAssertNotEqual(withCurves.pitchEdits[0].id, original.pitchEdits[0].id)
         XCTAssertTrue(withCurves.bakedRanges.isEmpty)
         // Importing a version-2 file preserves its data before a new recall.
@@ -44,7 +51,8 @@ final class NativeChainGuardTests: XCTestCase {
         session.tracks[0].clips = [Clip(assetID: asset, name: "New audio", start: 0, length: 128, edgeFadeFrames: 0)]
         session.tracks[0].realtimeEffects = [effect]
         let mixer = RealtimeMixer(session: session, assets: [asset: audio], startFrame: 0)
-        var left = [Float](repeating: 0, count: 128), right = left
+        var left = [Float](repeating: 0, count: 128)
+        var right = left
         left.withUnsafeMutableBufferPointer { l in
             right.withUnsafeMutableBufferPointer { r in
                 mixer.render(intoLeft: l.baseAddress!, intoRight: r.baseAddress!, frameCount: 128)

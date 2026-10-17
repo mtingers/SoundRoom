@@ -1,15 +1,18 @@
 import XCTest
+
 @testable import SoundroomCore
 
 final class WaveEncodingViewTests: XCTestCase {
     func testNestedLazyViewEncodesExactResidentParityAcrossBlockBoundaries() throws {
         var first = (0..<20_000).map { Float(sin(Double($0) * 0.013)) * 1.2 }
-        first[8192] = .nan; first[8193] = .infinity; first[8194] = -.infinity
+        first[8192] = .nan
+        first[8193] = .infinity
+        first[8194] = -.infinity
         let original = AudioSamples(channels: [first, first.map { -$0 }])
         let view = try XCTUnwrap(original.view(range: 31..<19_500, channels: [1, 0], padding: 17))
         let nested = try XCTUnwrap(view.view(range: 5..<18_700, channels: [0, 1], padding: 29))
         let materialized = AudioSamples(channels: nested.channels)
-        XCTAssertFalse(nested.isStreamed) // The formerly quadratic resident-view path.
+        XCTAssertFalse(nested.isStreamed)  // The formerly quadratic resident-view path.
         for float in [false, true] {
             XCTAssertEqual(WaveFile.encode(nested, float: float), WaveFile.encode(materialized, float: float))
         }

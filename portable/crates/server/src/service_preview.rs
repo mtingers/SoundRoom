@@ -129,7 +129,8 @@ fn fade_edges((mut left, mut right): (Vec<f32>, Vec<f32>)) -> (Vec<f32>, Vec<f32
     let frames = (super::EDGE_FADE_FRAMES as usize).min(left.len() / 2);
     let n = left.len();
     for k in 0..frames {
-        let w = (0.5 - 0.5 * (std::f32::consts::PI * (k as f32 + 0.5) / frames as f32).cos()).clamp(0., 1.);
+        let w = (0.5 - 0.5 * (std::f32::consts::PI * (k as f32 + 0.5) / frames as f32).cos())
+            .clamp(0., 1.);
         for channel in [&mut left, &mut right] {
             channel[k] *= w;
             channel[n - 1 - k] *= w;
@@ -140,13 +141,20 @@ fn fade_edges((mut left, mut right): (Vec<f32>, Vec<f32>)) -> (Vec<f32>, Vec<f32
 pub(super) fn load(path: &std::path::Path) -> Result<(Vec<f32>, Vec<f32>), Error> {
     load_cancellable(path, &AtomicBool::new(false))
 }
-fn load_cancellable(path: &std::path::Path, cancel: &AtomicBool) -> Result<(Vec<f32>, Vec<f32>), Error> {
-    if cancel.load(Ordering::Acquire) { return Err(protocol("Preview cancelled")); }
+fn load_cancellable(
+    path: &std::path::Path,
+    cancel: &AtomicBool,
+) -> Result<(Vec<f32>, Vec<f32>), Error> {
+    if cancel.load(Ordering::Acquire) {
+        return Err(protocol("Preview cancelled"));
+    }
     let mut reader = WaveReader::open(path).map_err(engine)?;
     let frames = reader.info.frames.min(MAX_PREVIEW_FRAMES) as usize;
     let (mut left, mut right) = (vec![0f32; frames], vec![0f32; frames]);
     for start in (0..frames).step_by(8192) {
-        if cancel.load(Ordering::Acquire) { return Err(protocol("Preview cancelled")); }
+        if cancel.load(Ordering::Acquire) {
+            return Err(protocol("Preview cancelled"));
+        }
         let end = (start + 8192).min(frames);
         reader
             .read_stereo(start as u64, &mut left[start..end], &mut right[start..end])
@@ -575,20 +583,21 @@ impl Service {
             .root
             .join("Artifacts")
             .join(format!("{}.preview.wav", super::new_id()?));
-        let job = |source, kind: Kind, looping, tempo, (sequence, superseded): (u64, Arc<AtomicBool>)| {
-            Ok(Handled::Job(JobKind::Preview {
-                task: Box::new(Task {
-                    superseded,
-                    source,
-                    kind,
-                    owner: peer.runtime.clone(),
-                    path,
-                    looping,
-                    tempo,
-                    sequence,
-                }),
-            }))
-        };
+        let job =
+            |source, kind: Kind, looping, tempo, (sequence, superseded): (u64, Arc<AtomicBool>)| {
+                Ok(Handled::Job(JobKind::Preview {
+                    task: Box::new(Task {
+                        superseded,
+                        source,
+                        kind,
+                        owner: peer.runtime.clone(),
+                        path,
+                        looping,
+                        tempo,
+                        sequence,
+                    }),
+                }))
+            };
         match intent.operation.as_str() {
             "drums.preview" => {
                 let pattern: drums::Pattern = decode(intent, "DrumPattern")?;

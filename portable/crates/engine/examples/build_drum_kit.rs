@@ -66,20 +66,28 @@ fn parse(xml: &str) -> Vec<Sample> {
     let mut samples = vec![];
     for block in xml.split("<sample ").skip(1) {
         let head = &block[..block.find('>').unwrap_or(block.len())];
-        let power = attr(head, "power").and_then(|p| p.parse().ok()).unwrap_or(0.);
+        let power = attr(head, "power")
+            .and_then(|p| p.parse().ok())
+            .unwrap_or(0.);
         let mut file = String::new();
         let mut channels = vec![];
         for tag in block.split("<audiofile ").skip(1) {
             let tag = &tag[..tag.find('>').unwrap_or(tag.len())];
-            if let (Some(c), Some(f), Some(n)) =
-                (attr(tag, "channel"), attr(tag, "file"), attr(tag, "filechannel"))
-            {
+            if let (Some(c), Some(f), Some(n)) = (
+                attr(tag, "channel"),
+                attr(tag, "file"),
+                attr(tag, "filechannel"),
+            ) {
                 file = f;
                 channels.push((c, n.parse::<usize>().unwrap_or(1).saturating_sub(1)));
             }
         }
         if !file.is_empty() {
-            samples.push(Sample { power, file, channels });
+            samples.push(Sample {
+                power,
+                file,
+                channels,
+            });
         }
     }
     samples
@@ -196,7 +204,8 @@ fn main() {
         let mut at = 0;
         while at < frames {
             let n = 8192.min(frames - at);
-            let mut views: Vec<&mut [f32]> = planar.iter_mut().map(|c| &mut c[at..at + n]).collect();
+            let mut views: Vec<&mut [f32]> =
+                planar.iter_mut().map(|c| &mut c[at..at + n]).collect();
             reader.read_planar(at as u64, &mut views).expect("read");
             at += n;
         }
@@ -217,18 +226,33 @@ fn main() {
                 let norm = ((0..n).map(|i| (x[i] as f64).powi(2)).sum::<f64>()
                     * (0..n).map(|i| (y[i] as f64).powi(2)).sum::<f64>())
                 .sqrt();
-                correlations.insert(if a == "Snare_top" { "snare" } else { "kick" }, if norm > 0. { dot / norm } else { 0. });
+                correlations.insert(
+                    if a == "Snare_top" { "snare" } else { "kick" },
+                    if norm > 0. { dot / norm } else { 0. },
+                );
             }
         }
         let mut close = [vec![0f32; frames], vec![0f32; frames]];
         for (name, _) in &sample.channels {
-            let Some((pan, level)) = close_mic(name) else { continue };
-            let mut gain = level * if own.contains(&name.as_str()) { 1. } else { BLEED };
-            if (name == "Snare_bottom" && invert_snare_bottom) || (name == "Kdrum_front" && invert_kick_front) {
+            let Some((pan, level)) = close_mic(name) else {
+                continue;
+            };
+            let mut gain = level
+                * if own.contains(&name.as_str()) {
+                    1.
+                } else {
+                    BLEED
+                };
+            if (name == "Snare_bottom" && invert_snare_bottom)
+                || (name == "Kdrum_front" && invert_kick_front)
+            {
                 gain = -gain;
             }
             let angle = (pan + 1.) * PI / 4.;
-            let (l, r) = ((angle.cos() * std::f64::consts::SQRT_2 * gain) as f32, (angle.sin() * std::f64::consts::SQRT_2 * gain) as f32);
+            let (l, r) = (
+                (angle.cos() * std::f64::consts::SQRT_2 * gain) as f32,
+                (angle.sin() * std::f64::consts::SQRT_2 * gain) as f32,
+            );
             let source = channel(name);
             for i in 0..frames {
                 close[0][i] += source[i] * l;
@@ -246,7 +270,10 @@ fn main() {
         let rate = info.sample_rate as f64;
         let mut stems: Vec<Vec<f32>> = stems_in.iter().map(|s| resample(s, rate)).collect();
         let len = stems[0].len();
-        let peak = stems.iter().flat_map(|s| s.iter()).fold(0f32, |m, v| m.max(v.abs()));
+        let peak = stems
+            .iter()
+            .flat_map(|s| s.iter())
+            .fold(0f32, |m, v| m.max(v.abs()));
         if peak <= 0. {
             continue;
         }
@@ -257,8 +284,13 @@ fn main() {
             .saturating_sub(48);
         // Tail: last frame above -72 dB of the peak, capped per voice.
         let floor = peak * 10f32.powf(-72. / 20.);
-        let last = (0..len).rev().find(|&i| stems.iter().any(|s| s[i].abs() >= floor)).unwrap_or(len - 1);
-        let end = (last + 1).min(onset + (max_seconds * OUT_RATE) as usize).min(len);
+        let last = (0..len)
+            .rev()
+            .find(|&i| stems.iter().any(|s| s[i].abs() >= floor))
+            .unwrap_or(len - 1);
+        let end = (last + 1)
+            .min(onset + (max_seconds * OUT_RATE) as usize)
+            .min(len);
         let fade = 480.min(end - onset);
         for s in &mut stems {
             *s = s[onset..end].to_vec();
@@ -274,9 +306,17 @@ fn main() {
             "power": sample.power, "frames": stems[0].len(), "storedPeak": stored,
         }));
     }
-    let mut out = std::fs::OpenOptions::new().create(true).append(true).open(out_dir.join("hits.jsonl")).unwrap();
+    let mut out = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(out_dir.join("hits.jsonl"))
+        .unwrap();
     for line in &lines {
         writeln!(out, "{line}").unwrap();
     }
-    eprintln!("{instrument}: {} hits → {voice}/{articulation}; polarity correlation {:?}", lines.len(), correlations);
+    eprintln!(
+        "{instrument}: {} hits → {voice}/{articulation}; polarity correlation {:?}",
+        lines.len(),
+        correlations
+    );
 }

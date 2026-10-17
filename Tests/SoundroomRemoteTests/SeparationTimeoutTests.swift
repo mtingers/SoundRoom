@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import SoundroomRemote
 
 final class SeparationTimeoutTests: XCTestCase {

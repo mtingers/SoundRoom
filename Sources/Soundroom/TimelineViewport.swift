@@ -11,15 +11,17 @@ struct TimelineViewport: Equatable {
     /// Accessibility scrollers can change bounds without a wheel event. Ignore
     /// layout/zoom changes and scrolls for which this view already has a request.
     func isUnrequestedScroll(from previous: TimelineViewport, pendingDestination: Double?) -> Bool {
-        pendingDestination == nil && previous.width > 0 && abs(width - previous.width) < 0.5 &&
-            abs(contentWidth - previous.contentWidth) < 0.5 && abs(offset - previous.offset) > 2
+        pendingDestination == nil && previous.width > 0 && abs(width - previous.width) < 0.5
+            && abs(contentWidth - previous.contentWidth) < 0.5 && abs(offset - previous.offset) > 2
     }
 
     func followDestination(frame: Int, zoom: Double, playing: Bool, enabled: Bool, loop: Range<Int>? = nil) -> Double? {
         guard playing, enabled, width > 0, width.isFinite, offset.isFinite,
-              contentWidth.isFinite, zoom.isFinite, zoom > 0 else { return nil }
+            contentWidth.isFinite, zoom.isFinite, zoom > 0
+        else { return nil }
         let cursor = Double(max(0, frame)) / sessionRate * zoom
-        let left = max(0, offset), right = left + width
+        let left = max(0, offset)
+        let right = left + width
         // A loop that is already visible must stay still through its wrap, even
         // when its ends lie inside the usual follow safety margins.
         if let loop, !loop.isEmpty {
@@ -50,14 +52,20 @@ struct TimelineViewport: Equatable {
     /// outside the viewport. Pointer coordinates are viewport pixels, not content.
     func dragScrollDestination(pointerX: Double, elapsed: Double) -> Double? {
         guard width > 0, width.isFinite, offset.isFinite, contentWidth.isFinite,
-              pointerX.isFinite, elapsed.isFinite, elapsed > 0 else { return nil }
+            pointerX.isFinite, elapsed.isFinite, elapsed > 0
+        else { return nil }
         let edge = min(36, width * 0.1)
         let penetration: Double
-        if pointerX < edge { penetration = pointerX - edge }
-        else if pointerX > width - edge { penetration = pointerX - (width - edge) }
-        else { return nil }
+        if pointerX < edge {
+            penetration = pointerX - edge
+        } else if pointerX > width - edge {
+            penetration = pointerX - (width - edge)
+        } else {
+            return nil
+        }
         let speed = min(900, abs(penetration) * 12)
-        let destination = max(0, min(max(0, contentWidth - width), offset + (penetration < 0 ? -speed : speed) * min(0.08, elapsed)))
+        let destination = max(
+            0, min(max(0, contentWidth - width), offset + (penetration < 0 ? -speed : speed) * min(0.08, elapsed)))
         return abs(destination - offset) > 0.001 ? destination : nil
     }
 
@@ -76,7 +84,10 @@ struct TimelineDragScrollClock {
     mutating func reset() { lastTimestamp = nil }
     mutating func consume(at timestamp: TimeInterval) -> TimeInterval {
         guard timestamp.isFinite else { return 0 }
-        guard let last = lastTimestamp else { lastTimestamp = timestamp; return 0 }
+        guard let last = lastTimestamp else {
+            lastTimestamp = timestamp
+            return 0
+        }
         guard timestamp >= last else { return 0 }
         lastTimestamp = timestamp
         return min(0.08, timestamp - last)

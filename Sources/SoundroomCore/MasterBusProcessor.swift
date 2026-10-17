@@ -1,5 +1,5 @@
-import Foundation
 import Darwin
+import Foundation
 
 /// Latency-bearing output racks reserve a fixed look-ahead budget on the
 /// preparation worker. An empty or zero-latency rack adds no delay, preserving
@@ -23,50 +23,80 @@ final class MasterBusProcessor {
     private var fadePosition = 0
     private var scratchLeft = [Float](repeating: 0, count: 8192), scratchRight = [Float](repeating: 0, count: 8192)
     init(track: Track) {
-        self.track = track; lookAheadFrames = Self.lookAheadFrames(for: track); effects = track.realtimeEffects.map { EffectProcessor(effect: $0) }
+        self.track = track
+        lookAheadFrames = Self.lookAheadFrames(for: track)
+        effects = track.realtimeEffects.map { EffectProcessor(effect: $0) }
         chain = EffectTransitionChain(processors: effects)
         let padding = max(0, lookAheadFrames - track.realtimeEffects.reduce(0) { $0 + $1.latencyFrames })
-        delayLeft = [Float](repeating: 0, count: padding); delayRight = delayLeft.map { $0 }
+        delayLeft = [Float](repeating: 0, count: padding)
+        delayRight = delayLeft.map { $0 }
         gain = track.gain.isFinite ? track.gain : 1
         muteBlend = track.muted ? 0 : 1
-        volume = AutomationCursor(points: track.mixAutomation["volume"] ?? [], baseline: track.baseValue(for: .volume), valueScale: track.volumeAutomationScale ?? .linear)
+        volume = AutomationCursor(
+            points: track.mixAutomation["volume"] ?? [], baseline: track.baseValue(for: .volume),
+            valueScale: track.volumeAutomationScale ?? .linear)
         var downstreamLatency = padding
         for effect in effects.reversed() {
-            if effect.effect.kind == .pitchCorrection { effect.pitchMeterDelay = PitchMeterDelay(frames: downstreamLatency) }
+            if effect.effect.kind == .pitchCorrection {
+                effect.pitchMeterDelay = PitchMeterDelay(frames: downstreamLatency)
+            }
             downstreamLatency += effect.effect.latencyFrames
         }
     }
     static func layoutChanged(_ a: Track, _ b: Track) -> Bool {
-        a.realtimeEffects.map { "\($0.id).\($0.kind).\($0.latencyFrames)" } != b.realtimeEffects.map { "\($0.id).\($0.kind).\($0.latencyFrames)" }
+        a.realtimeEffects.map { "\($0.id).\($0.kind).\($0.latencyFrames)" }
+            != b.realtimeEffects.map { "\($0.id).\($0.kind).\($0.latencyFrames)" }
     }
-    func adopt(from old: MasterBusProcessor, aligned: Bool, smooth: Bool, discarded: inout [EffectState?], index: inout Int) {
+    func adopt(
+        from old: MasterBusProcessor, aligned: Bool, smooth: Bool, discarded: inout [EffectState?], index: inout Int
+    ) {
         if aligned {
             // Different look-ahead budgets must be switched by a prepared whole
             // transport graph, rather than feeding the old rack future audio.
-            if lookAheadFrames == old.lookAheadFrames { previous = old; fadePosition = 0 }
+            if lookAheadFrames == old.lookAheadFrames {
+                previous = old
+                fadePosition = 0
+            }
             return
         }
         for effect in effects {
-            if let prior = old.effects.first(where: { $0.effect.id == effect.effect.id && $0.effect.kind == effect.effect.kind }) {
-                discarded[index] = effect.state; effect.state = prior.state
+            if let prior = old.effects.first(where: {
+                $0.effect.id == effect.effect.id && $0.effect.kind == effect.effect.kind
+            }) {
+                discarded[index] = effect.state
+                effect.state = prior.state
                 if smooth { effect.prepareLiveTransition(from: prior) }
             }
             index += 1
         }
         // Transfer prepared ring ownership, not its storage, on the callback.
-        swap(&delayLeft, &old.delayLeft); swap(&delayRight, &old.delayRight); delayIndex = old.delayIndex
+        swap(&delayLeft, &old.delayLeft)
+        swap(&delayRight, &old.delayRight)
+        delayIndex = old.delayIndex
         if smooth {
-            gainRamp = LiveRamp(from: old.gain, to: gain); gain = old.gain
-            if muteBlend != old.muteBlend { muteRamp = LiveRamp(from: old.muteBlend, to: muteBlend); muteBlend = old.muteBlend }
+            gainRamp = LiveRamp(from: old.gain, to: gain)
+            gain = old.gain
+            if muteBlend != old.muteBlend {
+                muteRamp = LiveRamp(from: old.muteBlend, to: muteBlend)
+                muteBlend = old.muteBlend
+            }
             chain.prepareLiveTransition(from: old.chain)
         }
     }
-    func process(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, sourcePosition: Int, loopRange: Range<Int>?) {
+    func process(
+        left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, sourcePosition: Int,
+        loopRange: Range<Int>?
+    ) {
         if previous != nil && fadePosition < LiveRamp.frameCount {
-            scratchLeft.withUnsafeMutableBufferPointer { l in scratchRight.withUnsafeMutableBufferPointer { r in
-                l.baseAddress!.update(from: left, count: count); r.baseAddress!.update(from: right, count: count)
-                previous!.processOwn(left: l.baseAddress!, right: r.baseAddress!, count: count, sourcePosition: sourcePosition, loopRange: loopRange)
-            } }
+            scratchLeft.withUnsafeMutableBufferPointer { l in
+                scratchRight.withUnsafeMutableBufferPointer { r in
+                    l.baseAddress!.update(from: left, count: count)
+                    r.baseAddress!.update(from: right, count: count)
+                    previous!.processOwn(
+                        left: l.baseAddress!, right: r.baseAddress!, count: count, sourcePosition: sourcePosition,
+                        loopRange: loopRange)
+                }
+            }
         }
         processOwn(left: left, right: right, count: count, sourcePosition: sourcePosition, loopRange: loopRange)
         if previous != nil && fadePosition < LiveRamp.frameCount {
@@ -78,25 +108,44 @@ final class MasterBusProcessor {
             fadePosition += count
         }
     }
-    private func processOwn(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, sourcePosition: Int, loopRange: Range<Int>?) {
+    private func processOwn(
+        left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, sourcePosition: Int,
+        loopRange: Range<Int>?
+    ) {
         for i in 0..<count {
-            let frame = loopRange.map { $0.lowerBound + ((sourcePosition + i - $0.lowerBound) % $0.count + $0.count) % $0.count } ?? max(0, sourcePosition + i)
-            if volume.hasPoints { gain = TrackAutomationParameter.volume.physical(volume.value(at: frame)) }
-            else if gainRamp != nil { gain = gainRamp!.next(); if gainRamp!.completed { gainRamp = nil } }
-            left[i] *= gain; right[i] *= gain
+            let frame =
+                loopRange.map {
+                    $0.lowerBound + ((sourcePosition + i - $0.lowerBound) % $0.count + $0.count) % $0.count
+                } ?? max(0, sourcePosition + i)
+            if volume.hasPoints {
+                gain = TrackAutomationParameter.volume.physical(volume.value(at: frame))
+            } else if gainRamp != nil {
+                gain = gainRamp!.next()
+                if gainRamp!.completed { gainRamp = nil }
+            }
+            left[i] *= gain
+            right[i] *= gain
         }
         chain.process(left: left, right: right, count: count, position: sourcePosition, loopRange: loopRange)
         if !delayLeft.isEmpty {
             for i in 0..<count {
-                let l = delayLeft[delayIndex], r = delayRight[delayIndex]
-                delayLeft[delayIndex] = left[i]; delayRight[delayIndex] = right[i]
-                left[i] = l; right[i] = r; delayIndex = (delayIndex + 1) % delayLeft.count
+                let l = delayLeft[delayIndex]
+                let r = delayRight[delayIndex]
+                delayLeft[delayIndex] = left[i]
+                delayRight[delayIndex] = right[i]
+                left[i] = l
+                right[i] = r
+                delayIndex = (delayIndex + 1) % delayLeft.count
             }
         }
         // Mute controls the audible output, including already ringing tails.
         for i in 0..<count {
-            if muteRamp != nil { muteBlend = muteRamp!.next(); if muteRamp!.completed { muteRamp = nil } }
-            left[i] *= muteBlend; right[i] *= muteBlend
+            if muteRamp != nil {
+                muteBlend = muteRamp!.next()
+                if muteRamp!.completed { muteRamp = nil }
+            }
+            left[i] *= muteBlend
+            right[i] *= muteBlend
         }
     }
     /// Release a completed predecessor only on the preparation worker.
@@ -108,19 +157,27 @@ final class MasterBusProcessor {
     }
     func reserveCapacity(_ count: Int) {
         chain.reserveCapacity(frameCount: count)
-        if scratchLeft.count < count { scratchLeft = [Float](repeating: 0, count: count); scratchRight = scratchLeft.map { $0 } }
+        if scratchLeft.count < count {
+            scratchLeft = [Float](repeating: 0, count: count)
+            scratchRight = scratchLeft.map { $0 }
+        }
     }
     func deepCopy() -> MasterBusProcessor {
         let copy = MasterBusProcessor(track: track)
         for i in effects.indices { copy.effects[i].restoreSeek(effects[i].seekSnapshot()) }
-        copy.delayLeft = delayLeft.map { $0 }; copy.delayRight = delayRight.map { $0 }; copy.delayIndex = delayIndex; copy.gain = gain; copy.muteBlend = muteBlend
+        copy.delayLeft = delayLeft.map { $0 }
+        copy.delayRight = delayRight.map { $0 }
+        copy.delayIndex = delayIndex
+        copy.gain = gain
+        copy.muteBlend = muteBlend
         return copy
     }
     var storageBytes: Int {
         // Account for owned callback scratch and the transition chain's three
         // reserved work buffers, not just effect history and output padding.
         effects.reduce(0) { $0 + $1.state.seekStorageBytes + 128 }
-            + (delayLeft.count + delayRight.count + scratchLeft.count + scratchRight.count + 8192 * 3) * MemoryLayout<Float>.stride + 4096
+            + (delayLeft.count + delayRight.count + scratchLeft.count + scratchRight.count + 8192 * 3)
+            * MemoryLayout<Float>.stride + 4096
     }
 }
 
@@ -131,18 +188,30 @@ final class MasterBusRetirementMailbox {
     private var count = 0
     private let publishers = UnsafeMutablePointer<Int64>.allocate(capacity: 1)
     init() { publishers.initialize(to: 0) }
-    deinit { publishers.deinitialize(count: 1); publishers.deallocate() }
+    deinit {
+        publishers.deinitialize(count: 1)
+        publishers.deallocate()
+    }
     func beginPublishing() { OSAtomicIncrement64Barrier(publishers) }
     func endPublishing() { OSAtomicDecrement64Barrier(publishers) }
     func retire(_ value: AnyObject) -> Bool {
-        guard lock.try() else { return false }; defer { lock.unlock() }
+        guard lock.try() else { return false }
+        defer { lock.unlock() }
         guard count < values.count else { return false }
-        values[count] = value; count += 1; return true
+        values[count] = value
+        count += 1
+        return true
     }
     func releaseOnWorker() {
         lock.lock()
-        guard count > 0, OSAtomicAdd64Barrier(0, publishers) == 0 else { lock.unlock(); return }
-        let retired = values; values = [AnyObject?](repeating: nil, count: 64); count = 0
-        lock.unlock(); withExtendedLifetime(retired) {}
+        guard count > 0, OSAtomicAdd64Barrier(0, publishers) == 0 else {
+            lock.unlock()
+            return
+        }
+        let retired = values
+        values = [AnyObject?](repeating: nil, count: 64)
+        count = 0
+        lock.unlock()
+        withExtendedLifetime(retired) {}
     }
 }

@@ -57,7 +57,10 @@ pub fn spectrum(x: &[f32], start: usize, n: usize) -> Vec<f64> {
 pub fn band_noise(frames: usize, rate: f64, lo: f64, hi: f64, seed: u64) -> Vec<f32> {
     let n = frames.max(2).next_power_of_two();
     let (mut re, mut im) = (vec![0.; n], vec![0.; n]);
-    let mut state = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407) | 1;
+    let mut state = seed
+        .wrapping_mul(6364136223846793005)
+        .wrapping_add(1442695040888963407)
+        | 1;
     let mut next = || {
         state ^= state << 13;
         state ^= state >> 7;
@@ -87,7 +90,9 @@ mod tests {
     use super::*;
     #[test]
     fn spectrum_reads_sine_amplitude_and_band_noise_is_unit_rms_in_band() {
-        let x: Vec<f32> = (0..4096).map(|i| (0.5 * (2. * PI * 1000. * i as f64 / 48000.).sin()) as f32).collect();
+        let x: Vec<f32> = (0..4096)
+            .map(|i| (0.5 * (2. * PI * 1000. * i as f64 / 48000.).sin()) as f32)
+            .collect();
         let s = spectrum(&x, 0, 4096);
         let k = (1000_f64 / (48000. / 4096.)).round() as usize;
         let top = s[k - 1..=k + 1].iter().cloned().fold(0., f64::max);
@@ -96,7 +101,15 @@ mod tests {
         let rms = (noise.iter().map(|v| (*v as f64).powi(2)).sum::<f64>() / 48000.).sqrt();
         assert!((rms - 1.).abs() < 0.05, "{rms}");
         let s = spectrum(&noise, 0, 8192);
-        let energy = |lo: f64, hi: f64| (0..s.len()).filter(|&k| { let hz = k as f64 * 48000. / 8192.; hz >= lo && hz < hi }).map(|k| s[k] * s[k]).sum::<f64>();
+        let energy = |lo: f64, hi: f64| {
+            (0..s.len())
+                .filter(|&k| {
+                    let hz = k as f64 * 48000. / 8192.;
+                    hz >= lo && hz < hi
+                })
+                .map(|k| s[k] * s[k])
+                .sum::<f64>()
+        };
         assert!(energy(2000., 4000.) > 1000. * energy(5000., 20000.));
     }
 }

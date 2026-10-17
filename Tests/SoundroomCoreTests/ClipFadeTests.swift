@@ -1,11 +1,14 @@
 import XCTest
+
 @testable import SoundroomCore
 
 final class ClipFadeTests: XCTestCase {
     private func fixture() -> (Session, UUID, [UUID: AudioSamples]) {
-        var session = Session(); let asset = UUID()
+        var session = Session()
+        let asset = UUID()
         var clip = Clip(assetID: asset, name: "Faded", start: 10, length: 100, edgeFadeFrames: 0)
-        clip.fadeInFrames = 70; clip.fadeOutFrames = 50
+        clip.fadeInFrames = 70
+        clip.fadeOutFrames = 50
         session.tracks[0].clips = [clip]
         return (session, session.tracks[0].id, [asset: AudioSamples(channels: [Array(repeating: 1, count: 100)])])
     }
@@ -38,7 +41,9 @@ final class ClipFadeTests: XCTestCase {
         var (session, track, _) = fixture()
         var fragment = session.fragments(trackID: track, range: 25..<95)[0]
         XCTAssertGreaterThan(fragment.fadeGain(at: 0), 0)
-        fragment.resetFadeEnvelope(); fragment.fadeInFrames = 10; fragment.fadeOutFrames = 10
+        fragment.resetFadeEnvelope()
+        fragment.fadeInFrames = 10
+        fragment.fadeOutFrames = 10
         XCTAssertEqual(fragment.fadeGain(at: 0), 0)
         XCTAssertEqual(fragment.fadeGain(at: fragment.length - 1), 0)
         XCTAssertEqual(fragment.fadeGain(at: 35), 1)

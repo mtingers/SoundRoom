@@ -371,7 +371,10 @@ fn project_replacement_preserves_audio_history_and_unused_sources() {
     opened.save(&target, true).unwrap();
     let restored = Project::open(&target).unwrap();
     assert_eq!(restored.session, opened.session);
-    assert_eq!(std::fs::read(&restored.media.values().next().unwrap().path).unwrap(), audio);
+    assert_eq!(
+        std::fs::read(&restored.media.values().next().unwrap().path).unwrap(),
+        audio
+    );
     assert_eq!(std::fs::read(&unused).unwrap(), audio);
     // A second save must keep working when source paths name the destination.
     opened.session.tracks[0].gain = 0.5;
@@ -404,12 +407,18 @@ fn project_replacement_rejects_links_and_nonproject_destinations() {
     let target = directory.join("Link.soundroom");
     std::os::unix::fs::symlink(fixture("modern-echo"), &target).unwrap();
     assert!(source.save(&target, true).is_err());
-    assert!(std::fs::symlink_metadata(&target).unwrap().file_type().is_symlink());
+    assert!(std::fs::symlink_metadata(&target)
+        .unwrap()
+        .file_type()
+        .is_symlink());
     let unrelated = directory.join("Unrelated.soundroom");
     std::fs::create_dir(&unrelated).unwrap();
     std::fs::write(unrelated.join("keep.txt"), "keep me").unwrap();
     assert!(source.save(&unrelated, true).is_err());
-    assert_eq!(std::fs::read_to_string(unrelated.join("keep.txt")).unwrap(), "keep me");
+    assert_eq!(
+        std::fs::read_to_string(unrelated.join("keep.txt")).unwrap(),
+        "keep me"
+    );
     std::fs::remove_dir_all(directory).unwrap();
 }
 #[test]

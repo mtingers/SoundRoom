@@ -20,8 +20,12 @@ public enum TrackAutomationParameter: String, CaseIterable, Identifiable, Sendab
 }
 
 public extension Track {
-    func baseValue(for parameter: TrackAutomationParameter) -> Float { parameter.normalized(parameter == .volume ? gain : pan) }
+    func baseValue(for parameter: TrackAutomationParameter) -> Float {
+        parameter.normalized(parameter == .volume ? gain : pan)
+    }
     func value(at frame: Int, parameter: TrackAutomationParameter) -> Float {
-        AutomationInterpolation.value(mixAutomation[parameter.rawValue] ?? [], at: frame, baseline: baseValue(for: parameter), scale: parameter == .volume ? (volumeAutomationScale ?? .linear) : .linear)
+        AutomationInterpolation.value(
+            mixAutomation[parameter.rawValue] ?? [], at: frame, baseline: baseValue(for: parameter),
+            scale: parameter == .volume ? (volumeAutomationScale ?? .linear) : .linear)
     }
 }

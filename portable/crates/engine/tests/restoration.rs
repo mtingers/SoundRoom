@@ -501,7 +501,8 @@ fn professional_inserts_are_finite_partition_invariant_and_allocation_free() {
                 "ampDrive":[{"frame":0,"value":0.2},{"frame":12000,"value":0.9}],
                 "mic":[{"frame":0,"value":0.1},{"frame":24000,"value":0.9}],
                 "cabinet":[{"frame":0,"value":0.25},{"frame":18000,"value":1.0}]
-            })).unwrap();
+            }))
+            .unwrap();
         }
         f.project.session.tracks[0].realtime_effects.push(e);
         let expected = render(&f.project);
@@ -593,21 +594,38 @@ fn utility_export_tail_preserves_exact_integer_sample_delays() {
 
 #[test]
 fn guitar_rig_callback_timing_fixture() {
-    for (name, amp, pedal, modulation) in [("clean", 1., 0., 0.), ("high-gain", 4., 1., 0.), ("chorus-delay-room", 2., 1., 1.)] {
+    for (name, amp, pedal, modulation) in [
+        ("clean", 1., 0., 0.),
+        ("high-gain", 4., 1., 0.),
+        ("chorus-delay-room", 2., 1., 1.),
+    ] {
         let mut fixture = Fixture::new();
         let mut effect = insert("guitarRig", 71);
         effect.parameters.insert("amp".into(), amp);
         effect.parameters.insert("pedal".into(), pedal);
         effect.parameters.insert("modulation".into(), modulation);
-        if modulation > 0. { effect.parameters.insert("delayMix".into(), 0.3); }
+        if modulation > 0. {
+            effect.parameters.insert("delayMix".into(), 0.3);
+        }
         fixture.project.session.tracks[0].realtime_effects = vec![effect];
-        let mut graph = PreparedGraph::prepare_resident_loop(&fixture.project, 32 * 1024 * 1024, &CANCEL, LoopRange::new(0, FRAMES as u64).unwrap()).unwrap();
+        let mut graph = PreparedGraph::prepare_resident_loop(
+            &fixture.project,
+            32 * 1024 * 1024,
+            &CANCEL,
+            LoopRange::new(0, FRAMES as u64).unwrap(),
+        )
+        .unwrap();
         let (mut left, mut right) = ([0.; 128], [0.; 128]);
-        for _ in 0..100 { graph.render_callback(&mut left, &mut right); }
+        for _ in 0..100 {
+            graph.render_callback(&mut left, &mut right);
+        }
         let mut timings = Vec::with_capacity(2000);
         for _ in 0..2000 {
             let start = std::time::Instant::now();
-            assert_eq!(graph.render_callback(&mut left, &mut right), CallbackStatus::Rendered);
+            assert_eq!(
+                graph.render_callback(&mut left, &mut right),
+                CallbackStatus::Rendered
+            );
             timings.push(start.elapsed().as_secs_f64() * 1000.);
             assert!(left.iter().chain(&right).all(|v| v.is_finite()));
         }

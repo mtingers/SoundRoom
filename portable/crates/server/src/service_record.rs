@@ -143,7 +143,11 @@ impl MonitorState {
             return;
         }
         let queued = self.monitor.writer.queued() as f64;
-        self.fill = if self.fill < 0. { queued } else { self.fill + 0.05 * (queued - self.fill) };
+        self.fill = if self.fill < 0. {
+            queued
+        } else {
+            self.fill + 0.05 * (queued - self.fill)
+        };
         let target = (frames as f64 / self.nominal * 1.5).max(256.);
         let error = (self.fill - target) / soundroom_engine::preview::RING as f64;
         self.step = self.nominal * (1. + (error * 0.02).clamp(-0.002, 0.002));
@@ -243,7 +247,9 @@ pub(super) fn start(
     owner: Identity,
     stop: Arc<AtomicBool>,
 ) -> Result<Active, Error> {
-    if stop.load(Ordering::Acquire) { return Err(protocol("Recording startup was stopped")); }
+    if stop.load(Ordering::Acquire) {
+        return Err(protocol("Recording startup was stopped"));
+    }
     let monitoring = plan.monitor.as_ref().map(|m| m.enabled.clone());
     let punched = Arc::new(AtomicBool::new(false));
     let punch_flag = punched.clone();
@@ -288,7 +294,9 @@ fn capture(
     punched: Arc<AtomicBool>,
     ready: &std::sync::mpsc::SyncSender<Result<(), String>>,
 ) -> Result<Captured, Error> {
-    if stop.load(Ordering::Acquire) { return Err(protocol("Recording startup was stopped")); }
+    if stop.load(Ordering::Acquire) {
+        return Err(protocol("Recording startup was stopped"));
+    }
     let take_id = new_id()?.to_ascii_uppercase();
     // The archive's private-directory walk rejects symlinked components
     // (e.g. macOS /var -> /private/var), so resolve the parent first.
@@ -338,7 +346,9 @@ fn capture(
         .collect::<Result<Vec<_>, Error>>()?;
     #[cfg(target_os = "macos")]
     let mut native = None;
-    if stop.load(Ordering::Acquire) { return Err(protocol("Recording startup was stopped")); }
+    if stop.load(Ordering::Acquire) {
+        return Err(protocol("Recording startup was stopped"));
+    }
     match &plan.device {
         #[cfg(target_os = "macos")]
         Device::Native { uid, .. } => {
@@ -589,15 +599,30 @@ impl Service {
     /// input clock; mixed-device capture requires a future aggregate adapter.
     pub(super) fn recording_device(&self) -> Result<Device, Error> {
         if let Some(slot) = &self.simulated_input {
-            selected_input_uid(&self.authority.session, self.input_uid.as_deref(), Some(SIMULATED_UID), &[(SIMULATED_UID.to_owned(), 1)])?;
+            selected_input_uid(
+                &self.authority.session,
+                self.input_uid.as_deref(),
+                Some(SIMULATED_UID),
+                &[(SIMULATED_UID.to_owned(), 1)],
+            )?;
             return Ok(Device::Simulated(slot.clone()));
         }
         #[cfg(target_os = "macos")]
         {
             let devices = soundroom_engine::core_audio::core_audio_devices().map_err(engine)?;
-            let available = devices.iter().map(|device| (device.uid.clone(), device.input_channels as usize)).collect::<Vec<_>>();
-            let uid = selected_input_uid(&self.authority.session, self.input_uid.as_deref(),
-                devices.iter().find(|device| device.is_default_input).map(|device| device.uid.as_str()), &available)?;
+            let available = devices
+                .iter()
+                .map(|device| (device.uid.clone(), device.input_channels as usize))
+                .collect::<Vec<_>>();
+            let uid = selected_input_uid(
+                &self.authority.session,
+                self.input_uid.as_deref(),
+                devices
+                    .iter()
+                    .find(|device| device.is_default_input)
+                    .map(|device| device.uid.as_str()),
+                &available,
+            )?;
             let device = devices
                 .iter()
                 .find(|d| d.uid == uid)
@@ -876,29 +901,69 @@ mod monitor_tests {
         use soundroom_engine::model::{Session, Track};
         let available = vec![("default".into(), 1), ("interface".into(), 4)];
         let mut session = Session::default();
-        let mut track = Track { id: new_id().unwrap(), armed: true, ..Track::default() };
-        track.extra.insert("inputDeviceUID".into(), serde_json::json!("interface"));
-        track.extra.insert("inputChannel".into(), serde_json::json!(2));
-        track.extra.insert("stereoInput".into(), serde_json::json!(true));
+        let mut track = Track {
+            id: new_id().unwrap(),
+            armed: true,
+            ..Track::default()
+        };
+        track
+            .extra
+            .insert("inputDeviceUID".into(), serde_json::json!("interface"));
+        track
+            .extra
+            .insert("inputChannel".into(), serde_json::json!(2));
+        track
+            .extra
+            .insert("stereoInput".into(), serde_json::json!(true));
         session.tracks.push(track);
-        assert_eq!(selected_input_uid(&session, Some("default"), Some("default"), &available).unwrap(), "interface");
-        session.tracks[0].extra.insert("inputDeviceUID".into(), serde_json::json!("missing"));
-        assert!(selected_input_uid(&session, Some("default"), Some("default"), &available).is_err());
-        session.tracks[0].extra.insert("inputDeviceUID".into(), serde_json::json!("interface"));
-        session.tracks.push(Track { id: new_id().unwrap(), armed: true, ..Track::default() });
-        assert!(selected_input_uid(&session, Some("default"), Some("default"), &available).is_err());
-        assert_eq!(selected_input_uid(&session, Some("interface"), Some("default"), &available).unwrap(), "interface");
-        session.tracks[0].extra.insert("inputChannel".into(), serde_json::json!(3));
-        assert!(selected_input_uid(&session, Some("interface"), Some("default"), &available).is_err());
-        session.tracks[0].extra.insert("inputChannel".into(), serde_json::json!(-1));
-        assert!(selected_input_uid(&session, Some("interface"), Some("default"), &available).is_err());
+        assert_eq!(
+            selected_input_uid(&session, Some("default"), Some("default"), &available).unwrap(),
+            "interface"
+        );
+        session.tracks[0]
+            .extra
+            .insert("inputDeviceUID".into(), serde_json::json!("missing"));
+        assert!(
+            selected_input_uid(&session, Some("default"), Some("default"), &available).is_err()
+        );
+        session.tracks[0]
+            .extra
+            .insert("inputDeviceUID".into(), serde_json::json!("interface"));
+        session.tracks.push(Track {
+            id: new_id().unwrap(),
+            armed: true,
+            ..Track::default()
+        });
+        assert!(
+            selected_input_uid(&session, Some("default"), Some("default"), &available).is_err()
+        );
+        assert_eq!(
+            selected_input_uid(&session, Some("interface"), Some("default"), &available).unwrap(),
+            "interface"
+        );
+        session.tracks[0]
+            .extra
+            .insert("inputChannel".into(), serde_json::json!(3));
+        assert!(
+            selected_input_uid(&session, Some("interface"), Some("default"), &available).is_err()
+        );
+        session.tracks[0]
+            .extra
+            .insert("inputChannel".into(), serde_json::json!(-1));
+        assert!(
+            selected_input_uid(&session, Some("interface"), Some("default"), &available).is_err()
+        );
     }
     #[test]
     fn recording_stop_is_published_before_a_blocked_archive_finishes() {
         for fail in [false, true] {
             let (root, shared, mut owner, _) = super::super::publication_tests::control_fixture(0);
-            let credential = shared.lock().unwrap().registry
-                .issue("Operator", soundroom_client::models::RemoteRole::Operator).unwrap();
+            let credential = shared
+                .lock()
+                .unwrap()
+                .registry
+                .issue("Operator", soundroom_client::models::RemoteRole::Operator)
+                .unwrap();
             owner.credential = credential["credentialID"].as_str().unwrap().into();
             owner.name = "Operator".into();
             owner.role = soundroom_client::models::RemoteRole::Operator;
@@ -913,7 +978,11 @@ mod monitor_tests {
                 }
             });
             let (out, inbox) = super::super::Outbox::pair(shared.lock().unwrap().global.clone());
-            shared.lock().unwrap().join(owner.clone(), out.clone()).unwrap();
+            shared
+                .lock()
+                .unwrap()
+                .join(owner.clone(), out.clone())
+                .unwrap();
             let (release, receipt) = sync_channel(1);
             let stop = Arc::new(AtomicBool::new(false));
             let monitoring = Arc::new(AtomicBool::new(true));
@@ -927,10 +996,16 @@ mod monitor_tests {
             };
             shared.lock().unwrap().recording = Some(active);
             let request_id = new_id().unwrap();
-            Service::dispatch(&shared, &owner, &out, serde_json::json!({
-                "version":3,"kind":"request","id":request_id,"clientID":owner.runtime,
-                "expectedTrackRevisions":{},"command":{"type":"stop"}
-            })).unwrap();
+            Service::dispatch(
+                &shared,
+                &owner,
+                &out,
+                serde_json::json!({
+                    "version":3,"kind":"request","id":request_id,"clientID":owner.runtime,
+                    "expectedTrackRevisions":{},"command":{"type":"stop"}
+                }),
+            )
+            .unwrap();
             assert!(
                 stop.load(Ordering::Acquire),
                 "Admission must signal capture immediately"
@@ -959,7 +1034,10 @@ mod monitor_tests {
             }
             assert!(
                 shared.lock().unwrap().pending.contains_key(&(
-                    owner.credential.clone(), owner.runtime.clone(), request_id.clone())),
+                    owner.credential.clone(),
+                    owner.runtime.clone(),
+                    request_id.clone()
+                )),
                 "Stop must be visible while archive receipt is blocked"
             );
             {
@@ -981,8 +1059,10 @@ mod monitor_tests {
                 .unwrap();
             let deadline = Instant::now() + Duration::from_secs(2);
             let reply = loop {
-                let bytes = inbox.priority
-                    .recv_timeout(deadline.saturating_duration_since(Instant::now())).unwrap();
+                let bytes = inbox
+                    .priority
+                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+                    .unwrap();
                 inbox.received(bytes.len());
                 let value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
                 if value["kind"] == "reply" && value["requestID"] == request_id {
@@ -1009,7 +1089,11 @@ mod monitor_tests {
                 Monitor {
                     writer: control.monitor_writer().unwrap(),
                     enabled: Arc::new(AtomicBool::new(true)),
-                    routes: vec![MonitorRoute { channels: vec![0], gain: 1., pan: 0. }],
+                    routes: vec![MonitorRoute {
+                        channels: vec![0],
+                        gain: 1.,
+                        pan: 0.,
+                    }],
                 },
                 44_100,
             );

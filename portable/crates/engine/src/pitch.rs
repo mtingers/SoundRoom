@@ -276,7 +276,10 @@ impl Regions {
         Some((self.lanes[span.region].value(frame) * 95., blend))
     }
 }
-pub(crate) fn insert_boundary(mut points: Vec<AutomationPoint>, frame: u64) -> Vec<AutomationPoint> {
+pub(crate) fn insert_boundary(
+    mut points: Vec<AutomationPoint>,
+    frame: u64,
+) -> Vec<AutomationPoint> {
     points.sort_by_key(|p| p.frame);
     if points.iter().any(|p| p.frame == frame) {
         return points;

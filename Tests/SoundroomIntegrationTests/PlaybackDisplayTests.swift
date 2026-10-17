@@ -1,13 +1,19 @@
-import XCTest
 import Combine
 import SoundroomCore
+import XCTest
+
 @testable import Soundroom
 
 final class PlaybackDisplayTests: XCTestCase {
     @MainActor func testDemoSizedTransportDoesNotInvalidateDocumentOrMeterObservers() {
-        let store = SessionStore(), asset = UUID()
-        store.session.tracks[0].clips = [Clip(assetID: asset, name: "Long take", start: 0, length: Int(sessionRate * 136))]
-        var editorChanges = 0, positionChanges = 0, meterChanges = 0
+        let store = SessionStore()
+        let asset = UUID()
+        store.session.tracks[0].clips = [
+            Clip(assetID: asset, name: "Long take", start: 0, length: Int(sessionRate * 136))
+        ]
+        var editorChanges = 0
+        var positionChanges = 0
+        var meterChanges = 0
         let editor = store.objectWillChange.sink { editorChanges += 1 }
         let position = store.playbackPosition.objectWillChange.sink { positionChanges += 1 }
         let meter = store.playbackLevel.objectWillChange.sink { meterChanges += 1 }
@@ -27,13 +33,17 @@ final class PlaybackDisplayTests: XCTestCase {
         let store = SessionStore()
         var positions: [Int] = []
         let observation = store.playbackPosition.$frame.sink { positions.append($0) }
-        store.playhead = 24_000; store.playhead = 24_000
-        store.playhead = 48_000; store.playhead = 100 // Loop wrap.
-        store.playhead = 12_345 // Stopped seek, sample precision retained.
+        store.playhead = 24_000
+        store.playhead = 24_000
+        store.playhead = 48_000
+        store.playhead = 100  // Loop wrap.
+        store.playhead = 12_345  // Stopped seek, sample precision retained.
         XCTAssertEqual(positions, [0, 24_000, 48_000, 100, 12_345])
         XCTAssertEqual(store.playhead, 12_345)
-        store.meter = .nan; XCTAssertEqual(store.meter, 0)
-        store.meter = 1.2; XCTAssertEqual(store.meter, 1.2, "Keep over-range peaks for the clipping indicator")
+        store.meter = .nan
+        XCTAssertEqual(store.meter, 0)
+        store.meter = 1.2
+        XCTAssertEqual(store.meter, 1.2, "Keep over-range peaks for the clipping indicator")
         withExtendedLifetime(observation) {}
     }
     @MainActor func testRecordingAndTailTimelineGrowthIsBoundedAndStillRevealsCursor() {
@@ -52,8 +62,10 @@ final class PlaybackDisplayTests: XCTestCase {
         withExtendedLifetime(observation) {}
     }
     @MainActor func testAutomationReadoutsUseLivePositionIncludingBackwardSeek() {
-        let store = SessionStore(), id = store.session.tracks[0].id
-        store.selectedTrack = id; store.automationTarget = .pan
+        let store = SessionStore()
+        let id = store.session.tracks[0].id
+        store.selectedTrack = id
+        store.automationTarget = .pan
         store.session.tracks[0].mixAutomation["pan"] = [.init(frame: 0, value: 0), .init(frame: 48_000, value: 1)]
         store.playhead = 24_000
         XCTAssertEqual(store.automationValueAtPlayhead, 0.5, accuracy: 0.0001)

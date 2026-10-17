@@ -4,6 +4,33 @@ invent a project schema. Domain constraints supplement these structural descript
 """
 import re
 
+def logical_lines(text):
+    """Join wrapped Swift declarations without merging adjacent statements.
+
+    Field initializers and enum associated values can span lines after formatting.
+    Ignore quoted strings/comments when measuring delimiter depth.
+    """
+    current = []
+    depth = 0
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith('//'):
+            continue
+        current.append(line)
+        code = re.sub(
+            r'"(?:\\.|[^"\\])*"|//.*',
+            lambda match: '""' if match[0].startswith('"') else '',
+            line,
+        )
+        depth += sum(code.count(c) for c in '([') - sum(code.count(c) for c in ')]')
+        if depth > 0 or code.rstrip().endswith((',', '=')):
+            continue
+        yield ' '.join(current)
+        current = []
+        depth = 0
+    if current:
+        yield ' '.join(current)
+
 def split_top(text, delimiter=','):
     out=[]; start=0; depth=0; quoted=False; escaped=False
     for i,c in enumerate(text):
@@ -46,9 +73,9 @@ def enum_declarations(paths):
     declarations={}
     for path in paths:
         text=path.read_text()
-        for match in re.finditer(r'public enum (\w+):([^\n{]*String[^\n{]*Codable[^\n{]*)\{',text):
+        for match in re.finditer(r'public enum (\w+):([^{]*String[^{]*Codable[^{]*)\{',text):
             entries=[]; depth=0
-            for line in body_at(text,match.end()).splitlines():
+            for line in logical_lines(body_at(text,match.end())):
                 case=re.match(r'\s*case (.*)',line) if depth==0 else None
                 depth+=line.count('{')-line.count('}')
                 if not case: continue
@@ -57,7 +84,7 @@ def enum_declarations(paths):
                     if not value: raise ValueError('Unsupported enum case '+match[1]+'.'+item)
                     entries.append({'identifier':value[1], 'value':value[2] if value[2] is not None else value[1].strip('`')})
             scopes=[]
-            for container in re.finditer(r'public (?:struct|enum) (\w+)[^\n{]*\{',text[:match.start()]):
+            for container in re.finditer(r'public (?:struct|enum) (\w+)[^{]*\{',text[:match.start()]):
                 if container.end()+len(body_at(text,container.end()))>=match.end(): scopes.append(container[1])
             if match[1] in declarations: raise ValueError('Ambiguous enum model '+match[1])
             declarations[match[1]]={'entries':entries,'iterable':'CaseIterable' in match[2], 'nativeName':'.'.join(scopes+[match[1]])}
@@ -67,11 +94,12 @@ def extract(paths):
     records={}; enums={name:[case['value'] for case in declaration['entries']] for name,declaration in enum_declarations(paths).items()}
     for path in paths:
         text=path.read_text()
-        for match in re.finditer(r'public struct (\w+):[^\n{]*Codable[^\n{]*\{',text):
+        for match in re.finditer(r'public struct (\w+):[^{]*Codable[^{]*\{',text):
             body=body_at(text,match.end()); fields=[]
             custom='init(from decoder:' in body
-            required=set(re.findall(r'\.decode\([^\n;]*?forKey:\s*\.(\w+)',body)) if custom else None
-            for line in body.splitlines():
+            logical_body='\n'.join(logical_lines(body))
+            required=set(re.findall(r'\.decode\([^\n;]*?forKey:\s*\.(\w+)',logical_body)) if custom else None
+            for line in logical_lines(body):
                 m=re.match(r'\s*public (?:var|let) (.*)',line)
                 if not m: continue
                 declaration=m[1].split(' //',1)[0]
@@ -87,10 +115,10 @@ def extract(paths):
                         fields.append({'name':field_name,'type':typ.rstrip('?'),'optional':typ.endswith('?'),'required':field_name in required if custom else not typ.endswith('?')})
                     pending=[]
                 if pending: raise ValueError('Missing field type '+declaration)
-            coding_match=re.search(r'enum CodingKeys:[^\n{]*CodingKey[^\n{]*\{',body)
+            coding_match=re.search(r'enum CodingKeys:[^{]*CodingKey[^{]*\{',body)
             if coding_match:
                 coding_body=body_at(body,coding_match.end()); mapping={}
-                for line in coding_body.splitlines():
+                for line in logical_lines(coding_body):
                     case=re.match(r'\s*case (.*)',line)
                     if not case: continue
                     for item in split_top(case[1]):

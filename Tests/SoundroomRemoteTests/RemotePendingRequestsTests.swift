@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+
 @testable import SoundroomRemote
 
 final class RemotePendingRequestsTests: XCTestCase {
@@ -10,10 +11,12 @@ final class RemotePendingRequestsTests: XCTestCase {
             try pending.insert(index, for: UUID(), command: .ping(clientTime: 0))
         }
         assertFull { try pending.insert(-1, for: UUID(), command: .play(trackOnly: nil)) }
-        let interrupts: [RemoteCommand] = [.stop, .editor(.init(operation: "transport.pause")),
+        let interrupts: [RemoteCommand] = [
+            .stop, .editor(.init(operation: "transport.pause")),
             .editor(.init(operation: "designer.noteOff")), .editor(.init(operation: "designer.allNotesOff")),
             .editor(.init(operation: "jobs.cancel")), .editor(.init(operation: "audition.stop")),
-            .editor(.init(operation: "drums.stop")), .editor(.init(operation: "transport.finishRecording"))]
+            .editor(.init(operation: "drums.stop")), .editor(.init(operation: "transport.finishRecording")),
+        ]
         XCTAssertEqual(interrupts.count, RemoteProtocol.reservedPendingInterruptRequests)
         for (index, command) in interrupts.enumerated() {
             try pending.insert(index, for: UUID(), command: command)
@@ -41,14 +44,17 @@ final class RemotePendingRequestsTests: XCTestCase {
             XCTAssertNotNil(pending.removeValue(forKey: id))
         }
         try pending.insert(100, for: UUID(), command: .ping(clientTime: 0))
-        XCTAssertEqual(pending.count, RemoteProtocol.maximumPendingRequests - RemoteProtocol.reservedPendingInterruptRequests)
+        XCTAssertEqual(
+            pending.count, RemoteProtocol.maximumPendingRequests - RemoteProtocol.reservedPendingInterruptRequests)
         assertFull { try pending.insert(-1, for: UUID(), command: .ping(clientTime: 0)) }
         try pending.insert(101, for: UUID(), command: .stop)
     }
 
     func testDisconnectDrainsEveryContinuationExactlyOnceAndAllowsReconnect() throws {
         var pending = RemotePendingRequests<Int>()
-        for index in 0..<RemoteProtocol.maximumPendingRequests { try pending.insert(index, for: UUID(), command: .stop) }
+        for index in 0..<RemoteProtocol.maximumPendingRequests {
+            try pending.insert(index, for: UUID(), command: .stop)
+        }
         XCTAssertEqual(Set(pending.removeAll()), Set(0..<RemoteProtocol.maximumPendingRequests))
         XCTAssertEqual(pending.count, 0)
         XCTAssertTrue(pending.removeAll().isEmpty)

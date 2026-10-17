@@ -10,7 +10,11 @@ struct ManualPitchEditing: Equatable {
 
     mutating func load(frames: Int, contour: [PitchContourPoint], reference: Float) {
         self.frames = max(0, frames)
-        if self.frames == 0 { region = 0..<0; hasVoicedRegion = false; return }
+        if self.frames == 0 {
+            region = 0..<0
+            hasVoicedRegion = false
+            return
+        }
         select(0..<self.frames, contour: contour, reference: reference)
     }
     mutating func select(_ proposed: Range<Int>, contour: [PitchContourPoint], reference: Float) {
@@ -36,7 +40,9 @@ struct ManualPitchEditing: Equatable {
         return result
     }
     func timelineRange(selection: Range<Int>) -> Range<Int>? {
-        guard frames == selection.count, region.lowerBound >= 0, region.upperBound <= frames, !region.isEmpty else { return nil }
+        guard frames == selection.count, region.lowerBound >= 0, region.upperBound <= frames, !region.isEmpty else {
+            return nil
+        }
         return (selection.lowerBound + region.lowerBound)..<(selection.lowerBound + region.upperBound)
     }
 }
@@ -56,12 +62,14 @@ struct PitchChartViewport: Equatable {
         if let extraNote, extraNote.isFinite { notes.append(extraNote) }
         let middle = ((notes.min() ?? 69) + (notes.max() ?? 69)) / 2
         let span = max(8, (notes.max() ?? 69) - (notes.min() ?? 69) + 4)
-        originalLower = floor(middle - span / 2); originalUpper = ceil(middle + span / 2)
+        originalLower = floor(middle - span / 2)
+        originalUpper = ceil(middle + span / 2)
         reset()
     }
     mutating func reset() {
         frameRange = 0..<max(1, fullFrames)
-        pitchLower = originalLower; pitchUpper = originalUpper
+        pitchLower = originalLower
+        pitchUpper = originalUpper
     }
     mutating func zoomTime(_ factor: Double, around anchor: Int? = nil) {
         guard factor.isFinite, factor > 0 else { return }
@@ -79,11 +87,13 @@ struct PitchChartViewport: Equatable {
         guard factor.isFinite, factor > 0 else { return }
         let middle = anchor.flatMap { $0.isFinite ? $0 : nil } ?? (pitchLower + pitchUpper) / 2
         let span = max(2, min(72, (pitchUpper - pitchLower) / factor))
-        pitchLower = middle - span / 2; pitchUpper = middle + span / 2
+        pitchLower = middle - span / 2
+        pitchUpper = middle + span / 2
     }
     mutating func panPitch(_ semitones: Float) {
         let delta = max(-24 - pitchLower, min(127 - pitchUpper, semitones))
-        pitchLower += delta; pitchUpper += delta
+        pitchLower += delta
+        pitchUpper += delta
     }
     func frame(at fraction: Double) -> Int {
         guard fraction.isFinite else { return frameRange.lowerBound }
@@ -98,8 +108,14 @@ struct PitchChartViewport: Equatable {
 extension SessionStore {
     /// Local manual parameters never change the automatic whole-selection effect.
     /// The same history/Undo path as Apply replaces only this timeline region.
-    func applyManualPitchTune(trackID: UUID, selectionRange: Range<Int>, region: Range<Int>, target: Int, parameters: [String: Float]) {
-        _ = remoteRoute("pitch.manualApply", integers: ["selectionStart": selectionRange.lowerBound, "selectionEnd": selectionRange.upperBound,
-            "start": region.lowerBound, "end": region.upperBound, "target": target], strings: ["trackID": trackID.uuidString], payload: try? JSONEncoder().encode(parameters))
+    func applyManualPitchTune(
+        trackID: UUID, selectionRange: Range<Int>, region: Range<Int>, target: Int, parameters: [String: Float]
+    ) {
+        _ = remoteRoute(
+            "pitch.manualApply",
+            integers: [
+                "selectionStart": selectionRange.lowerBound, "selectionEnd": selectionRange.upperBound,
+                "start": region.lowerBound, "end": region.upperBound, "target": target,
+            ], strings: ["trackID": trackID.uuidString], payload: try? JSONEncoder().encode(parameters))
     }
 }

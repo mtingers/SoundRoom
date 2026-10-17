@@ -1,5 +1,5 @@
-import Foundation
 import CoreAudio
+import Foundation
 
 struct AudioDevice: Identifiable, Hashable {
     let id: AudioDeviceID
@@ -11,6 +11,8 @@ struct AudioDevice: Identifiable, Hashable {
 
 enum SoundroomError: LocalizedError {
     case message(String)
-    var errorDescription: String? { if case let .message(s) = self { return s }; return nil }
+    var errorDescription: String? {
+        if case let .message(s) = self { return s }
+        return nil
+    }
 }
-

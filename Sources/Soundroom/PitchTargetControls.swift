@@ -16,10 +16,15 @@ struct PitchTargetControls: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 3), count: 6), spacing: 3) {
                 ForEach(names.indices, id: \.self) { note in
                     let enabled = mask & (1 << note) != 0
-                    Button { onChange(mask ^ (1 << note)) } label: {
+                    Button {
+                        onChange(mask ^ (1 << note))
+                    } label: {
                         Text(names[note]).font(.system(size: 11, weight: .semibold))
                             .frame(maxWidth: .infinity, minHeight: 24)
-                            .background(enabled ? Color.accentColor.opacity(0.85) : Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 4))
+                            .background(
+                                enabled ? Color.accentColor.opacity(0.85) : Color.white.opacity(0.06),
+                                in: RoundedRectangle(cornerRadius: 4)
+                            )
                             .foregroundStyle(enabled ? Color.white : Color.secondary)
                     }.buttonStyle(.plain)
                         .accessibilityLabel("Target note \(names[note])")

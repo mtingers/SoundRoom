@@ -26,11 +26,12 @@ final class EffectTransitionChain {
         for i in active.indices { slots[i] = active[i] }
     }
     private func survives(_ stage: EffectTransitionStage) -> Bool {
-        !stage.retiring && active.contains {
-            $0.processor.effect.id == stage.processor.effect.id &&
-            $0.processor.effect.kind == stage.processor.effect.kind &&
-            $0.processor.usesLegacy == stage.processor.usesLegacy
-        }
+        !stage.retiring
+            && active.contains {
+                $0.processor.effect.id == stage.processor.effect.id
+                    && $0.processor.effect.kind == stage.processor.effect.kind
+                    && $0.processor.usesLegacy == stage.processor.usesLegacy
+            }
     }
     private func nextAnchor(after index: Int, in previous: EffectTransitionChain) -> UUID? {
         guard index + 1 < previous.slotCount else { return nil }
@@ -42,29 +43,36 @@ final class EffectTransitionChain {
     private func appendRetired(anchoredTo anchor: UUID?, from previous: EffectTransitionChain) {
         for i in 0..<previous.slotCount {
             guard let stage = previous.slots[i], !stage.completed, !survives(stage),
-                  nextAnchor(after: i, in: previous) == anchor else { continue }
+                nextAnchor(after: i, in: previous) == anchor
+            else { continue }
             // Latency-changing replacements are handled as aligned whole-track
             // transitions by the graph owner, rather than inserting delayed tails.
             guard stage.processor.effect.latencyFrames == 0 else { continue }
             guard retirementCount < Self.retirementReserve else { continue }
-            stage.beginRetirement(); slots[slotCount] = stage; slotCount += 1; retirementCount += 1
+            stage.beginRetirement()
+            slots[slotCount] = stage
+            slotCount += 1
+            retirementCount += 1
         }
     }
     func prepareLiveTransition(from previous: EffectTransitionChain) {
         for i in 0..<slotCount { slots[i] = nil }
-        slotCount = 0; retirementCount = 0
+        slotCount = 0
+        retirementCount = 0
         for stage in active {
             appendRetired(anchoredTo: stage.processor.effect.id, from: previous)
             let existed = (0..<previous.slotCount).contains { index in
                 guard let old = previous.slots[index], !old.retiring else { return false }
-                return old.processor.effect.id == stage.processor.effect.id &&
-                    old.processor.effect.kind == stage.processor.effect.kind && old.processor.usesLegacy == stage.processor.usesLegacy
+                return old.processor.effect.id == stage.processor.effect.id
+                    && old.processor.effect.kind == stage.processor.effect.kind
+                    && old.processor.usesLegacy == stage.processor.usesLegacy
             }
             if !existed, stage.processor.effect.enabled {
                 stage.processor.bypassBlend = 0
                 stage.processor.bypassRamp = LiveRamp(from: 0, to: 1)
             }
-            slots[slotCount] = stage; slotCount += 1
+            slots[slotCount] = stage
+            slotCount += 1
         }
         appendRetired(anchoredTo: nil, from: previous)
     }
@@ -78,22 +86,35 @@ final class EffectTransitionChain {
             gains = [Float](repeating: 0, count: frameCount)
         }
     }
-    func process(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, position: Int, loopRange: Range<Int>? = nil) {
-        originalLeft.withUnsafeMutableBufferPointer { ol in originalRight.withUnsafeMutableBufferPointer { or in gains.withUnsafeMutableBufferPointer { g in
-            var sourcePosition = position
-            for i in 0..<slotCount {
-                guard let stage = slots[i] else { continue }
-                stage.processor.pitchMeterLoopRange = loopRange
-                var offset = 0
-                while offset < count {
-                    let frame = loopRange.map { $0.lowerBound + ((sourcePosition + offset - $0.lowerBound) % $0.count + $0.count) % $0.count } ?? sourcePosition + offset
-                    let block = min(count - offset, loopRange.map { $0.upperBound - frame } ?? count)
-                    stage.process(left: left + offset, right: right + offset, count: block, position: frame,
-                        originalLeft: ol.baseAddress! + offset, originalRight: or.baseAddress! + offset, gains: g.baseAddress! + offset)
-                    offset += block
+    func process(
+        left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, position: Int,
+        loopRange: Range<Int>? = nil
+    ) {
+        originalLeft.withUnsafeMutableBufferPointer { ol in
+            originalRight.withUnsafeMutableBufferPointer { or in
+                gains.withUnsafeMutableBufferPointer { g in
+                    var sourcePosition = position
+                    for i in 0..<slotCount {
+                        guard let stage = slots[i] else { continue }
+                        stage.processor.pitchMeterLoopRange = loopRange
+                        var offset = 0
+                        while offset < count {
+                            let frame =
+                                loopRange.map {
+                                    $0.lowerBound + ((sourcePosition + offset - $0.lowerBound) % $0.count + $0.count)
+                                        % $0.count
+                                } ?? sourcePosition + offset
+                            let block = min(count - offset, loopRange.map { $0.upperBound - frame } ?? count)
+                            stage.process(
+                                left: left + offset, right: right + offset, count: block, position: frame,
+                                originalLeft: ol.baseAddress! + offset, originalRight: or.baseAddress! + offset,
+                                gains: g.baseAddress! + offset)
+                            offset += block
+                        }
+                        sourcePosition -= stage.processor.effect.latencyFrames
+                    }
                 }
-                sourcePosition -= stage.processor.effect.latencyFrames
             }
-        } } }
+        }
     }
 }

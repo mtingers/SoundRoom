@@ -103,7 +103,18 @@ pub struct Shape {
 }
 impl Default for Shape {
     fn default() -> Self {
-        Self { tension: 0., sustain: 1., body: 0., snap: 0., wires: 0., tone: 0., pitch_drop: 1., room: 0., room_size: 1., variation: 1. }
+        Self {
+            tension: 0.,
+            sustain: 1.,
+            body: 0.,
+            snap: 0.,
+            wires: 0.,
+            tone: 0.,
+            pitch_drop: 1.,
+            room: 0.,
+            room_size: 1.,
+            variation: 1.,
+        }
     }
 }
 impl Shape {
@@ -126,7 +137,19 @@ impl Shape {
     }
     /// Bit pattern identifying these settings in render caches.
     pub fn cache_key(self) -> [u64; 10] {
-        [self.tension, self.sustain, self.body, self.snap, self.wires, self.tone, self.pitch_drop, self.room, self.room_size, self.variation].map(f64::to_bits)
+        [
+            self.tension,
+            self.sustain,
+            self.body,
+            self.snap,
+            self.wires,
+            self.tone,
+            self.pitch_drop,
+            self.room,
+            self.room_size,
+            self.variation,
+        ]
+        .map(f64::to_bits)
     }
     /// Gain of the tone tilt at `hz`.
     fn tilt(self, hz: f64) -> f64 {
@@ -169,7 +192,9 @@ impl Draws {
 /// `limit` either way, so a noisy fit cannot produce an outlier).
 fn eval_limited(line: &Line, v: f64, draws: &mut Draws, variation: f64, limit: f64) -> f64 {
     let v = v.clamp(0., 1.);
-    line[0] + line[1] * v + (line[2] * variation * draws.normal().clamp(-2., 2.)).clamp(-limit, limit)
+    line[0]
+        + line[1] * v
+        + (line[2] * variation * draws.normal().clamp(-2., 2.)).clamp(-limit, limit)
 }
 /// Level lines (dB): round robins vary by at most ±3 dB.
 fn eval(line: &Line, v: f64, draws: &mut Draws, variation: f64) -> f64 {
@@ -192,19 +217,48 @@ fn position(voice: Voice) -> f64 {
     }
 }
 fn cymbal(voice: Voice) -> bool {
-    matches!(voice, Voice::ClosedHat | Voice::OpenHat | Voice::Ride | Voice::Crash)
+    matches!(
+        voice,
+        Voice::ClosedHat | Voice::OpenHat | Voice::Ride | Voice::Crash
+    )
 }
 
 /// Mono direct sound of one hit.
 #[allow(clippy::too_many_arguments)] // mirrors drums::render_voice plus model and shape
-fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, damping: f64, shape: Shape, cancelled: &AtomicBool) -> Result<Vec<f32>> {
-    let mut draws = Draws(0x9E37_79B9_7F4A_7C15 ^ ((voice as u64) << 40) ^ (robin as u64).wrapping_mul(0xD1B5_4A32_D192_ED03) | 1);
+fn direct(
+    model: &Model,
+    edges: &[f64],
+    voice: Voice,
+    v: f64,
+    robin: i32,
+    damping: f64,
+    shape: Shape,
+    cancelled: &AtomicBool,
+) -> Result<Vec<f32>> {
+    let mut draws = Draws(
+        0x9E37_79B9_7F4A_7C15
+            ^ ((voice as u64) << 40)
+            ^ (robin as u64).wrapping_mul(0xD1B5_4A32_D192_ED03)
+            | 1,
+    );
     // Robin 0 is the measured mean; others vary by the measured spread.
-    let variation = if robin == 0 { 0. } else { 0.8 * shape.variation };
+    let variation = if robin == 0 {
+        0.
+    } else {
+        0.8 * shape.variation
+    };
     let peak_db = eval(&model.peak_db, v, &mut draws, variation);
-    let ring = if damping > 0.5 { 1. - (damping - 0.5) * 1.2 } else { 1. } * shape.sustain;
+    let ring = if damping > 0.5 {
+        1. - (damping - 0.5) * 1.2
+    } else {
+        1.
+    } * shape.sustain;
     let tension = 2f64.powf(shape.tension / 12.);
-    let glide = if cymbal(voice) { 0. } else { (eval(&model.glide, v, &mut draws, variation) * shape.pitch_drop).clamp(0., 0.6) };
+    let glide = if cymbal(voice) {
+        0.
+    } else {
+        (eval(&model.glide, v, &mut draws, variation) * shape.pitch_drop).clamp(0., 0.6)
+    };
     let glide_time = eval_ln(&model.glide_time, v, &mut draws, variation).clamp(0.003, 0.2);
     // (Hz, level, fast T60, slow T60, slow-stage dB, phase)
     let modes: Vec<(f64, f64, f64, f64, f64, f64)> = model
@@ -214,16 +268,24 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
         .map(|m| {
             let hz = (m.hz[0] + m.hz[1] * v) * tension;
             let hz = hz * (1. + (0.003 * variation * draws.normal()).clamp(-0.01, 0.01));
-            let level = 10f64.powf((peak_db + eval(&m.db, v, &mut draws, variation).min(6.)) / 20.) * db_gain(shape.body) * shape.tilt(hz);
+            let level = 10f64.powf((peak_db + eval(&m.db, v, &mut draws, variation).min(6.)) / 20.)
+                * db_gain(shape.body)
+                * shape.tilt(hz);
             // Bound the measured times first, then scale by sustain: the slow
             // stage's lower bound must never exceed its upper bound.
-            let fast = eval_ln(&m.ln_fast, v, &mut draws, variation).exp().clamp(0.005, 6.);
-            let slow = eval_ln(&m.ln_slow, v, &mut draws, variation).exp().clamp(fast, 8.) * ring;
+            let fast = eval_ln(&m.ln_fast, v, &mut draws, variation)
+                .exp()
+                .clamp(0.005, 6.);
+            let slow = eval_ln(&m.ln_slow, v, &mut draws, variation)
+                .exp()
+                .clamp(fast, 8.)
+                * ring;
             let fast = fast * ring;
             let slow_db = eval(&m.slow_db, v, &mut draws, variation).clamp(-120., -6.);
             // A stick strike starts every mode together (zero phase); the
             // twin detuning (0.15–0.45 %) gives the beating of split modes.
-            let twin = (0.0015 + 0.003 * draws.uniform()) * if draws.uniform() < 0.5 { -1. } else { 1. };
+            let twin =
+                (0.0015 + 0.003 * draws.uniform()) * if draws.uniform() < 0.5 { -1. } else { 1. };
             (hz, level, fast, slow, slow_db, twin)
         })
         .filter(|m| m.0 > 20. && m.0 < 20_000. && m.1 > 1e-6)
@@ -234,9 +296,16 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
         .enumerate()
         .map(|(b, band)| {
             let centre = (edges[b] * edges[b + 1]).sqrt();
-            let level = 10f64.powf((peak_db + eval(&band.db, v, &mut draws, variation).min(6.)) / 20.) * shape.tilt(centre);
-            let fast = eval_ln(&band.ln_fast, v, &mut draws, variation).exp().clamp(0.005, 4.);
-            let slow = eval_ln(&band.ln_slow, v, &mut draws, variation).exp().clamp(fast, 6.) * ring;
+            let level = 10f64
+                .powf((peak_db + eval(&band.db, v, &mut draws, variation).min(6.)) / 20.)
+                * shape.tilt(centre);
+            let fast = eval_ln(&band.ln_fast, v, &mut draws, variation)
+                .exp()
+                .clamp(0.005, 4.);
+            let slow = eval_ln(&band.ln_slow, v, &mut draws, variation)
+                .exp()
+                .clamp(fast, 6.)
+                * ring;
             let fast = fast * ring;
             let slow_db = eval(&band.slow_db, v, &mut draws, variation).clamp(-120., -6.);
             (b, level, fast, slow, slow_db)
@@ -258,8 +327,16 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
     let frames = (tail * RATE) as usize;
     let mut out = vec![0f64; frames];
     // Cymbal swell applies to the measured modes as well (see the bands).
-    let mode_bloom = if cymbal(voice) { (model.bloom[0] + model.bloom[1] * v).clamp(0., 0.4) } else { 0. };
-    let mode_grow = if mode_bloom > 0.005 { (-2.5 / (mode_bloom * RATE)).exp() } else { 1. };
+    let mode_bloom = if cymbal(voice) {
+        (model.bloom[0] + model.bloom[1] * v).clamp(0., 0.4)
+    } else {
+        0.
+    };
+    let mode_grow = if mode_bloom > 0.005 {
+        (-2.5 / (mode_bloom * RATE)).exp()
+    } else {
+        1.
+    };
     for (index, &(hz, level, fast, slow, slow_db, twin)) in modes.iter().enumerate() {
         let mut rise = if mode_bloom > 0.005 { 0.8 } else { 0. };
         if index % 4 == 0 && cancelled.load(Ordering::Relaxed) {
@@ -267,18 +344,26 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
         }
         // Power envelope as two decaying exponentials, advanced by multiplication.
         let (mut e1, mut e2) = (1., 10f64.powf(slow_db / 10.));
-        let (d1, d2) = (10f64.powf(-6. / (fast * RATE)), 10f64.powf(-6. / (slow * RATE)));
+        let (d1, d2) = (
+            10f64.powf(-6. / (fast * RATE)),
+            10f64.powf(-6. / (slow * RATE)),
+        );
         let (mut theta, mut beat) = (0f64, 0f64);
         let length = ((band_length(fast, slow, slow_db) * RATE) as usize).min(frames);
         // Exact phase while the pitch glides; afterwards a rotating phasor
         // (two multiplies per sample instead of two sines).
-        let settled = if glide > 0. { ((glide_time * 8. * RATE) as usize).min(length) } else { 0 };
+        let settled = if glide > 0. {
+            ((glide_time * 8. * RATE) as usize).min(length)
+        } else {
+            0
+        };
         for (i, o) in out.iter_mut().enumerate().take(settled) {
             let t = i as f64 / RATE;
             let step = 2. * PI * hz * (1. + glide * (-t / glide_time).exp()) / RATE;
             theta += step;
             beat += step * (1. + twin);
-            *o += (0.93 * theta.sin() + 0.36 * beat.sin()) * level * ((e1 + e2) * (1. - rise)).sqrt();
+            *o +=
+                (0.93 * theta.sin() + 0.36 * beat.sin()) * level * ((e1 + e2) * (1. - rise)).sqrt();
             e1 *= d1;
             e2 *= d2;
             rise *= mode_grow;
@@ -326,7 +411,10 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
         let length = (band_length(fast, slow, slow_db) * RATE).min(frames as f64) as usize;
         let noise = filtered_noise(length.max(64), edges[b], edges[b + 1], draws.0 ^ b as u64);
         let (mut e1, mut e2) = (1., 10f64.powf(slow_db / 10.));
-        let (d1, d2) = (10f64.powf(-6. / (fast * RATE)), 10f64.powf(-6. / (slow * RATE)));
+        let (d1, d2) = (
+            10f64.powf(-6. / (fast * RATE)),
+            10f64.powf(-6. / (slow * RATE)),
+        );
         // Cymbals: the noise share of the band's power fades over ~40 ms
         // (strike chaos); the partial cloud below carries the rest.
         // A noise bed stays under the ring: thin in the mids, more of the
@@ -334,16 +422,39 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
         // crash stays chaotic longer before it settles into shimmer.
         let centre = (edges[b] * edges[b + 1]).sqrt();
         let bed = (0.12 + 0.25 * ((centre / 4000.).log2() / 2.).clamp(0., 1.)).min(0.4);
-        let chaos_time = if voice == Voice::Crash { 0.03 + 0.13 * v } else { 0.04 };
-        let (mut chaos, settle) = (1f64, if shimmer { (-1. / (chaos_time * RATE)).exp() } else { 1. });
+        let chaos_time = if voice == Voice::Crash {
+            0.03 + 0.13 * v
+        } else {
+            0.04
+        };
+        let (mut chaos, settle) = (
+            1f64,
+            if shimmer {
+                (-1. / (chaos_time * RATE)).exp()
+            } else {
+                1.
+            },
+        );
         // Cymbal swell: the whole band rises to its peak over the measured
         // bloom time (from 20 % power at the strike).
-        let bloom = if shimmer { (model.bloom[0] + model.bloom[1] * v).clamp(0., 0.4) } else { 0. };
+        let bloom = if shimmer {
+            (model.bloom[0] + model.bloom[1] * v).clamp(0., 0.4)
+        } else {
+            0.
+        };
         // The swell reaches the top bands last (energy cascades upward).
         let band_bloom = bloom * (centre / 2000.).max(0.5).powf(0.3);
-        let (mut rise, grow) = if band_bloom > 0.005 { (0.8, (-2.5 / (band_bloom * RATE)).exp()) } else { (0., 1.) };
+        let (mut rise, grow) = if band_bloom > 0.005 {
+            (0.8, (-2.5 / (band_bloom * RATE)).exp())
+        } else {
+            (0., 1.)
+        };
         for (i, n) in noise.iter().enumerate().take(length) {
-            let share = if shimmer { bed + (1. - bed) * chaos } else { 1. };
+            let share = if shimmer {
+                bed + (1. - bed) * chaos
+            } else {
+                1.
+            };
             out[i] += *n as f64 * level * ((e1 + e2) * share * (1. - rise)).sqrt();
             e1 *= d1;
             e2 *= d2;
@@ -360,7 +471,9 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
             // levels wobble by 1–1.7 dB (beating), and crashes swell for
             // ~0.1–0.16 s after the strike.
             let partials = ((hi - lo) / 50.).round().clamp(3., 32.) as usize;
-            let weights: Vec<f64> = (0..partials).map(|_| (0.8 * draws.normal().clamp(-3., 3.)).exp()).collect();
+            let weights: Vec<f64> = (0..partials)
+                .map(|_| (0.8 * draws.normal().clamp(-3., 3.)).exp())
+                .collect();
             let total: f64 = weights.iter().map(|w| w * w).sum::<f64>().max(1e-12);
             let base = level * (2. / total).sqrt();
             let swell = (band_bloom / 2.5).max(1e-4);
@@ -369,11 +482,15 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
                 // The band's two-stage envelope, each partial a little faster
                 // or slower so the texture keeps changing as it decays.
                 let spread = 0.75 + 0.5 * draws.uniform();
-                let (fd, sd) = (10f64.powf(-6. / (fast * spread * RATE)), 10f64.powf(-6. / (slow * spread * RATE)));
+                let (fd, sd) = (
+                    10f64.powf(-6. / (fast * spread * RATE)),
+                    10f64.powf(-6. / (slow * spread * RATE)),
+                );
                 let (mut p1, mut p2) = (1f64, 10f64.powf(slow_db / 10.));
                 let mut chaos = 1f64;
                 // A detuned twin (0.5–4 Hz away) makes the partial beat.
-                let detune = (0.5 + 5.5 * draws.uniform()) * if draws.uniform() < 0.5 { -1. } else { 1. };
+                let detune =
+                    (0.5 + 5.5 * draws.uniform()) * if draws.uniform() < 0.5 { -1. } else { 1. };
                 let twin_level = 0.7 + 0.3 * draws.uniform();
                 let norm = 1. / (1. + twin_level * twin_level).sqrt();
                 let (rs, rc) = (2. * PI * hz / RATE).sin_cos();
@@ -383,7 +500,8 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
                 let a = base * weight * norm;
                 let grow = (-1. / (swell * RATE)).exp();
                 let mut rise = if band_bloom > 0.005 { 0.8 } else { 0. };
-                let n = ((band_length(fast * spread, slow * spread, slow_db) * RATE) as usize).min(frames);
+                let n = ((band_length(fast * spread, slow * spread, slow_db) * RATE) as usize)
+                    .min(frames);
                 for (k, o) in out.iter_mut().enumerate().take(n) {
                     (sn, cs) = (sn * rc + cs * rs, cs * rc - sn * rs);
                     (tn, tcs) = (tn * tc + tcs * ts, tcs * tc - tn * ts);
@@ -391,7 +509,9 @@ fn direct(model: &Model, edges: &[f64], voice: Voice, v: f64, robin: i32, dampin
                         let (r1, r2) = ((sn * sn + cs * cs).sqrt(), (tn * tn + tcs * tcs).sqrt());
                         (sn, cs, tn, tcs) = (sn / r1, cs / r1, tn / r2, tcs / r2);
                     }
-                    *o += (sn + twin_level * tn) * a * ((p1 + p2) * (1. - bed) * (1. - chaos) * (1. - rise)).sqrt();
+                    *o += (sn + twin_level * tn)
+                        * a
+                        * ((p1 + p2) * (1. - bed) * (1. - chaos) * (1. - rise)).sqrt();
                     p1 *= fd;
                     p2 *= sd;
                     chaos *= settle;
@@ -424,7 +544,11 @@ fn contact_click(edges: &[f64], bands: &[(usize, f64)]) -> Vec<f64> {
     (0..lead + tail)
         .map(|i| {
             let source = re[(i + n - lead) % n];
-            let w = if i < lead { 0.5 - 0.5 * (PI * i as f64 / lead as f64).cos() } else { 0.5 + 0.5 * (PI * (i - lead) as f64 / tail as f64).cos() };
+            let w = if i < lead {
+                0.5 - 0.5 * (PI * i as f64 / lead as f64).cos()
+            } else {
+                0.5 + 0.5 * (PI * (i - lead) as f64 / tail as f64).cos()
+            };
             source * w
         })
         .collect()
@@ -432,7 +556,11 @@ fn contact_click(edges: &[f64], bands: &[(usize, f64)]) -> Vec<f64> {
 /// Stereo room response for a voice: a few discrete early reflections, then
 /// decaying band noise with the measured per-band T60; unit energy per channel.
 fn room_ir(model: &Model, edges: &[f64], voice: Voice, size: f64) -> [Vec<f64>; 2] {
-    let t60: Vec<f64> = model.room_t60.iter().map(|t| (t * size).clamp(0.15, 4.)).collect();
+    let t60: Vec<f64> = model
+        .room_t60
+        .iter()
+        .map(|t| (t * size).clamp(0.15, 4.))
+        .collect();
     let length = (t60.iter().cloned().fold(0.3, f64::max) * 1.1 * RATE) as usize;
     let delay = (model.room_delay.clamp(0.005, 0.06) * size * RATE) as usize;
     let groups = t60.len().max(1);
@@ -441,7 +569,13 @@ fn room_ir(model: &Model, edges: &[f64], voice: Voice, size: f64) -> [Vec<f64>; 
     for (c, channel) in ir.iter_mut().enumerate() {
         for (g, t) in t60.iter().enumerate() {
             let (lo, hi) = (edges[g * per], edges[((g + 1) * per).min(edges.len() - 1)]);
-            let noise = band_noise(length, RATE, lo, hi, (voice as u64) * 131 + (c as u64) * 7919 + g as u64);
+            let noise = band_noise(
+                length,
+                RATE,
+                lo,
+                hi,
+                (voice as u64) * 131 + (c as u64) * 7919 + g as u64,
+            );
             for (i, n) in noise.iter().enumerate() {
                 let t_s = i as f64 / RATE;
                 // 5 ms build-up, then exponential decay.
@@ -451,14 +585,26 @@ fn room_ir(model: &Model, edges: &[f64], voice: Voice, size: f64) -> [Vec<f64>; 
         }
         // Early reflections (floor, walls, ceiling) with ~35 % of the energy.
         let diffuse: f64 = channel.iter().map(|v| v * v).sum();
-        let taps = [(3.1, 0.5), (5.3, -0.42), (7.9, 0.36), (11.2, -0.3), (13.7, 0.26), (17.3, -0.22)];
+        let taps = [
+            (3.1, 0.5),
+            (5.3, -0.42),
+            (7.9, 0.36),
+            (11.2, -0.3),
+            (13.7, 0.26),
+            (17.3, -0.22),
+        ];
         let norm = (0.35 * diffuse / taps.iter().map(|t| t.1 * t.1).sum::<f64>()).sqrt();
         // Each reflection is a 1 ms diffuse burst, not a single sample, so
         // the taps do not comb-filter the direct sound into a metallic tone.
         let burst = band_noise(48, RATE, 200., 12_000., (voice as u64) * 17 + c as u64);
-        let burst_energy = burst.iter().map(|v| (*v as f64).powi(2)).sum::<f64>().max(1e-12);
+        let burst_energy = burst
+            .iter()
+            .map(|v| (*v as f64).powi(2))
+            .sum::<f64>()
+            .max(1e-12);
         for (k, &(ms, g)) in taps.iter().enumerate() {
-            let at = ((ms * if c == 0 { 1. } else { 1.07 + 0.01 * k as f64 }) * size * RATE / 1000.) as usize;
+            let at = ((ms * if c == 0 { 1. } else { 1.07 + 0.01 * k as f64 }) * size * RATE / 1000.)
+                as usize;
             for (j, b) in burst.iter().enumerate() {
                 let w = 0.5 - 0.5 * (2. * PI * j as f64 / 48.).cos();
                 if let Some(slot) = channel.get_mut(at + j) {
@@ -481,7 +627,12 @@ fn filtered_noise(frames: usize, lo: f64, hi: f64, seed: u64) -> Vec<f32> {
     let w0 = 2. * PI * centre / RATE;
     let alpha = w0.sin() * ((2f64).ln() / 2. * octaves * w0 / w0.sin()).sinh();
     let a0 = 1. + alpha;
-    let (b0, b2, a1, a2) = (alpha / a0, -alpha / a0, -2. * w0.cos() / a0, (1. - alpha) / a0);
+    let (b0, b2, a1, a2) = (
+        alpha / a0,
+        -alpha / a0,
+        -2. * w0.cos() / a0,
+        (1. - alpha) / a0,
+    );
     let run = |count: usize, mut state: u64| -> Vec<f64> {
         let (mut x1, mut x2, mut y1, mut y2) = (0., 0., 0., 0.);
         let (mut p1, mut p2, mut q1, mut q2) = (0., 0., 0., 0.);
@@ -503,17 +654,25 @@ fn filtered_noise(frames: usize, lo: f64, hi: f64, seed: u64) -> Vec<f32> {
     static NORMS: OnceLock<Norms> = OnceLock::new();
     let key = (lo.to_bits(), hi.to_bits());
     // Bind the lookup first: a guard kept alive into the fallback would deadlock.
-    let known = NORMS.get_or_init(Default::default).lock().ok().and_then(|n| n.get(&key).copied());
+    let known = NORMS
+        .get_or_init(Default::default)
+        .lock()
+        .ok()
+        .and_then(|n| n.get(&key).copied());
     let norm = known.unwrap_or_else(|| {
         let probe = run(48_000, 0x2545_F491_4F6C_DD1D);
-        let rms = (probe[4800..].iter().map(|v| v * v).sum::<f64>() / (probe.len() - 4800) as f64).sqrt();
+        let rms =
+            (probe[4800..].iter().map(|v| v * v).sum::<f64>() / (probe.len() - 4800) as f64).sqrt();
         let norm = if rms > 0. { 1. / rms } else { 0. };
         if let Ok(mut n) = NORMS.get_or_init(Default::default).lock() {
             n.insert(key, norm);
         }
         norm
     });
-    run(frames, seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1).into_iter().map(|v| (v * norm) as f32).collect()
+    run(frames, seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1)
+        .into_iter()
+        .map(|v| (v * norm) as f32)
+        .collect()
 }
 /// Room responses depend only on the piece and room size; build each once.
 fn cached_room_ir(model: &Model, edges: &[f64], voice: Voice, size: f64) -> Arc<[Vec<f64>; 2]> {
@@ -541,7 +700,11 @@ fn convolve_stereo(x: &[f32], ir: &Arc<[Vec<f64>; 2]>, voice: Voice, size: f64) 
     type Spectra = Mutex<BTreeMap<(Voice, u64, usize), Arc<(Vec<f64>, Vec<f64>)>>>;
     static SPECTRA: OnceLock<Spectra> = OnceLock::new();
     let key = (voice, size.to_bits(), n);
-    let cached = SPECTRA.get_or_init(Default::default).lock().ok().and_then(|m| m.get(&key).cloned());
+    let cached = SPECTRA
+        .get_or_init(Default::default)
+        .lock()
+        .ok()
+        .and_then(|m| m.get(&key).cloned());
     let spectrum = cached.unwrap_or_else(|| {
         let (mut re, mut im) = (vec![0.; n], vec![0.; n]);
         re[..ir[0].len()].copy_from_slice(&ir[0]);
@@ -568,7 +731,10 @@ fn convolve_stereo(x: &[f32], ir: &Arc<[Vec<f64>; 2]>, voice: Voice, size: f64) 
     fft(&mut ar, &mut ai, true);
     let len = x.len() + h - 1;
     let scale = 1. / n as f64;
-    [ar[..len].iter().map(|v| v * scale).collect(), ai[..len].iter().map(|v| v * scale).collect()]
+    [
+        ar[..len].iter().map(|v| v * scale).collect(),
+        ai[..len].iter().map(|v| v * scale).collect(),
+    ]
 }
 #[cfg(test)]
 fn convolve(x: &[f32], h: &[f64]) -> Vec<f64> {
@@ -606,18 +772,38 @@ pub fn render(
     if kit != Kit::StudioModeled || voice == Voice::Clap {
         return Ok(None);
     }
-    let Some(models) = models() else { return Ok(None) };
-    let velocity = if velocity.is_finite() { velocity.clamp(0., 1.) } else { 0.8 };
-    let damping = if damping.is_finite() { damping.clamp(0., 1.) } else { 0.5 };
+    let Some(models) = models() else {
+        return Ok(None);
+    };
+    let velocity = if velocity.is_finite() {
+        velocity.clamp(0., 1.)
+    } else {
+        0.8
+    };
+    let damping = if damping.is_finite() {
+        damping.clamp(0., 1.)
+    } else {
+        0.5
+    };
     // Velocity is quantized to 1/32 so humanized patterns share hits.
     let shape = shape.unwrap_or_default().sanitized();
-    let key = (voice, articulation, (velocity * 32.).round() as i32, robin.rem_euclid(8), (damping * 20.).round() as i32, shape.cache_key());
+    let key = (
+        voice,
+        articulation,
+        (velocity * 32.).round() as i32,
+        robin.rem_euclid(8),
+        (damping * 20.).round() as i32,
+        shape.cache_key(),
+    );
     if let Some(hit) = cache().lock().ok().and_then(|c| c.0.get(&key).cloned()) {
         return Ok(Some((*hit).clone()));
     }
     let v = key.2 as f64 / 32.;
     let layers: Vec<(&str, f64, f64)> = match (voice, articulation) {
-        (Voice::Snare, Articulation::Rimshot) => vec![("snare/center", (v * 1.08).min(1.), 1.), ("snare/sideStick", v, 0.9)],
+        (Voice::Snare, Articulation::Rimshot) => vec![
+            ("snare/center", (v * 1.08).min(1.), 1.),
+            ("snare/sideStick", v, 0.9),
+        ],
         (Voice::Snare, Articulation::SideStick) => vec![("snare/sideStick", v, 1.)],
         (Voice::Snare, Articulation::Brush) => vec![("snare/brush", v, 1.)],
         (Voice::Ride, Articulation::Bell) => vec![("ride/bell", v, 1.)],
@@ -627,24 +813,52 @@ pub fn render(
     let mut room_level = 0.;
     let mut room = None;
     for (name, v, level) in layers {
-        let Some(model) = models.models.get(name) else { continue };
-        let hit = direct(model, &models.band_edges, voice, v, key.3, damping, shape, cancelled)?;
+        let Some(model) = models.models.get(name) else {
+            continue;
+        };
+        let hit = direct(
+            model,
+            &models.band_edges,
+            voice,
+            v,
+            key.3,
+            damping,
+            shape,
+            cancelled,
+        )?;
         if mono.len() < hit.len() {
             mono.resize(hit.len(), 0.);
         }
-        mono.iter_mut().zip(&hit).for_each(|(o, h)| *o += h * level as f32);
+        mono.iter_mut()
+            .zip(&hit)
+            .for_each(|(o, h)| *o += h * level as f32);
         if room.is_none() {
             room_level = model.room[0] + model.room[1] * v;
-            room = Some(cached_room_ir(model, &models.band_edges, voice, shape.room_size));
+            room = Some(cached_room_ir(
+                model,
+                &models.band_edges,
+                voice,
+                shape.room_size,
+            ));
         }
     }
     let Some(ir) = room else { return Ok(None) };
     // Scale to the piece's loudness in the recorded natural mix, sharing that
     // energy between the direct sound and the room.
-    let model = models.models.get(voice_key(voice)).or_else(|| models.models.values().next());
-    let mix_gain = model.map_or(1., |m| (m.mix_gain[0] + m.mix_gain[1] * v.clamp(0., 1.)).exp().clamp(0.1, 40.));
+    let model = models
+        .models
+        .get(voice_key(voice))
+        .or_else(|| models.models.values().next());
+    let mix_gain = model.map_or(1., |m| {
+        (m.mix_gain[0] + m.mix_gain[1] * v.clamp(0., 1.))
+            .exp()
+            .clamp(0.1, 40.)
+    });
     let pan = position(voice);
-    let (pl, pr) = (((pan + 1.) * PI / 4.).cos() * std::f64::consts::SQRT_2, ((pan + 1.) * PI / 4.).sin() * std::f64::consts::SQRT_2);
+    let (pl, pr) = (
+        ((pan + 1.) * PI / 4.).cos() * std::f64::consts::SQRT_2,
+        ((pan + 1.) * PI / 4.).sin() * std::f64::consts::SQRT_2,
+    );
     // The IR has unit energy, so the room keeps the measured energy ratio.
     let wet = room_level.clamp(0., 1.5) * db_gain(shape.room);
     // Residual calibration against the recorded natural flavor (first-second
@@ -659,7 +873,10 @@ pub fn render(
     let mut out = [Vec::new(), Vec::new()];
     // The room only needs the audible part of the direct sound.
     let peak = mono.iter().fold(0f32, |m, v| m.max(v.abs()));
-    let audible = mono.iter().rposition(|v| v.abs() > peak * 3e-4).map_or(1, |i| i + 1);
+    let audible = mono
+        .iter()
+        .rposition(|v| v.abs() > peak * 3e-4)
+        .map_or(1, |i| i + 1);
     let reverbs = convolve_stereo(&mono[..audible], &ir, voice, shape.room_size);
     for (c, channel) in out.iter_mut().enumerate() {
         let reverb = &reverbs[c];
@@ -671,11 +888,17 @@ pub fn render(
         *channel = wet_part
             .iter()
             .enumerate()
-            .map(|(i, r)| ((mono.get(i).copied().unwrap_or(0.) as f64 * gain + r * wet) * level * OUTPUT_GAIN) as f32)
+            .map(|(i, r)| {
+                ((mono.get(i).copied().unwrap_or(0.) as f64 * gain + r * wet) * level * OUTPUT_GAIN)
+                    as f32
+            })
             .collect();
         // Trim the inaudible end of the room tail.
         let floor = 1e-5;
-        let end = channel.iter().rposition(|v| v.abs() > floor).map_or(1, |i| i + 1);
+        let end = channel
+            .iter()
+            .rposition(|v| v.abs() > floor)
+            .map_or(1, |i| i + 1);
         channel.truncate(end);
     }
     let len = out[0].len().max(out[1].len());
@@ -708,8 +931,18 @@ pub fn prefetch(requests: &[Request], cancelled: &AtomicBool) -> Result<()> {
     let pending: Vec<Request> = requests
         .iter()
         .filter(|r| {
-            let key = (r.voice, r.articulation, (r.velocity.clamp(0., 1.) * 32.).round() as i32, r.robin.rem_euclid(8), (r.damping.clamp(0., 1.) * 20.).round() as i32, r.shape.unwrap_or_default().sanitized().cache_key());
-            let cached = cache().lock().map(|c| c.0.contains_key(&key)).unwrap_or(false);
+            let key = (
+                r.voice,
+                r.articulation,
+                (r.velocity.clamp(0., 1.) * 32.).round() as i32,
+                r.robin.rem_euclid(8),
+                (r.damping.clamp(0., 1.) * 20.).round() as i32,
+                r.shape.unwrap_or_default().sanitized().cache_key(),
+            );
+            let cached = cache()
+                .lock()
+                .map(|c| c.0.contains_key(&key))
+                .unwrap_or(false);
             !cached && seen.insert(key)
         })
         .copied()
@@ -717,7 +950,9 @@ pub fn prefetch(requests: &[Request], cancelled: &AtomicBool) -> Result<()> {
     if pending.len() < 2 {
         return Ok(());
     }
-    let workers = std::thread::available_parallelism().map_or(4, |n| n.get()).clamp(1, 8);
+    let workers = std::thread::available_parallelism()
+        .map_or(4, |n| n.get())
+        .clamp(1, 8);
     let next = std::sync::atomic::AtomicUsize::new(0);
     let failure = Mutex::new(None);
     std::thread::scope(|scope| {
@@ -728,7 +963,16 @@ pub fn prefetch(requests: &[Request], cancelled: &AtomicBool) -> Result<()> {
                 if cancelled.load(Ordering::Relaxed) {
                     break;
                 }
-                if let Err(error) = render(Kit::StudioModeled, r.voice, r.velocity, r.robin, r.articulation, r.damping, r.shape, cancelled) {
+                if let Err(error) = render(
+                    Kit::StudioModeled,
+                    r.voice,
+                    r.velocity,
+                    r.robin,
+                    r.articulation,
+                    r.damping,
+                    r.shape,
+                    cancelled,
+                ) {
                     if let Ok(mut f) = failure.lock() {
                         f.get_or_insert(error);
                     }
@@ -739,7 +983,9 @@ pub fn prefetch(requests: &[Request], cancelled: &AtomicBool) -> Result<()> {
     });
     match failure.into_inner().ok().flatten() {
         Some(error) => Err(error),
-        None if cancelled.load(Ordering::Relaxed) => Err(Error::Invalid("Drum render cancelled".into())),
+        None if cancelled.load(Ordering::Relaxed) => {
+            Err(Error::Invalid("Drum render cancelled".into()))
+        }
         None => Ok(()),
     }
 }
@@ -758,8 +1004,20 @@ fn voice_key(voice: Voice) -> &'static str {
 /// Mono direct sound only, for validation against recorded hits.
 pub fn direct_hit(voice: Voice, articulation: &str, velocity: f64, robin: i32) -> Option<Vec<f32>> {
     let models = models()?;
-    let model = models.models.get(&format!("{}/{articulation}", voice.name()))?;
-    direct(model, &models.band_edges, voice, velocity, robin, 0.5, Shape::default(), &AtomicBool::new(false)).ok()
+    let model = models
+        .models
+        .get(&format!("{}/{articulation}", voice.name()))?;
+    direct(
+        model,
+        &models.band_edges,
+        voice,
+        velocity,
+        robin,
+        0.5,
+        Shape::default(),
+        &AtomicBool::new(false),
+    )
+    .ok()
 }
 
 #[cfg(test)]
@@ -775,12 +1033,25 @@ mod tests {
     }
     #[test]
     fn packed_stereo_convolution_matches_two_real_convolutions() {
-        let x: Vec<f32> = (0..3000).map(|i| ((i * 7919 % 101) as f32 / 50.) - 1.).collect();
-        let ir = Arc::new([(0..700).map(|i| (-(i as f64) / 90.).exp()).collect::<Vec<_>>(), (0..650).map(|i| ((i as f64) * 0.3).sin() / (1. + i as f64)).collect::<Vec<_>>()]);
+        let x: Vec<f32> = (0..3000)
+            .map(|i| ((i * 7919 % 101) as f32 / 50.) - 1.)
+            .collect();
+        let ir = Arc::new([
+            (0..700)
+                .map(|i| (-(i as f64) / 90.).exp())
+                .collect::<Vec<_>>(),
+            (0..650)
+                .map(|i| ((i as f64) * 0.3).sin() / (1. + i as f64))
+                .collect::<Vec<_>>(),
+        ]);
         let both = convolve_stereo(&x, &ir, Voice::Kick, 1.234);
         for c in 0..2 {
             let single = convolve(&x, &ir[c]);
-            let worst = single.iter().zip(&both[c]).map(|(a, b)| (a - b).abs()).fold(0., f64::max);
+            let worst = single
+                .iter()
+                .zip(&both[c])
+                .map(|(a, b)| (a - b).abs())
+                .fold(0., f64::max);
             assert!(worst < 1e-9, "{c}: {worst}");
         }
     }

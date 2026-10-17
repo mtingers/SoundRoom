@@ -195,15 +195,26 @@ fn sound_putty_dense_sculpt_renders_and_commits_one_undoable_selection() {
     use base64::Engine;
     let fixture = Fixture::new(COPY);
     let mut intent = fixture.intent();
-    intent.flags.clear(); intent.strings.clear();
+    intent.flags.clear();
+    intent.strings.clear();
     intent.strings.insert("kind".into(), "soundPutty".into());
     let mut parameters = soundroom_engine::render::default_parameters("soundPutty");
     for axis in ["puttyPitch", "puttyEnergy", "puttyDamping"] {
-        for lane in 0..300 { parameters.insert(format!("{axis}{lane:03}"), (lane as f32 * 0.03).sin() * 0.5); }
+        for lane in 0..300 {
+            parameters.insert(format!("{axis}{lane:03}"), (lane as f32 * 0.03).sin() * 0.5);
+        }
     }
     assert_eq!(parameters.len(), 916);
-    intent.payload = Some(base64::engine::general_purpose::STANDARD.encode(serde_json::to_vec(&parameters).unwrap()));
-    let task = match fixture.service.lock().unwrap().begin_effect(&intent).unwrap() {
+    intent.payload = Some(
+        base64::engine::general_purpose::STANDARD.encode(serde_json::to_vec(&parameters).unwrap()),
+    );
+    let task = match fixture
+        .service
+        .lock()
+        .unwrap()
+        .begin_effect(&intent)
+        .unwrap()
+    {
         Handled::Job(JobKind::Process { task }) => task,
         _ => panic!("Expected Sound Putty processing job"),
     };
@@ -211,10 +222,17 @@ fn sound_putty_dense_sculpt_renders_and_commits_one_undoable_selection() {
     let mut state = fixture.service.lock().unwrap();
     state.commit_processed(&fixture.editor, &processed).unwrap();
     let clip = &state.authority.session.tracks[0].clips[0];
-    assert_eq!(clip.length, 8192); assert_ne!(clip.asset_id, fixture.asset);
+    assert_eq!(clip.length, 8192);
+    assert_ne!(clip.asset_id, fixture.asset);
     assert_eq!(clip.previous_states[0].asset_id, fixture.asset);
-    state.authority.undo(&fixture.editor.runtime, Role::Editor).unwrap();
-    assert_eq!(state.authority.session.tracks[0].clips[0].asset_id, fixture.asset);
+    state
+        .authority
+        .undo(&fixture.editor.runtime, Role::Editor)
+        .unwrap();
+    assert_eq!(
+        state.authority.session.tracks[0].clips[0].asset_id,
+        fixture.asset
+    );
 }
 
 #[test]

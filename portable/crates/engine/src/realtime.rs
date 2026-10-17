@@ -126,7 +126,10 @@ impl LivePublisher {
     /// A newer patch replaces one the callback has not taken yet.
     pub fn publish(&self, patch: Box<LivePatch>) {
         self.reclaim();
-        let old = self.shared.live.swap(Box::into_raw(patch), Ordering::AcqRel);
+        let old = self
+            .shared
+            .live
+            .swap(Box::into_raw(patch), Ordering::AcqRel);
         if !old.is_null() {
             // Never taken by the callback: still owned here.
             drop(unsafe { Box::from_raw(old) });
@@ -946,7 +949,9 @@ impl AudioHost {
             }
         }
         let command = self.shared.command.load(Ordering::Acquire);
-        if command & 1 == 0 { self.delay = 0; }
+        if command & 1 == 0 {
+            self.delay = 0;
+        }
         if command & 1 != 0 && command != self.delay_command {
             self.delay_command = command;
             self.delay = self.shared.start_delay.swap(0, Ordering::AcqRel);
@@ -1203,7 +1208,10 @@ impl AudioHost {
         if !self.shared.live_retired.load(Ordering::Acquire).is_null() {
             return;
         }
-        let patch = self.shared.live.swap(std::ptr::null_mut(), Ordering::AcqRel);
+        let patch = self
+            .shared
+            .live
+            .swap(std::ptr::null_mut(), Ordering::AcqRel);
         if patch.is_null() {
             return;
         }
@@ -1333,9 +1341,13 @@ mod count_in_tests {
     #[test]
     fn cancelled_count_in_does_not_delay_a_later_play() {
         let (mut control, mut host) = channel();
-        control.count_in().arm(crate::preview::Buffer { left: vec![1.; 10000], right: vec![1.; 10000], ..Default::default() });
+        control.count_in().arm(crate::preview::Buffer {
+            left: vec![1.; 10000],
+            right: vec![1.; 10000],
+            ..Default::default()
+        });
         control.request_playing(true);
-        let (mut left, mut right) = ([0.;128], [0.;128]);
+        let (mut left, mut right) = ([0.; 128], [0.; 128]);
         host.render(&mut left, &mut right);
         assert!(host.delay > 0);
         control.count_in().cancel();

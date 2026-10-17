@@ -13,7 +13,9 @@ public enum DrumKit: String, Codable, CaseIterable, Identifiable, Sendable {
     public var isAcoustic: Bool { machineVoicing == nil }
     /// Recorded or measured kits rendered by the Rust host; this engine
     /// substitutes the modeled acoustic studio voice.
-    public var isRecorded: Bool { [.studioNatural, .studioTight, .studioRoom, .studioVintage, .studioModeled].contains(self) }
+    public var isRecorded: Bool {
+        [.studioNatural, .studioTight, .studioRoom, .studioVintage, .studioModeled].contains(self)
+    }
     public var title: String {
         switch self {
         case .acoustic: return "Acoustic studio"
@@ -59,29 +61,102 @@ public enum DrumKit: String, Codable, CaseIterable, Identifiable, Sendable {
         case .electronic: return classic
         case .machine808:
             // Long tuned sub, soft click, two-tone snare and higher square-bank hats.
-            v.kickBase = 44; v.kickSweep = 1.6; v.kickSweepTime = 0.035; v.kickDecay = 0.48; v.kickClick = 0.03; v.tomDecay = 0.32
-            v.snareTone = 190; v.snareSweep = 60; v.snareToneGain = 0.38; v.snareToneDecay = 0.09; v.snareNoiseGain = 0.36; v.snareNoiseDecay = 0.14
-            v.clapGain = 0.42; v.clapTailGain = 0.25; v.clapTail = 0.12; v.metalScale = 1.25; v.hatDecay = 0.9; v.hatNoise = 0.2; v.hatMetal = 0.3
+            v.kickBase = 44
+            v.kickSweep = 1.6
+            v.kickSweepTime = 0.035
+            v.kickDecay = 0.48
+            v.kickClick = 0.03
+            v.tomDecay = 0.32
+            v.snareTone = 190
+            v.snareSweep = 60
+            v.snareToneGain = 0.38
+            v.snareToneDecay = 0.09
+            v.snareNoiseGain = 0.36
+            v.snareNoiseDecay = 0.14
+            v.clapGain = 0.42
+            v.clapTailGain = 0.25
+            v.clapTail = 0.12
+            v.metalScale = 1.25
+            v.hatDecay = 0.9
+            v.hatNoise = 0.2
+            v.hatMetal = 0.3
         case .machine909:
             // Fast pitch sweep with a hard beater click and bright noisy hats.
-            v.kickBase = 52; v.kickSweep = 3.6; v.kickSweepTime = 0.016; v.kickDecay = 0.22; v.kickClick = 0.28; v.clickTime = 0.003; v.kickDrive = 1.6
-            v.snareTone = 200; v.snareSweep = 140; v.snareToneGain = 0.28; v.snareToneDecay = 0.045; v.snareNoiseGain = 0.62; v.snareNoiseDecay = 0.11
-            v.clapGain = 0.45; v.clapTailGain = 0.2; v.clapTail = 0.1; v.metalScale = 1.6; v.hatNoise = 0.5; v.hatMetal = 0.1
+            v.kickBase = 52
+            v.kickSweep = 3.6
+            v.kickSweepTime = 0.016
+            v.kickDecay = 0.22
+            v.kickClick = 0.28
+            v.clickTime = 0.003
+            v.kickDrive = 1.6
+            v.snareTone = 200
+            v.snareSweep = 140
+            v.snareToneGain = 0.28
+            v.snareToneDecay = 0.045
+            v.snareNoiseGain = 0.62
+            v.snareNoiseDecay = 0.11
+            v.clapGain = 0.45
+            v.clapTailGain = 0.2
+            v.clapTail = 0.1
+            v.metalScale = 1.6
+            v.hatNoise = 0.5
+            v.hatMetal = 0.1
         case .lofiDusty:
             // Sampler grit: reduced resolution, held samples and a dark top end.
-            v.kickBase = 50; v.kickSweep = 2.2; v.kickDecay = 0.2; v.kickClick = 0.12; v.kickDrive = 1.3
-            v.snareNoiseGain = 0.5; v.snareNoiseDecay = 0.09; v.clapTailGain = 0.22; v.hatDecay = 0.8; v.hatNoise = 0.28
-            v.bits = 10; v.hold = 3; v.lowpass = 5200
+            v.kickBase = 50
+            v.kickSweep = 2.2
+            v.kickDecay = 0.2
+            v.kickClick = 0.12
+            v.kickDrive = 1.3
+            v.snareNoiseGain = 0.5
+            v.snareNoiseDecay = 0.09
+            v.clapTailGain = 0.22
+            v.hatDecay = 0.8
+            v.hatNoise = 0.28
+            v.bits = 10
+            v.hold = 3
+            v.lowpass = 5200
         case .trapModern:
             // Saturated long sub kick, crisp snare and clap, tight bright hats.
-            v.kickBase = 41; v.kickSweep = 2; v.kickSweepTime = 0.03; v.kickDecay = 0.62; v.kickClick = 0.06; v.kickDrive = 1.25
-            v.snareTone = 215; v.snareSweep = 120; v.snareToneGain = 0.22; v.snareToneDecay = 0.05; v.snareNoiseGain = 0.58; v.snareNoiseDecay = 0.09
-            v.clapGain = 0.5; v.clapTailGain = 0.22; v.clapTail = 0.11; v.metalScale = 1.7; v.hatDecay = 0.75; v.hatNoise = 0.45; v.hatMetal = 0.15
+            v.kickBase = 41
+            v.kickSweep = 2
+            v.kickSweepTime = 0.03
+            v.kickDecay = 0.62
+            v.kickClick = 0.06
+            v.kickDrive = 1.25
+            v.snareTone = 215
+            v.snareSweep = 120
+            v.snareToneGain = 0.22
+            v.snareToneDecay = 0.05
+            v.snareNoiseGain = 0.58
+            v.snareNoiseDecay = 0.09
+            v.clapGain = 0.5
+            v.clapTailGain = 0.22
+            v.clapTail = 0.11
+            v.metalScale = 1.7
+            v.hatDecay = 0.75
+            v.hatNoise = 0.45
+            v.hatMetal = 0.15
         case .technoMinimal:
             // Driven rumble kick with a short click; dry metallic percussion.
-            v.kickBase = 50; v.kickSweep = 3; v.kickSweepTime = 0.02; v.kickDecay = 0.26; v.kickClick = 0.22; v.clickTime = 0.004; v.kickDrive = 2
-            v.tomScale = 1.12; v.tomDecay = 0.17; v.snareTone = 185; v.snareNoiseGain = 0.4; v.snareNoiseDecay = 0.06
-            v.clapGain = 0.4; v.clapSpread = 1.25; v.metalScale = 1.4; v.hatDecay = 0.9; v.hatNoise = 0.38; v.hatMetal = 0.22
+            v.kickBase = 50
+            v.kickSweep = 3
+            v.kickSweepTime = 0.02
+            v.kickDecay = 0.26
+            v.kickClick = 0.22
+            v.clickTime = 0.004
+            v.kickDrive = 2
+            v.tomScale = 1.12
+            v.tomDecay = 0.17
+            v.snareTone = 185
+            v.snareNoiseGain = 0.4
+            v.snareNoiseDecay = 0.06
+            v.clapGain = 0.4
+            v.clapSpread = 1.25
+            v.metalScale = 1.4
+            v.hatDecay = 0.9
+            v.hatNoise = 0.38
+            v.hatMetal = 0.22
         default: return nil
         }
         return v
@@ -90,9 +165,11 @@ public enum DrumKit: String, Codable, CaseIterable, Identifiable, Sendable {
 /// Drum-machine voice parameters (times in seconds, frequencies in Hz). The
 /// defaults are the classic electronic kit.
 struct DrumMachineVoicing {
-    var kickBase = 47.0, kickSweep = 2.8, kickSweepTime = 0.023, kickDecay = 0.15, kickClick = 0.10, clickTime = 0.005, kickDrive = 1.0
+    var kickBase = 47.0, kickSweep = 2.8, kickSweepTime = 0.023, kickDecay = 0.15, kickClick = 0.10, clickTime = 0.005,
+        kickDrive = 1.0
     var tomScale = 1.0, tomDecay = 0.21
-    var snareTone = 175.0, snareSweep = 100.0, snareToneGain = 0.32, snareToneDecay = 0.065, snareNoiseGain = 0.46, snareNoiseDecay = 0.075
+    var snareTone = 175.0, snareSweep = 100.0, snareToneGain = 0.32, snareToneDecay = 0.065, snareNoiseGain = 0.46,
+        snareNoiseDecay = 0.075
     var clapGain = 0.39, clapTailGain = 0.18, clapTail = 0.085, clapSpread = 1.0
     var metalScale = 1.0, hatDecay = 1.0, hatNoise = 0.34, hatMetal = 0.19
     /// Sample resolution in bits (0 keeps full resolution), sample-and-hold frames, one-pole low-pass (0 bypasses).
@@ -102,7 +179,13 @@ public enum DrumArticulation: String, Codable, CaseIterable, Identifiable, Senda
     case center, rimshot, sideStick, brush, bell
     public var id: Self { self }
     public var title: String {
-        switch self { case .center: return "Center"; case .rimshot: return "Rimshot"; case .sideStick: return "Side stick"; case .brush: return "Brush"; case .bell: return "Bell" }
+        switch self {
+        case .center: return "Center"
+        case .rimshot: return "Rimshot"
+        case .sideStick: return "Side stick"
+        case .brush: return "Brush"
+        case .bell: return "Bell"
+        }
     }
     public static func available(for voice: DrumVoice) -> [Self] {
         switch voice {
@@ -159,7 +242,8 @@ private struct DrumMode {
     let decay: Double
     mutating func sample() -> Double {
         let value = sin(phase) * amplitude
-        phase += step; amplitude *= decay
+        phase += step
+        amplitude *= decay
         return value
     }
 }
@@ -167,7 +251,10 @@ public enum DrumSynthesis {
     /// Velocity changes excitation, mode balance, wire brightness and decay. Round
     /// robins vary strike position, resonant frequencies and stochastic excitation.
     /// No compressor, reverb, normalization or limiter is baked into the sample.
-    public static func render(kit: DrumKit, voice: DrumVoice, velocity: Double = 0.8, roundRobin: Int = 0, articulation: DrumArticulation = .center, damping: Double = 0.5) -> AudioSamples {
+    public static func render(
+        kit: DrumKit, voice: DrumVoice, velocity: Double = 0.8, roundRobin: Int = 0,
+        articulation: DrumArticulation = .center, damping: Double = 0.5
+    ) -> AudioSamples {
         let velocity = velocity.isFinite ? min(1, max(0, velocity)) : 0.8
         let articulation = DrumArticulation.available(for: voice).contains(articulation) ? articulation : .center
         let profile = kit.profile
@@ -176,7 +263,9 @@ public enum DrumSynthesis {
         let dampingScale = pow(2, (0.5 - damping) * 2)
         let rr = max(0, roundRobin) % 32
         let voiceIndex = DrumVoice.allCases.firstIndex(of: voice) ?? 0
-        var random = DrumRandom(state: UInt64(991 + voiceIndex * 8191 + rr * 401) + (kit.isAcoustic ? UInt64((DrumKit.allCases.firstIndex(of: kit) ?? 0) * 104729) : 104729))
+        var random = DrumRandom(
+            state: UInt64(991 + voiceIndex * 8191 + rr * 401)
+                + (kit.isAcoustic ? UInt64((DrumKit.allCases.firstIndex(of: kit) ?? 0) * 104729) : 104729))
         let variation = random.signed()
         let strike = 0.96 + 0.035 * random.signed()
         let size = Int((voice.duration(for: kit) * sessionRate).rounded())
@@ -195,7 +284,10 @@ public enum DrumSynthesis {
             case .clap: fundamental = 790
             default: fundamental = voice == .ride ? 410 : 570
             }
-            var ratios = isMetal ? [1, 1.37, 1.91, 2.43, 3.21, 4.17, 5.07, 6.71, 8.37, 10.49, 12.13, 15.47, 18.71, 22.19, 27.31, 32.79] : [1, 1.593, 2.135, 2.296, 2.653, 2.918, 3.156, 3.5]
+            var ratios =
+                isMetal
+                ? [1, 1.37, 1.91, 2.43, 3.21, 4.17, 5.07, 6.71, 8.37, 10.49, 12.13, 15.47, 18.71, 22.19, 27.31, 32.79]
+                : [1, 1.593, 2.135, 2.296, 2.653, 2.918, 3.156, 3.5]
             if kit != .acoustic && isMetal {
                 // Dense, irregular modes avoid a pitched metallic oscillator chord.
                 ratios += (16..<48).map { Double($0) * 2.07 + 1.17 + random.signed() * 0.41 }
@@ -214,20 +306,33 @@ public enum DrumSynthesis {
             }
             for (index, ratio) in ratios.enumerated() {
                 let strikePitch = articulation == .sideStick ? 3.6 : articulation == .bell ? 1.8 : 1
-                let frequency = fundamental * profile.pitch * (isMetal ? profile.metal : 1) * strikePitch * ratio * (1 + variation * 0.009 + random.signed() * 0.003)
+                let frequency =
+                    fundamental * profile.pitch * (isMetal ? profile.metal : 1) * strikePitch * ratio
+                    * (1 + variation * 0.009 + random.signed() * 0.003)
                 if frequency > sessionRate * 0.43 { continue }
                 let bright = pow(velocity, Double(index) * (isMetal ? 0.025 : 0.11))
                 let modalCountGain = kit != .acoustic && isMetal ? 0.65 : 1
                 let rimBalance = articulation == .rimshot ? (index == 0 ? 0.7 : 1.5) : 1
-                let weight = (isMetal ? 0.030 * modalCountGain / pow(Double(index + 1), 0.28) : 0.36 * rimBalance / pow(Double(index + 1), 1.35)) * (brushed ? 0.35 : 1)
-                let decay = decayBase * profile.body * dampingScale * (articulation == .sideStick ? 0.18 : 1) * (0.91 + random.signed() * 0.05) / pow(ratio, isMetal ? 0.14 : 0.60)
-                modes.append(DrumMode(phase: random.signed() * 0.35, step: 2 * .pi * frequency / sessionRate,
-                                      amplitude: weight * bright * strike, decay: exp(-1 / (decay * sessionRate))))
+                let weight =
+                    (isMetal
+                        ? 0.030 * modalCountGain / pow(Double(index + 1), 0.28)
+                        : 0.36 * rimBalance / pow(Double(index + 1), 1.35)) * (brushed ? 0.35 : 1)
+                let decay =
+                    decayBase * profile.body * dampingScale * (articulation == .sideStick ? 0.18 : 1)
+                    * (0.91 + random.signed() * 0.05) / pow(ratio, isMetal ? 0.14 : 0.60)
+                modes.append(
+                    DrumMode(
+                        phase: random.signed() * 0.35, step: 2 * .pi * frequency / sessionRate,
+                        amplitude: weight * bright * strike, decay: exp(-1 / (decay * sessionRate))))
             }
         }
-        var noiseLP = 0.0, noiseBody = 0.0, phase = 0.0, metalPhases = [Double](repeating: 0, count: 6)
+        var noiseLP = 0.0
+        var noiseBody = 0.0
+        var phase = 0.0
+        var metalPhases = [Double](repeating: 0, count: 6)
         let machine = kit.machineVoicing
-        var held = 0.0, dusty = 0.0
+        var held = 0.0
+        var dusty = 0.0
         let noiseCutoff = isMetal ? 2500.0 : voice == .kick ? 1900 : 950 + velocity * 6100
         let coefficient = 1 - exp(-2 * .pi * noiseCutoff / sessionRate)
         for frame in 0..<size {
@@ -251,7 +356,9 @@ public enum DrumSynthesis {
                     // Snare wires are broadband, with a slower diffuse decay and
                     // a short rim/excitation component that brightens with force.
                     let wires = articulation == .sideStick ? 0.035 : profile.wires
-                    let wireDecay = (articulation == .brush ? 0.32 : brushed ? 0.19 : 0.065 + 0.038 * velocity) * profile.body * dampingScale
+                    let wireDecay =
+                        (articulation == .brush ? 0.32 : brushed ? 0.19 : 0.065 + 0.038 * velocity) * profile.body
+                        * dampingScale
                     let diffusion = brushed ? (1 - exp(-t / 0.008)) : 1
                     signal += (noiseLP - noiseBody) * (0.35 + 0.15 * velocity) * wires * diffusion * exp(-t / wireDecay)
                     if articulation == .rimshot { signal += highNoise * 0.22 * exp(-t / 0.002) }
@@ -263,14 +370,17 @@ public enum DrumSynthesis {
                     signal += (noiseLP - noiseBody) * 0.37 * burst
                 default:
                     let decay = voice == .closedHat ? 0.037 : voice == .openHat ? 0.21 : voice == .ride ? 0.28 : 0.38
-                    signal += highNoise * (0.11 + 0.09 * velocity) * (articulation == .bell ? 0.2 : 1) * exp(-t / (decay * profile.body * dampingScale))
+                    signal +=
+                        highNoise * (0.11 + 0.09 * velocity) * (articulation == .bell ? 0.2 : 1)
+                        * exp(-t / (decay * profile.body * dampingScale))
                 }
             } else if let e = machine {
                 switch voice {
                 case .kick, .lowTom, .highTom:
                     let kick = voice == .kick
                     let base = kick ? e.kickBase : voice == .lowTom ? 94 * e.tomScale : 151 * e.tomScale
-                    let sweep = kick ? e.kickSweep : 2.8, sweepTime = kick ? e.kickSweepTime : 0.023
+                    let sweep = kick ? e.kickSweep : 2.8
+                    let sweepTime = kick ? e.kickSweepTime : 0.023
                     let pitch = base * (1 + sweep * exp(-t / sweepTime)) * (1 + variation * 0.008)
                     phase += 2 * .pi * pitch / sessionRate
                     signal = sin(phase) * 0.75 * exp(-t / (kick ? e.kickDecay : e.tomDecay))
@@ -278,9 +388,14 @@ public enum DrumSynthesis {
                     if kick && e.kickDrive > 1 { signal = tanh(signal * e.kickDrive) / tanh(e.kickDrive) }
                 case .snare:
                     phase += 2 * .pi * (e.snareTone + e.snareSweep * exp(-t / 0.01)) / sessionRate
-                    signal = sin(phase) * e.snareToneGain * exp(-t / e.snareToneDecay) + (noiseLP - noiseBody) * e.snareNoiseGain * exp(-t / e.snareNoiseDecay)
+                    signal =
+                        sin(phase) * e.snareToneGain * exp(-t / e.snareToneDecay) + (noiseLP - noiseBody)
+                        * e.snareNoiseGain * exp(-t / e.snareNoiseDecay)
                 case .clap:
-                    let burst = [0.0, 0.009, 0.019, 0.031].reduce(0.0) { sum, b in let b = b * e.clapSpread; return sum + (t >= b ? exp(-(t - b) / 0.006) : 0) }
+                    let burst = [0.0, 0.009, 0.019, 0.031].reduce(0.0) { sum, b in
+                        let b = b * e.clapSpread
+                        return sum + (t >= b ? exp(-(t - b) / 0.006) : 0)
+                    }
                     signal = (noiseLP - noiseBody) * (e.clapGain * burst + e.clapTailGain * exp(-t / e.clapTail))
                 default:
                     let frequencies = [317.0, 431, 587, 811, 1093, 1487]
@@ -291,12 +406,23 @@ public enum DrumSynthesis {
                         // Smoothed triangle components avoid aliased square waves.
                         metal += (abs(p * 2 - 1) * 2 - 1) / 6
                     }
-                    let decay = (voice == .closedHat ? 0.035 : voice == .openHat ? 0.18 : voice == .ride ? 0.33 : 0.45) * e.hatDecay
+                    let decay =
+                        (voice == .closedHat ? 0.035 : voice == .openHat ? 0.18 : voice == .ride ? 0.33 : 0.45)
+                        * e.hatDecay
                     signal = (highNoise * e.hatNoise + metal * e.hatMetal) * exp(-t / decay)
                 }
-                if e.hold > 1 { if frame % e.hold == 0 { held = signal }; signal = held }
-                if e.bits > 0 { let steps = pow(2, e.bits - 1); signal = (signal * steps).rounded() / steps }
-                if e.lowpass > 0 { dusty += (1 - exp(-2 * .pi * e.lowpass / sessionRate)) * (signal - dusty); signal = dusty }
+                if e.hold > 1 {
+                    if frame % e.hold == 0 { held = signal }
+                    signal = held
+                }
+                if e.bits > 0 {
+                    let steps = pow(2, e.bits - 1)
+                    signal = (signal * steps).rounded() / steps
+                }
+                if e.lowpass > 0 {
+                    dusty += (1 - exp(-2 * .pi * e.lowpass / sessionRate)) * (signal - dusty)
+                    signal = dusty
+                }
             }
             // Sub-millisecond excitation and a silent 5 ms tail prevent edge clicks
             // while retaining the strike's transient. Fixed headroom keeps layer dynamics.

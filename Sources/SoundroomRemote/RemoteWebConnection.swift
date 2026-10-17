@@ -34,8 +34,15 @@ final class RemoteWebConnection: RemoteServerChannel, @unchecked Sendable {
     private var pairingAttempted = false
     private var authenticated = false
 
-    init(connection: NWConnection, capabilities: Data? = nil) { self.connection = connection; self.capabilities = capabilities }
-    deinit { preparation?.cancel(); watchdog?.cancel(); connection.cancel() }
+    init(connection: NWConnection, capabilities: Data? = nil) {
+        self.connection = connection
+        self.capabilities = capabilities
+    }
+    deinit {
+        preparation?.cancel()
+        watchdog?.cancel()
+        connection.cancel()
+    }
 
     func start() {
         let timer = DispatchSource.makeTimerSource(queue: queue)
@@ -44,15 +51,21 @@ final class RemoteWebConnection: RemoteServerChannel, @unchecked Sendable {
             guard let self, self.ready, !self.closed else { return }
             let now = ProcessInfo.processInfo.systemUptime
             if now - self.lastReceive > 15 || (self.sending && now - self.sendStarted > 30) {
-                self.closeOnQueue(RemoteError.timeout); return
+                self.closeOnQueue(RemoteError.timeout)
+                return
             }
             self.send(.heartbeat(UUID()), telemetryKey: "heartbeat")
         }
-        watchdog = timer; timer.resume()
+        watchdog = timer
+        timer.resume()
         connection.stateUpdateHandler = { [weak self] state in
             guard let self, !self.closed else { return }
             switch state {
-            case .ready: self.ready = true; self.lastReceive = ProcessInfo.processInfo.systemUptime; self.onReady?(); self.receive()
+            case .ready:
+                self.ready = true
+                self.lastReceive = ProcessInfo.processInfo.systemUptime
+                self.onReady?()
+                self.receive()
             case .failed(let error): self.closeOnQueue(error)
             case .cancelled: self.closeOnQueue(RemoteError.connectionLost)
             default: break
@@ -63,16 +76,29 @@ final class RemoteWebConnection: RemoteServerChannel, @unchecked Sendable {
 
     func send(_ message: RemoteWireMessage, telemetryKey: String? = nil) {
         admissionLock.lock()
-        guard !admissionClosed else { admissionLock.unlock(); return }
+        guard !admissionClosed else {
+            admissionLock.unlock()
+            return
+        }
         let priority = message.usesPriorityWebEncoding
         do {
-            if priority { try priorityMailbox.append(message, telemetryKey: telemetryKey) }
-            else { try mailbox.append(message, telemetryKey: telemetryKey) }
-            guard mailbox.bytes + priorityMailbox.bytes <= RemoteProtocol.maximumQueuedBytes else { throw RemoteError.queueFull }
+            if priority {
+                try priorityMailbox.append(message, telemetryKey: telemetryKey)
+            } else {
+                try mailbox.append(message, telemetryKey: telemetryKey)
+            }
+            guard mailbox.bytes + priorityMailbox.bytes <= RemoteProtocol.maximumQueuedBytes else {
+                throw RemoteError.queueFull
+            }
+        } catch {
+            admissionClosed = true
+            admissionLock.unlock()
+            close(error)
+            return
         }
-        catch { admissionClosed = true; admissionLock.unlock(); close(error); return }
         let schedule = priority ? !priorityScheduled : !mailboxScheduled
-        if priority { priorityScheduled = true } else { mailboxScheduled = true }; admissionLock.unlock()
+        if priority { priorityScheduled = true } else { mailboxScheduled = true }
+        admissionLock.unlock()
         if schedule { queue.async { [weak self] in self?.encodeMailbox() } }
     }
 
@@ -80,23 +106,33 @@ final class RemoteWebConnection: RemoteServerChannel, @unchecked Sendable {
         guard !closed else { return }
         // Receipts and heartbeat remain responsive throughout a long snapshot.
         for _ in 0..<8 {
-            admissionLock.lock(); let item = priorityMailbox.next()
-            if item == nil { priorityScheduled = false }; admissionLock.unlock()
+            admissionLock.lock()
+            let item = priorityMailbox.next()
+            if item == nil { priorityScheduled = false }
+            admissionLock.unlock()
             guard let item else { break }
             do {
                 if case .welcome = item.message { authenticated = true }
-                try outbound.append(RemoteV3Codec.encodeMessage(item.message, devices: document.devices), telemetryKey: item.telemetryKey)
+                try outbound.append(
+                    RemoteV3Codec.encodeMessage(item.message, devices: document.devices),
+                    telemetryKey: item.telemetryKey)
                 if case .welcome = item.message, let capabilities { try outbound.append(capabilities) }
                 drain()
+            } catch {
+                closeOnQueue(error)
+                return
             }
-            catch { closeOnQueue(error); return }
         }
-        admissionLock.lock(); let prioritiesRemain = priorityMailbox.count > 0
-        if !prioritiesRemain { priorityScheduled = false }; admissionLock.unlock()
+        admissionLock.lock()
+        let prioritiesRemain = priorityMailbox.count > 0
+        if !prioritiesRemain { priorityScheduled = false }
+        admissionLock.unlock()
         if prioritiesRemain { queue.async { [weak self] in self?.encodeMailbox() } }
         guard snapshotStream == nil, preparation == nil else { return }
-        admissionLock.lock(); let item = mailbox.next()
-        if item == nil { mailboxScheduled = false }; admissionLock.unlock()
+        admissionLock.lock()
+        let item = mailbox.next()
+        if item == nil { mailboxScheduled = false }
+        admissionLock.unlock()
         guard let item else { return }
         let state = document
         preparation = Task.detached(priority: .userInitiated) { [weak self] in
@@ -105,7 +141,8 @@ final class RemoteWebConnection: RemoteServerChannel, @unchecked Sendable {
                 try Task.checkCancellation()
                 self?.queue.async { [weak self] in
                     guard let self, !self.closed else { return }
-                    self.preparation = nil; self.document = result.state
+                    self.preparation = nil
+                    self.document = result.state
                     do {
                         switch result.output {
                         case .snapshot(let lease): self.snapshotStream = .init(lease: lease)
@@ -122,49 +159,90 @@ final class RemoteWebConnection: RemoteServerChannel, @unchecked Sendable {
     private func receive() {
         guard !closed else { return }
         // Receive in chunks even when a malicious peer fragments a large message.
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { [weak self] data, context, complete, error in
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) {
+            [weak self] data, context, complete, error in
             guard let self, !self.closed else { return }
-            if let error { self.closeOnQueue(error); return }
-            if let metadata = context?.protocolMetadata(definition: NWProtocolWebSocket.definition) as? NWProtocolWebSocket.Metadata {
-                if metadata.opcode == .close { self.closeOnQueue(nil); return }
-                if metadata.opcode == .ping || metadata.opcode == .pong { self.receive(); return }
-                guard metadata.opcode == .text || metadata.opcode == .cont else { self.closeOnQueue(RemoteError.invalidFrame); return }
+            if let error {
+                self.closeOnQueue(error)
+                return
+            }
+            if let metadata = context?.protocolMetadata(definition: NWProtocolWebSocket.definition)
+                as? NWProtocolWebSocket.Metadata
+            {
+                if metadata.opcode == .close {
+                    self.closeOnQueue(nil)
+                    return
+                }
+                if metadata.opcode == .ping || metadata.opcode == .pong {
+                    self.receive()
+                    return
+                }
+                guard metadata.opcode == .text || metadata.opcode == .cont else {
+                    self.closeOnQueue(RemoteError.invalidFrame)
+                    return
+                }
             }
             if let data {
-                guard self.incoming.count <= RemoteProtocol.maximumFrameBytes - data.count else { self.closeOnQueue(RemoteError.oversizedFrame); return }
+                guard self.incoming.count <= RemoteProtocol.maximumFrameBytes - data.count else {
+                    self.closeOnQueue(RemoteError.oversizedFrame)
+                    return
+                }
                 self.incoming.append(data)
             }
-            guard complete else { self.receive(); return }
-            let payload = self.incoming; self.incoming = Data()
-            guard !payload.isEmpty else { self.receive(); return }
+            guard complete else {
+                self.receive()
+                return
+            }
+            let payload = self.incoming
+            self.incoming = Data()
+            guard !payload.isEmpty else {
+                self.receive()
+                return
+            }
             do {
                 if !self.authenticated, !self.pairingAttempted, payload.count <= 4096,
-                   let object = try JSONSerialization.jsonObject(with: payload) as? [String: Any], object["kind"] as? String == "pair" {
+                    let object = try JSONSerialization.jsonObject(with: payload) as? [String: Any],
+                    object["kind"] as? String == "pair"
+                {
                     guard object["version"] as? Int == 3, Set(object.keys) == ["version", "kind", "code", "name"],
-                          let code = object["code"] as? String, let name = object["name"] as? String,
-                          let handler = self.onPairingRequest else { throw RemoteError.invalidFrame }
+                        let code = object["code"] as? String, let name = object["name"] as? String,
+                        let handler = self.onPairingRequest
+                    else { throw RemoteError.invalidFrame }
                     self.pairingAttempted = true
                     Task { @MainActor [weak self] in
                         do {
                             let credential = try handler(code, name)
-                            struct Paired: Encodable { let version = 3; let kind = "paired"; let credential: RemoteBrowserCredential }
+                            struct Paired: Encodable {
+                                let version = 3
+                                let kind = "paired"
+                                let credential: RemoteBrowserCredential
+                            }
                             let bytes = try JSONEncoder().encode(Paired(credential: credential))
                             self?.queue.async { [weak self] in
                                 guard let self, !self.closed else { return }
-                                do { try self.outbound.append(bytes); self.drain(); self.receive() } catch { self.closeOnQueue(error) }
+                                do {
+                                    try self.outbound.append(bytes)
+                                    self.drain()
+                                    self.receive()
+                                } catch { self.closeOnQueue(error) }
                             }
                         } catch { self?.close(error) }
                     }
                     return
                 }
                 let message = try RemoteV3Codec.decodeMessage(payload, devices: self.document.devices)
-                self.received += 1; self.lastReceive = ProcessInfo.processInfo.systemUptime
+                self.received += 1
+                self.lastReceive = ProcessInfo.processInfo.systemUptime
                 switch message {
-                case .heartbeat(let nonce): self.send(.heartbeatReply(nonce), telemetryKey: "heartbeatReply"); self.receive()
+                case .heartbeat(let nonce):
+                    self.send(.heartbeatReply(nonce), telemetryKey: "heartbeatReply")
+                    self.receive()
                 case .heartbeatReply: self.receive()
                 default:
                     guard let onMessage = self.onMessage else { throw RemoteError.invalidFrame }
-                    onMessage(message, payload.count) { [weak self] in self?.queue.async { [weak self] in self?.receive() } }
+                    onMessage(message, payload.count) { [weak self] in
+                        self?.queue.async { [weak self] in self?.receive() }
+                    }
                 }
             } catch { self.closeOnQueue(error) }
         }
@@ -173,43 +251,80 @@ final class RemoteWebConnection: RemoteServerChannel, @unchecked Sendable {
     private func drain() {
         guard !closed, !sending else { return }
         let data: Data
-        if let next = outbound.next() { data = next }
-        else if snapshotStream != nil {
+        if let next = outbound.next() {
+            data = next
+        } else if snapshotStream != nil {
             do {
                 guard let next = try snapshotStream!.next() else {
                     snapshotStream = nil
-                    queue.async { [weak self] in self?.encodeMailbox() }; return
+                    queue.async { [weak self] in self?.encodeMailbox() }
+                    return
                 }
                 data = next
-            } catch { closeOnQueue(error); return }
-        } else { return }
-        sending = true; sendStarted = ProcessInfo.processInfo.systemUptime
-        let context = NWConnection.ContentContext(identifier: "soundroom-v3", metadata: [NWProtocolWebSocket.Metadata(opcode: .text)])
-        connection.send(content: data, contentContext: context, isComplete: true, completion: .contentProcessed { [weak self] error in
-            guard let self, !self.closed else { return }
-            self.sending = false
-            if let error { self.closeOnQueue(error); return }
-            self.sent += 1; self.drain()
-        })
+            } catch {
+                closeOnQueue(error)
+                return
+            }
+        } else {
+            return
+        }
+        sending = true
+        sendStarted = ProcessInfo.processInfo.systemUptime
+        let context = NWConnection.ContentContext(
+            identifier: "soundroom-v3", metadata: [NWProtocolWebSocket.Metadata(opcode: .text)])
+        connection.send(
+            content: data, contentContext: context, isComplete: true,
+            completion: .contentProcessed { [weak self] error in
+                guard let self, !self.closed else { return }
+                self.sending = false
+                if let error {
+                    self.closeOnQueue(error)
+                    return
+                }
+                self.sent += 1
+                self.drain()
+            })
     }
 
     func close(_ error: Error? = nil) { queue.async { [weak self] in self?.closeOnQueue(error) } }
     private func closeOnQueue(_ error: Error?) {
-        guard !closed else { return }; closed = true
-        admissionLock.lock(); admissionClosed = true; mailbox.clear(); priorityMailbox.clear(); admissionLock.unlock()
-        preparation?.cancel(); preparation = nil
-        watchdog?.cancel(); watchdog = nil; incoming = Data(); outbound.clear(); snapshotStream = nil; document = .init()
-        connection.stateUpdateHandler = nil; connection.cancel()
-        onClose?(error); onReady = nil; onMessage = nil; onClose = nil; onPairingRequest = nil
+        guard !closed else { return }
+        closed = true
+        admissionLock.lock()
+        admissionClosed = true
+        mailbox.clear()
+        priorityMailbox.clear()
+        admissionLock.unlock()
+        preparation?.cancel()
+        preparation = nil
+        watchdog?.cancel()
+        watchdog = nil
+        incoming = Data()
+        outbound.clear()
+        snapshotStream = nil
+        document = .init()
+        connection.stateUpdateHandler = nil
+        connection.cancel()
+        onClose?(error)
+        onReady = nil
+        onMessage = nil
+        onClose = nil
+        onPairingRequest = nil
     }
     func metrics(_ callback: @escaping @Sendable (RemoteNetworkMetrics) -> Void) {
         queue.async { [weak self] in
             guard let self else { return }
             self.admissionLock.lock()
-            let bytes = self.mailbox.bytes + self.priorityMailbox.bytes, count = self.mailbox.count + self.priorityMailbox.count, discarded = self.mailbox.discardedTelemetry + self.priorityMailbox.discardedTelemetry
+            let bytes = self.mailbox.bytes + self.priorityMailbox.bytes
+            let count = self.mailbox.count + self.priorityMailbox.count
+            let discarded = self.mailbox.discardedTelemetry + self.priorityMailbox.discardedTelemetry
             self.admissionLock.unlock()
-            callback(.init(queuedBytes: bytes + self.outbound.bytes + (self.snapshotStream?.retainedBytes ?? 0), queuedFrames: count + self.outbound.reliableCount,
-                           discardedTelemetry: discarded + self.outbound.discardedTelemetry, receivedFrames: self.received, sentFrames: self.sent))
+            callback(
+                .init(
+                    queuedBytes: bytes + self.outbound.bytes + (self.snapshotStream?.retainedBytes ?? 0),
+                    queuedFrames: count + self.outbound.reliableCount,
+                    discardedTelemetry: discarded + self.outbound.discardedTelemetry, receivedFrames: self.received,
+                    sentFrames: self.sent))
         }
     }
 }

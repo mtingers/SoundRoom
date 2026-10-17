@@ -6,9 +6,13 @@ struct RemoteInitialEventBuffer {
     private var snapshotQueued = false
     private var pending = RemoteMessageMailbox()
 
-    mutating func submit(_ event: RemoteEvent, telemetryKey: String?, send: (RemoteWireMessage, String?) -> Void) throws {
-        if snapshotQueued { send(.event(event), telemetryKey) }
-        else { try pending.append(.event(event), telemetryKey: telemetryKey) }
+    mutating func submit(_ event: RemoteEvent, telemetryKey: String?, send: (RemoteWireMessage, String?) -> Void) throws
+    {
+        if snapshotQueued {
+            send(.event(event), telemetryKey)
+        } else {
+            try pending.append(.event(event), telemetryKey: telemetryKey)
+        }
     }
 
     mutating func install(_ snapshot: RemoteSnapshot, send: (RemoteWireMessage, String?) -> Void) {

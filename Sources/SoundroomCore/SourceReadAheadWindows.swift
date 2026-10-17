@@ -17,7 +17,9 @@ enum SourceReadAheadWindows {
         let frameRemainder = outputFrame % width
         let normalizedFrame = frameRemainder < 0 ? frameRemainder + width : frameRemainder
         let lowerRemainder = loop.lowerBound % width
-        let normalized = normalizedFrame >= lowerRemainder ? normalizedFrame - lowerRemainder : width - (lowerRemainder - normalizedFrame)
+        let normalized =
+            normalizedFrame >= lowerRemainder
+            ? normalizedFrame - lowerRemainder : width - (lowerRemainder - normalizedFrame)
         let offset = max(0, latency) % width
         // Modular addition avoids overflowing when a loop ends near Int.max.
         let shifted = normalized >= width - offset ? normalized - (width - offset) : normalized + offset

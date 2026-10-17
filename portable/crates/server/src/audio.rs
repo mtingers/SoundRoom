@@ -377,27 +377,44 @@ impl Backend {
     }
     /// Reports this preparation's own generation, even when Stop supersedes it.
     pub(crate) fn execute_recording(
-        &self, command: Command, project: Box<Project>, revision: u64,
-        cancel: Arc<AtomicBool>, generation: &AtomicU64,
+        &self,
+        command: Command,
+        project: Box<Project>,
+        revision: u64,
+        cancel: Arc<AtomicBool>,
+        generation: &AtomicU64,
     ) -> Result<Telemetry, Error> {
         self.execute_tracked(command, project, revision, cancel, Some(generation))
     }
     /// Cleanup must never supersede the explicit Stop that cancelled startup.
     pub(crate) fn pause_if_current(&self, generation: u64) -> Result<Option<Telemetry>, Error> {
         self.inner.count_in.cancel();
-        let next = generation.checked_add(1).ok_or_else(|| protocol("Transport generation exhausted"))?;
-        if self.inner.epoch.compare_exchange(generation, next, Ordering::AcqRel, Ordering::Acquire).is_err() {
+        let next = generation
+            .checked_add(1)
+            .ok_or_else(|| protocol("Transport generation exhausted"))?;
+        if self
+            .inner
+            .epoch
+            .compare_exchange(generation, next, Ordering::AcqRel, Ordering::Acquire)
+            .is_err()
+        {
             return Ok(None);
         }
         self.inner.updates.cancel();
         if let Ok(current) = self.inner.current_cancel.lock() {
-            if let Some(current) = current.as_ref() { current.store(true, Ordering::Release); }
+            if let Some(current) = current.as_ref() {
+                current.store(true, Ordering::Release);
+            }
         }
         self.playing(false, next).map(Some)
     }
     fn execute_tracked(
-        &self, command: Command, project: Box<Project>, revision: u64,
-        cancel: Arc<AtomicBool>, generation: Option<&AtomicU64>,
+        &self,
+        command: Command,
+        project: Box<Project>,
+        revision: u64,
+        cancel: Arc<AtomicBool>,
+        generation: Option<&AtomicU64>,
     ) -> Result<Telemetry, Error> {
         if matches!(command, Command::Pause) {
             self.inner.count_in.cancel();
@@ -411,7 +428,9 @@ impl Backend {
             return self.playing(false, epoch);
         }
         let observed_epoch = self.inner.epoch.load(Ordering::Acquire);
-        if cancel.load(Ordering::Acquire) { return Err(protocol("Audio preparation was stopped")); }
+        if cancel.load(Ordering::Acquire) {
+            return Err(protocol("Audio preparation was stopped"));
+        }
         if self
             .inner
             .busy
@@ -436,12 +455,21 @@ impl Backend {
             .lock()
             .map_err(|_| protocol("Audio preparation state is unavailable"))? =
             Some(cancel.clone());
-        let epoch = observed_epoch.checked_add(1).ok_or_else(|| protocol("Transport generation exhausted"))?;
+        let epoch = observed_epoch
+            .checked_add(1)
+            .ok_or_else(|| protocol("Transport generation exhausted"))?;
         if cancel.load(Ordering::Acquire)
-            || self.inner.epoch.compare_exchange(observed_epoch, epoch, Ordering::AcqRel, Ordering::Acquire).is_err() {
+            || self
+                .inner
+                .epoch
+                .compare_exchange(observed_epoch, epoch, Ordering::AcqRel, Ordering::Acquire)
+                .is_err()
+        {
             return Err(protocol("Audio preparation was stopped"));
         }
-        if let Some(generation) = generation { generation.store(epoch, Ordering::Release); }
+        if let Some(generation) = generation {
+            generation.store(epoch, Ordering::Release);
+        }
         self.inner.updates.cancel();
         let was_playing = self.inner.playing.load(Ordering::Acquire);
         let frozen = self.playing(false, epoch)?;
@@ -814,10 +842,7 @@ fn drive(
                         }
                         if !p.live {
                             if let Some(revision) = p.revision {
-                                inner.set_status(
-                                    revision,
-                                    "Ready".into(),
-                                );
+                                inner.set_status(revision, "Ready".into());
                             }
                         }
                     }

@@ -1,11 +1,14 @@
-import XCTest
-@testable import Soundroom
 import SoundroomCore
+import XCTest
+
+@testable import Soundroom
 
 final class PitchFeedbackHistoryTests: XCTestCase {
     private func pitch(_ frame: Int, frequency: Float = 450) -> PitchMeterSnapshot {
-        var value = PitchMeterSnapshot(); value.sourceFrame = frame
-        value.inputFrequency = frequency; value.confidence = 1
+        var value = PitchMeterSnapshot()
+        value.sourceFrame = frame
+        value.inputFrequency = frequency
+        value.confidence = 1
         return value
     }
     func testStoppedOrStalledRenderClearsPitchAndTrace() {
@@ -16,12 +19,15 @@ final class PitchFeedbackHistoryTests: XCTestCase {
         history.update(value, at: 10.2, running: true)
         XCTAssertNotNil(history.reading)
         history.update(value, at: 10.36, running: true)
-        XCTAssertNil(history.reading); XCTAssertTrue(history.points.isEmpty)
+        XCTAssertNil(history.reading)
+        XCTAssertTrue(history.points.isEmpty)
         history.update(value, at: 10.8, running: true)
-        XCTAssertNil(history.reading); XCTAssertTrue(history.points.isEmpty)
+        XCTAssertNil(history.reading)
+        XCTAssertTrue(history.points.isEmpty)
         history.update(pitch(9000), at: 11, running: true)
         history.update(pitch(9000), at: 11.1, running: false)
-        XCTAssertNil(history.reading); XCTAssertTrue(history.points.isEmpty)
+        XCTAssertNil(history.reading)
+        XCTAssertTrue(history.points.isEmpty)
     }
     func testSeekLoopAndMissingMeterDoNotJoinUnrelatedNotes() {
         var history = PitchFeedbackHistory()
@@ -33,13 +39,17 @@ final class PitchFeedbackHistoryTests: XCTestCase {
         history.update(pitch(240_000), at: 0.24, running: true)
         XCTAssertEqual(history.points.count, 1)
         history.update(nil, at: 0.32, running: true)
-        XCTAssertNil(history.reading); XCTAssertTrue(history.points.isEmpty)
+        XCTAssertNil(history.reading)
+        XCTAssertTrue(history.points.isEmpty)
     }
     func testRollingTraceRemainsBoundedAndPreservesUnvoicedGaps() {
         var history = PitchFeedbackHistory()
         for frame in 0..<400 {
             var value = pitch(frame * 3840)
-            if frame % 5 == 0 { value.inputFrequency = 0; value.confidence = 0 }
+            if frame % 5 == 0 {
+                value.inputFrequency = 0
+                value.confidence = 0
+            }
             history.update(value, at: Double(frame) * 0.08, running: true)
         }
         XCTAssertLessThanOrEqual(history.points.count, 102)

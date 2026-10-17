@@ -36,7 +36,8 @@ final class SoundPuttyDSP {
             if (i < 12 || i == 15), controls[i] != value { dirty = true }
             controls[i] = value
         }
-        driveGain = pow(10, controls[12] / 20); outputGain = pow(10, controls[14] / 20)
+        driveGain = pow(10, controls[12] / 20)
+        outputGain = pow(10, controls[14] / 20)
         center = sqrt(controls[0] * controls[1])
         blowAlpha = 1 - exp(-2 * Double.pi * min(12_000, center * 2) / 48_000)
     }
@@ -45,18 +46,29 @@ final class SoundPuttyDSP {
             let q = pow(Double(i) / 299, controls[2])
             let zone = exp(-0.5 * pow((Double(i) - controls[3]) / controls[4], 2)) * controls[5]
             var frequency = controls[0] * pow(controls[1] / controls[0], q) * exp(shape[i] * 0.65)
-            if controls[6].rounded() == 0 { frequency *= exp(zone * SoundPuttyShape.random(lane: i, seed: UInt32(controls[15].rounded())) * 1.5) }
+            if controls[6].rounded() == 0 {
+                frequency *= exp(zone * SoundPuttyShape.random(lane: i, seed: UInt32(controls[15].rounded())) * 1.5)
+            }
             let loss = max(0.25, exp(shape[600 + i] * 2) / controls[11] + (controls[6].rounded() == 2 ? zone * 15 : 0))
             targetSpring[i] = pow(2 * Double.pi * max(15, min(13_800, frequency)) / 48_000, 2)
             targetDamping[i] = 2 * loss / 48_000
-            targetCoupling[i] = (controls[10] + (controls[6].rounded() == 3 ? zone * 0.28 : 0)) * 1e6 / (48_000 * 48_000)
-            targetWeight[i] = exp(-0.5 * pow((Double(i) - controls[8]) / controls[9], 2)) * exp(shape[300 + i] * 2)
+            targetCoupling[i] =
+                (controls[10] + (controls[6].rounded() == 3 ? zone * 0.28 : 0)) * 1e6 / (48_000 * 48_000)
+            targetWeight[i] =
+                exp(-0.5 * pow((Double(i) - controls[8]) / controls[9], 2)) * exp(shape[300 + i] * 2)
                 * (controls[6].rounded() == 1 ? 1 - 2 * zone : 1)
         }
         if !initialized {
-            for i in 0..<300 { spring[i] = targetSpring[i]; damping[i] = targetDamping[i]; coupling[i] = targetCoupling[i]; weight[i] = targetWeight[i] }
+            for i in 0..<300 {
+                spring[i] = targetSpring[i]
+                damping[i] = targetDamping[i]
+                coupling[i] = targetCoupling[i]
+                weight[i] = targetWeight[i]
+            }
             initialized = true
-        } else { gliding = true }
+        } else {
+            gliding = true
+        }
         dirty = false
     }
     func process(left: Float, right: Float) -> (Float, Float) {
@@ -70,7 +82,8 @@ final class SoundPuttyDSP {
                 weight[i] += (targetWeight[i] - weight[i]) / remaining
             }
         }
-        let l = channel(left, index: 0), r = channel(right, index: 1)
+        let l = channel(left, index: 0)
+        let r = channel(right, index: 1)
         phase = (phase + 1) % 64
         if phase == 0 { gliding = false }
         return (l, r)
@@ -89,21 +102,35 @@ final class SoundPuttyDSP {
         }
         previousInput[index] = drive
         let base = index * 300
-        let cSpring = spring, cDamping = damping, cCoupling = coupling, cWeight = weight
+        let cSpring = spring
+        let cDamping = damping
+        let cCoupling = coupling
+        let cWeight = weight
         let sum: Double = x.withUnsafeMutableBufferPointer { positions in
             velocity.withUnsafeMutableBufferPointer { velocities in
                 next.withUnsafeMutableBufferPointer { pending in
                     for i in 0..<300 {
-                        let position = base + i, current = positions[position]
-                        let left = positions[base + max(0, i - 1)], right = positions[base + min(299, i + 1)]
-                        pending[position] = (1 - cDamping[i]) * velocities[position] - cSpring[i] * current
-                            + cCoupling[i] * (left + right - 2 * current) + cWeight[i] * excitation * (100_000 / (48_000 * 48_000))
+                        let position = base + i
+                        let current = positions[position]
+                        let left = positions[base + max(0, i - 1)]
+                        let right = positions[base + min(299, i + 1)]
+                        pending[position] =
+                            (1 - cDamping[i]) * velocities[position] - cSpring[i] * current
+                            + cCoupling[i] * (left + right - 2 * current) + cWeight[i] * excitation
+                            * (100_000 / (48_000 * 48_000))
                     }
                     var sum: Double = 0
                     for i in 0..<300 {
-                        let position = base + i, v = pending[position], value = positions[position] + v
-                        if !value.isFinite || !v.isFinite { positions[position] = 0; velocities[position] = 0 }
-                        else { positions[position] = abs(value) < 1e-20 ? 0 : max(-32, min(32, value)); velocities[position] = max(-32, min(32, v)) }
+                        let position = base + i
+                        let v = pending[position]
+                        let value = positions[position] + v
+                        if !value.isFinite || !v.isFinite {
+                            positions[position] = 0
+                            velocities[position] = 0
+                        } else {
+                            positions[position] = abs(value) < 1e-20 ? 0 : max(-32, min(32, value))
+                            velocities[position] = max(-32, min(32, v))
+                        }
                         sum += positions[position]
                     }
                     return sum
@@ -115,14 +142,30 @@ final class SoundPuttyDSP {
     }
     func deepCopy() -> SoundPuttyDSP {
         let copy = SoundPuttyDSP()
-        copy.x = x.map { $0 }; copy.velocity = velocity.map { $0 }; copy.next = next.map { $0 }
-        copy.shape = shape.map { $0 }; copy.spring = spring.map { $0 }; copy.damping = damping.map { $0 }
-        copy.coupling = coupling.map { $0 }; copy.weight = weight.map { $0 }
-        copy.targetSpring = targetSpring.map { $0 }; copy.targetDamping = targetDamping.map { $0 }
-        copy.targetCoupling = targetCoupling.map { $0 }; copy.targetWeight = targetWeight.map { $0 }
-        copy.controls = controls.map { $0 }; copy.dirty = dirty; copy.initialized = initialized; copy.gliding = gliding; copy.phase = phase
-        copy.driveGain = driveGain; copy.outputGain = outputGain; copy.center = center; copy.blowAlpha = blowAlpha
-        copy.previousInput = previousInput.map { $0 }; copy.dc = dc.map { $0 }; copy.blow = blow.map { $0 }
+        copy.x = x.map { $0 }
+        copy.velocity = velocity.map { $0 }
+        copy.next = next.map { $0 }
+        copy.shape = shape.map { $0 }
+        copy.spring = spring.map { $0 }
+        copy.damping = damping.map { $0 }
+        copy.coupling = coupling.map { $0 }
+        copy.weight = weight.map { $0 }
+        copy.targetSpring = targetSpring.map { $0 }
+        copy.targetDamping = targetDamping.map { $0 }
+        copy.targetCoupling = targetCoupling.map { $0 }
+        copy.targetWeight = targetWeight.map { $0 }
+        copy.controls = controls.map { $0 }
+        copy.dirty = dirty
+        copy.initialized = initialized
+        copy.gliding = gliding
+        copy.phase = phase
+        copy.driveGain = driveGain
+        copy.outputGain = outputGain
+        copy.center = center
+        copy.blowAlpha = blowAlpha
+        copy.previousInput = previousInput.map { $0 }
+        copy.dc = dc.map { $0 }
+        copy.blow = blow.map { $0 }
         return copy
     }
 }

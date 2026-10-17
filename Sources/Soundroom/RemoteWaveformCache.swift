@@ -10,15 +10,18 @@ extension WaveformEnvelope {
             }
         }
         let values = pairs(asset.peaks)
-        let bin = asset.framesPerBin ?? Swift.max(1, asset.frames / values.count + (asset.frames % values.count == 0 ? 0 : 1))
+        let bin =
+            asset.framesPerBin ?? Swift.max(1, asset.frames / values.count + (asset.frames % values.count == 0 ? 0 : 1))
         guard bin > 0, asset.waveformStartFrame >= 0, asset.waveformStartFrame < asset.frames else { return nil }
         // Ignore malformed or absent optional channel measurements, retaining
         // the combined view without inventing identical left/right waveforms.
-        let channels = asset.channelPeaks.flatMap { channels -> [[WaveformPeak]]? in
-            guard asset.channels == 2, channels.count == 2,
-                  channels.allSatisfy({ $0.count == asset.peaks.count }) else { return nil }
-            return channels.map(pairs)
-        } ?? []
+        let channels =
+            asset.channelPeaks.flatMap { channels -> [[WaveformPeak]]? in
+                guard asset.channels == 2, channels.count == 2,
+                    channels.allSatisfy({ $0.count == asset.peaks.count })
+                else { return nil }
+                return channels.map(pairs)
+            } ?? []
         self.init(framesPerBin: bin, firstFrame: asset.waveformStartFrame, values: values, channelValues: channels)
     }
 }
@@ -51,10 +54,13 @@ struct RemoteWaveformRequest: Hashable {
     /// Wait for the overview, then refine only if its bins would be wider than
     /// a display pixel. Fetching 8192 bins for every small clip exhausted the
     /// cache and made stationary arrangements continually evict and reload.
-    static func refinement(id: UUID, frames: Int, range: Range<Int>, pixels: Int,
-                           envelope: WaveformEnvelope?) -> Self? {
+    static func refinement(
+        id: UUID, frames: Int, range: Range<Int>, pixels: Int,
+        envelope: WaveformEnvelope?
+    ) -> Self? {
         guard let envelope,
-              envelope.framesPerBin > max(1, range.count / max(1, pixels)) else { return nil }
+            envelope.framesPerBin > max(1, range.count / max(1, pixels))
+        else { return nil }
         return detail(id: id, frames: frames, range: range)
     }
 }
@@ -80,7 +86,11 @@ struct RemoteWaveformCache {
         self.maximumEntries = max(0, maximumEntries)
     }
     var count: Int { entryCount }
-    mutating func removeAll() { entries.removeAll(); entryCount = 0; residentBytes = 0 }
+    mutating func removeAll() {
+        entries.removeAll()
+        entryCount = 0
+        residentBytes = 0
+    }
     mutating func retainAssets(_ ids: Set<UUID>) {
         entries = entries.filter { ids.contains($0.key) }
         recount()
@@ -111,7 +121,9 @@ struct RemoteWaveformCache {
         entries = entries.mapValues { $0.filter { !$0.overview } }.filter { !$0.value.isEmpty }
         recount()
         for entry in overviews {
-            install(id: entry.id, frames: entry.end, envelope: entry.envelope.count > overviewPoints ? compact(entry.envelope) : entry.envelope)
+            install(
+                id: entry.id, frames: entry.end,
+                envelope: entry.envelope.count > overviewPoints ? compact(entry.envelope) : entry.envelope)
         }
     }
 
@@ -124,8 +136,9 @@ struct RemoteWaveformCache {
                 }
             }
         }
-        return .init(framesPerBin: envelope.framesPerBin * factor, values: fold(envelope.values),
-                     channelValues: envelope.channelValues.map(fold))
+        return .init(
+            framesPerBin: envelope.framesPerBin * factor, values: fold(envelope.values),
+            channelValues: envelope.channelValues.map(fold))
     }
 
     /// Never return an arbitrary partial tile: that made the waveform disappear
@@ -136,25 +149,39 @@ struct RemoteWaveformCache {
         for index in tiles.indices {
             let tile = tiles[index]
             guard tile.envelope.firstFrame <= range.lowerBound, tile.end >= range.upperBound else { continue }
-            if let previous = best, tiles[previous].envelope.framesPerBin < tile.envelope.framesPerBin ||
-                (tiles[previous].envelope.framesPerBin == tile.envelope.framesPerBin && tiles[previous].access > tile.access) { continue }
+            if let previous = best,
+                tiles[previous].envelope.framesPerBin < tile.envelope.framesPerBin
+                    || (tiles[previous].envelope.framesPerBin == tile.envelope.framesPerBin
+                        && tiles[previous].access > tile.access)
+            {
+                continue
+            }
             best = index
         }
         guard let best else { return nil }
-        clock &+= 1; entries[id]![best].access = clock
+        clock &+= 1
+        entries[id]![best].access = clock
         return tiles[best].envelope
     }
     func contains(_ request: RemoteWaveformRequest) -> Bool {
         let targetBin = max(1, (request.end - request.start + request.points - 1) / request.points)
-        return entries[request.id]?.contains { $0.envelope.firstFrame <= request.start && $0.end >= request.end && (request.isOverview || $0.envelope.framesPerBin <= targetBin) } ?? false
+        return entries[request.id]?.contains {
+            $0.envelope.firstFrame <= request.start && $0.end >= request.end
+                && (request.isOverview || $0.envelope.framesPerBin <= targetBin)
+        } ?? false
     }
     @discardableResult mutating func install(id: UUID, frames: Int, envelope: WaveformEnvelope) -> Bool {
         guard frames > 0, envelope.framesPerBin > 0, !envelope.values.isEmpty,
-              envelope.firstFrame >= 0, envelope.firstFrame < frames else { return false }
+            envelope.firstFrame >= 0, envelope.firstFrame < frames
+        else { return false }
         let span = envelope.count.multipliedReportingOverflow(by: envelope.framesPerBin)
         guard !span.overflow else { return false }
         let end = envelope.firstFrame + min(frames - envelope.firstFrame, span.partialValue)
-        guard envelope.channelValues.isEmpty || (envelope.channelValues.count == 2 && envelope.channelValues.allSatisfy({ $0.count == envelope.count })) else { return false }
+        guard
+            envelope.channelValues.isEmpty
+                || (envelope.channelValues.count == 2
+                    && envelope.channelValues.allSatisfy({ $0.count == envelope.count }))
+        else { return false }
         let fullAsset = envelope.firstFrame == 0 && end == frames
         let cost = envelope.byteCount + 128
         guard maximumEntries > 0 else { return false }
@@ -167,35 +194,51 @@ struct RemoteWaveformCache {
         }
         guard cost <= maximumBytes else { return fallbackChanged }
         if !overview {
-            var protectedCount = 0, protectedBytes = cost
-            for tiles in entries.values { for tile in tiles where tile.overview {
-                protectedCount += 1; protectedBytes += tile.bytes
-            } }
+            var protectedCount = 0
+            var protectedBytes = cost
+            for tiles in entries.values {
+                for tile in tiles where tile.overview {
+                    protectedCount += 1
+                    protectedBytes += tile.bytes
+                }
+            }
             guard protectedCount < maximumEntries, protectedBytes <= maximumBytes else { return fallbackChanged }
         }
         // Duplicate event/reply deliveries must not invalidate or downgrade peaks.
-        if let tiles = entries[id], let index = tiles.firstIndex(where: { $0.envelope.firstFrame == envelope.firstFrame && $0.end == end && $0.overview == overview }) {
+        if let tiles = entries[id],
+            let index = tiles.firstIndex(where: {
+                $0.envelope.firstFrame == envelope.firstFrame && $0.end == end && $0.overview == overview
+            })
+        {
             let previous = tiles[index].envelope
-            if previous.framesPerBin < envelope.framesPerBin ||
-               (previous.framesPerBin == envelope.framesPerBin && previous.channelValues.count >= envelope.channelValues.count) { return fallbackChanged }
+            if previous.framesPerBin < envelope.framesPerBin
+                || (previous.framesPerBin == envelope.framesPerBin
+                    && previous.channelValues.count >= envelope.channelValues.count)
+            {
+                return fallbackChanged
+            }
             remove(id: id, index: index)
         }
         while entryCount > 0 && (residentBytes + cost > maximumBytes || entryCount >= maximumEntries) {
             // Keep an overview for each asset whenever finer tiles can be evicted.
             var oldest: (id: UUID, index: Int, overview: Bool, access: UInt64)?
-            for (asset, tiles) in entries { for (index, tile) in tiles.enumerated() {
-                if let previous = oldest {
-                    if !previous.overview && tile.overview { continue }
-                    if previous.overview == tile.overview && previous.access <= tile.access { continue }
+            for (asset, tiles) in entries {
+                for (index, tile) in tiles.enumerated() {
+                    if let previous = oldest {
+                        if !previous.overview && tile.overview { continue }
+                        if previous.overview == tile.overview && previous.access <= tile.access { continue }
+                    }
+                    oldest = (asset, index, tile.overview, tile.access)
                 }
-                oldest = (asset, index, tile.overview, tile.access)
-            } }
+            }
             guard let oldest else { break }
             remove(id: oldest.id, index: oldest.index)
         }
         clock &+= 1
-        entries[id, default: []].append(.init(id: id, envelope: envelope, end: end, overview: overview, bytes: cost, access: clock))
-        entryCount += 1; residentBytes += cost
+        entries[id, default: []].append(
+            .init(id: id, envelope: envelope, end: end, overview: overview, bytes: cost, access: clock))
+        entryCount += 1
+        residentBytes += cost
         return true
     }
 }
@@ -211,13 +254,21 @@ struct RemoteWaveformQueue {
         pending.removeAll { $0.id == request.id && $0.isOverview == request.isOverview }
         guard !active.contains(request) else { return }
         guard pending.count < maximumPending else { return }
-        if request.isOverview, let detail = pending.firstIndex(where: { $0.id == request.id && !$0.isOverview }) { pending.insert(request, at: detail) }
-        else { pending.append(request) }
+        if request.isOverview, let detail = pending.firstIndex(where: { $0.id == request.id && !$0.isOverview }) {
+            pending.insert(request, at: detail)
+        } else {
+            pending.append(request)
+        }
     }
     mutating func next() -> RemoteWaveformRequest? {
         guard !pending.isEmpty else { return nil }
-        let request = pending.removeFirst(); active.insert(request); return request
+        let request = pending.removeFirst()
+        active.insert(request)
+        return request
     }
     mutating func complete(_ request: RemoteWaveformRequest) { active.remove(request) }
-    mutating func removeAll() { pending.removeAll(); active.removeAll() }
+    mutating func removeAll() {
+        pending.removeAll()
+        active.removeAll()
+    }
 }

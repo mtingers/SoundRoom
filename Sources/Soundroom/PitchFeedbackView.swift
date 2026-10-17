@@ -1,5 +1,5 @@
-import SwiftUI
 import SoundroomCore
+import SwiftUI
 
 struct PitchFeedbackView: View {
     let snapshot: () -> EffectMeterSnapshot?
@@ -30,14 +30,30 @@ struct PitchFeedbackView: View {
             DisclosureGroup("Pitch trace", isExpanded: $traceExpanded) {
                 VStack(spacing: 5) {
                     HStack(spacing: 8) {
-                        Button { history.zoomScale(0.5) } label: { Image(systemName: "plus.magnifyingglass") }
-                            .accessibilityLabel("Zoom pitch range in")
-                        Button { history.zoomScale(2) } label: { Image(systemName: "minus.magnifyingglass") }
-                            .accessibilityLabel("Zoom pitch range out")
-                        Button { history.moveScale(6) } label: { Image(systemName: "arrow.up") }
-                            .accessibilityLabel("Move pitch range up")
-                        Button { history.moveScale(-6) } label: { Image(systemName: "arrow.down") }
-                            .accessibilityLabel("Move pitch range down")
+                        Button {
+                            history.zoomScale(0.5)
+                        } label: {
+                            Image(systemName: "plus.magnifyingglass")
+                        }
+                        .accessibilityLabel("Zoom pitch range in")
+                        Button {
+                            history.zoomScale(2)
+                        } label: {
+                            Image(systemName: "minus.magnifyingglass")
+                        }
+                        .accessibilityLabel("Zoom pitch range out")
+                        Button {
+                            history.moveScale(6)
+                        } label: {
+                            Image(systemName: "arrow.up")
+                        }
+                        .accessibilityLabel("Move pitch range up")
+                        Button {
+                            history.moveScale(-6)
+                        } label: {
+                            Image(systemName: "arrow.down")
+                        }
+                        .accessibilityLabel("Move pitch range down")
                         Spacer()
                         Button("Fit") { history.fitScale() }.disabled(history.notes.isEmpty)
                             .accessibilityLabel("Fit pitch trace range")
@@ -50,17 +66,22 @@ struct PitchFeedbackView: View {
             }
         }.font(.system(size: 10))
             .padding(10).background(Theme.raised, in: RoundedRectangle(cornerRadius: 6))
-            .help("Blue: detected input. Gray: target. Green: estimated wet pitch from the synthesis shift, not measured output. Dry/wet mixtures can contain both pitches. Trace shows eight seconds; gaps mean unvoiced audio. The vertical scale stays fixed; use zoom, arrows or Fit to change it.")
+            .help(
+                "Blue: detected input. Gray: target. Green: estimated wet pitch from the synthesis shift, not measured output. Dry/wet mixtures can contain both pitches. Trace shows eight seconds; gaps mean unvoiced audio. The vertical scale stays fixed; use zoom, arrows or Fit to change it."
+            )
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Pitch feedback. \(status). \(shiftLabel). \(confidenceLabel)")
             .task(id: running && !bypassed) {
-                guard running && !bypassed else { history.clear(); return }
+                guard running && !bypassed else {
+                    history.clear()
+                    return
+                }
                 while !Task.isCancelled {
                     let value = snapshot()
-                    history.update(value?.pitch, at: Date.timeIntervalSinceReferenceDate,
+                    history.update(
+                        value?.pitch, at: Date.timeIntervalSinceReferenceDate,
                         running: true, revision: value?.revision)
-                    do { try await Task.sleep(for: .milliseconds(80)) }
-                    catch { return }
+                    do { try await Task.sleep(for: .milliseconds(80)) } catch { return }
                 }
             }
             .onChange(of: running) { _, value in if !value { history.clear() } }
@@ -105,31 +126,48 @@ struct PitchFeedbackView: View {
     private var pitchTrace: some View {
         Canvas { context, size in
             let points = history.points
-            let lower = history.scale.lower, upper = history.scale.upper
+            let lower = history.scale.lower
+            let upper = history.scale.upper
             let span = history.scale.span
             let now = points.last?.time ?? 0
-            let x: (TimeInterval) -> CGFloat = { 25 + (size.width - 27) * CGFloat(max(0, min(1, 1 - (now - $0) / PitchFeedbackHistory.duration))) }
+            let x: (TimeInterval) -> CGFloat = {
+                25 + (size.width - 27) * CGFloat(max(0, min(1, 1 - (now - $0) / PitchFeedbackHistory.duration)))
+            }
             let y: (Float) -> CGFloat = { 4 + (size.height - 8) * CGFloat(1 - ($0 - lower) / span) }
             let step = max(1, Int(ceil(span / 6)))
             for note in stride(from: Int(lower), through: Int(upper), by: step) {
-                var line = Path(); line.move(to: CGPoint(x: 25, y: y(Float(note)))); line.addLine(to: CGPoint(x: size.width, y: y(Float(note))))
+                var line = Path()
+                line.move(to: CGPoint(x: 25, y: y(Float(note))))
+                line.addLine(to: CGPoint(x: size.width, y: y(Float(note))))
                 context.stroke(line, with: .color(Theme.line.opacity(0.6)), lineWidth: 1)
-                context.draw(Text(noteName(note)).font(.system(size: 8)).foregroundColor(Theme.secondary), at: CGPoint(x: 0, y: y(Float(note))), anchor: .leading)
+                context.draw(
+                    Text(noteName(note)).font(.system(size: 8)).foregroundColor(Theme.secondary),
+                    at: CGPoint(x: 0, y: y(Float(note))), anchor: .leading)
             }
             for (frequency, color, dashed) in [
                 (\PitchMeterSnapshot.inputFrequency, inputColor, false),
                 (\PitchMeterSnapshot.targetFrequency, Theme.secondary, true),
-                (\PitchMeterSnapshot.estimatedWetFrequency, wetColor, false)
+                (\PitchMeterSnapshot.estimatedWetFrequency, wetColor, false),
             ] {
-                var path = Path(), previous: PitchFeedbackHistory.Point?
+                var path = Path()
+                var previous: PitchFeedbackHistory.Point?
                 for point in points {
-                    guard point.pitch.isVoiced, let midi = point.pitch.midiNote(for: point.pitch[keyPath: frequency]) else { previous = nil; continue }
+                    guard point.pitch.isVoiced, let midi = point.pitch.midiNote(for: point.pitch[keyPath: frequency])
+                    else {
+                        previous = nil
+                        continue
+                    }
                     let position = CGPoint(x: x(point.time), y: y(midi))
-                    if let previous, point.time - previous.time < 0.25 { path.addLine(to: position) }
-                    else { path.move(to: position) }
+                    if let previous, point.time - previous.time < 0.25 {
+                        path.addLine(to: position)
+                    } else {
+                        path.move(to: position)
+                    }
                     previous = point
                 }
-                context.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: dashed ? 1 : 1.6, dash: dashed ? [3, 3] : []))
+                context.stroke(
+                    path, with: .color(color),
+                    style: StrokeStyle(lineWidth: dashed ? 1 : 1.6, dash: dashed ? [3, 3] : []))
             }
         }.frame(height: 106).clipped()
             .accessibilityLabel("Eight second pitch trace: blue input, gray target, green wet estimate")

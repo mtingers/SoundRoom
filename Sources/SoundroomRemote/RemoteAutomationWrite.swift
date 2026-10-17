@@ -89,7 +89,10 @@ public struct RemoteAutomationWriteMapping: Codable, Equatable, Sendable {
     public var interpolationScale: AutomationValueScale
     public var errorDomain: RemoteAutomationWriteErrorDomain
     public var errorTolerance: Float
-    public init(minimum: Float, maximum: Float, unit: String, logarithmic: Bool, integer: Bool, interpolationScale: AutomationValueScale, errorDomain: RemoteAutomationWriteErrorDomain, errorTolerance: Float) {
+    public init(
+        minimum: Float, maximum: Float, unit: String, logarithmic: Bool, integer: Bool,
+        interpolationScale: AutomationValueScale, errorDomain: RemoteAutomationWriteErrorDomain, errorTolerance: Float
+    ) {
         self.minimum = minimum
         self.maximum = maximum
         self.unit = unit
@@ -110,7 +113,10 @@ public struct RemoteAutomationWriteLimits: Codable, Equatable, Sendable {
     public var maximumDraftBytes: Int
     public var leaseTimeoutMilliseconds: Int
     public var rampFrames: Int
-    public init(maximumLeases: Int, maximumCaptureSamples: Int, maximumDurationFrames: Int, maximumWrittenPoints: Int, maximumLanePoints: Int, maximumDraftBytes: Int, leaseTimeoutMilliseconds: Int, rampFrames: Int) {
+    public init(
+        maximumLeases: Int, maximumCaptureSamples: Int, maximumDurationFrames: Int, maximumWrittenPoints: Int,
+        maximumLanePoints: Int, maximumDraftBytes: Int, leaseTimeoutMilliseconds: Int, rampFrames: Int
+    ) {
         self.maximumLeases = maximumLeases
         self.maximumCaptureSamples = maximumCaptureSamples
         self.maximumDurationFrames = maximumDurationFrames
@@ -128,7 +134,8 @@ public struct RemoteAutomationWriteStamp: Codable, Equatable, Sendable {
     public var controlFrame: Int
     public var playbackClock: Int
     public var latencyOffsetFrames: Int
-    public init(transportEpoch: Int, outputFrame: Int, controlFrame: Int, playbackClock: Int, latencyOffsetFrames: Int) {
+    public init(transportEpoch: Int, outputFrame: Int, controlFrame: Int, playbackClock: Int, latencyOffsetFrames: Int)
+    {
         self.transportEpoch = transportEpoch
         self.outputFrame = outputFrame
         self.controlFrame = controlFrame
@@ -146,7 +153,10 @@ public struct RemoteAutomationWriteBeginReply: Codable, Equatable, Sendable {
     public var mapping: RemoteAutomationWriteMapping
     public var limits: RemoteAutomationWriteLimits
     public var stamp: RemoteAutomationWriteStamp
-    public init(gestureID: UUID, trackID: UUID, target: RemoteAutomationWriteTarget, trackRevision: Int, initialValue: Float, mapping: RemoteAutomationWriteMapping, limits: RemoteAutomationWriteLimits, stamp: RemoteAutomationWriteStamp) {
+    public init(
+        gestureID: UUID, trackID: UUID, target: RemoteAutomationWriteTarget, trackRevision: Int, initialValue: Float,
+        mapping: RemoteAutomationWriteMapping, limits: RemoteAutomationWriteLimits, stamp: RemoteAutomationWriteStamp
+    ) {
         self.gestureID = gestureID
         self.trackID = trackID
         self.target = target
@@ -167,7 +177,10 @@ public struct RemoteAutomationWriteValueReply: Codable, Equatable, Sendable {
     public var rampStartValue: Float
     public var rampFrames: Int
     public var stamp: RemoteAutomationWriteStamp
-    public init(gestureID: UUID, sequence: Int, appliedSequence: Int, disposition: RemoteAutomationWriteValueDisposition, targetValue: Float, rampStartValue: Float, rampFrames: Int, stamp: RemoteAutomationWriteStamp) {
+    public init(
+        gestureID: UUID, sequence: Int, appliedSequence: Int, disposition: RemoteAutomationWriteValueDisposition,
+        targetValue: Float, rampStartValue: Float, rampFrames: Int, stamp: RemoteAutomationWriteStamp
+    ) {
         self.gestureID = gestureID
         self.sequence = sequence
         self.appliedSequence = appliedSequence
@@ -187,7 +200,10 @@ public struct RemoteAutomationWriteLeaseUpdate: Codable, Equatable, Sendable {
     public var lastAppliedSequence: Int?
     public var stamp: RemoteAutomationWriteStamp?
     public var draftID: UUID?
-    public init(gestureID: UUID, phase: RemoteAutomationWritePhase, reason: String, revision: Int? = nil, lastAppliedSequence: Int? = nil, stamp: RemoteAutomationWriteStamp? = nil, draftID: UUID? = nil) {
+    public init(
+        gestureID: UUID, phase: RemoteAutomationWritePhase, reason: String, revision: Int? = nil,
+        lastAppliedSequence: Int? = nil, stamp: RemoteAutomationWriteStamp? = nil, draftID: UUID? = nil
+    ) {
         self.gestureID = gestureID
         self.phase = phase
         self.reason = reason
@@ -210,7 +226,12 @@ public struct RemoteAutomationWriteDraftReply: Codable, Equatable, Sendable {
     public var mapping: RemoteAutomationWriteMapping
     public var expiresInSeconds: Int
     public var artifact: RemoteArtifact
-    public init(draftID: UUID, gestureID: UUID, trackID: UUID, target: RemoteAutomationWriteTarget, reason: String, appliedValueCount: Int, firstStamp: RemoteAutomationWriteStamp? = nil, lastStamp: RemoteAutomationWriteStamp? = nil, mapping: RemoteAutomationWriteMapping, expiresInSeconds: Int, artifact: RemoteArtifact) {
+    public init(
+        draftID: UUID, gestureID: UUID, trackID: UUID, target: RemoteAutomationWriteTarget, reason: String,
+        appliedValueCount: Int, firstStamp: RemoteAutomationWriteStamp? = nil,
+        lastStamp: RemoteAutomationWriteStamp? = nil, mapping: RemoteAutomationWriteMapping, expiresInSeconds: Int,
+        artifact: RemoteArtifact
+    ) {
         self.draftID = draftID
         self.gestureID = gestureID
         self.trackID = trackID
@@ -233,9 +254,16 @@ public struct RemoteAutomationWriteCapturedRamp: Codable, Equatable, Sendable {
     public var startValue: Float
     public var targetValue: Float
     public var rampFrames: Int
-    public init(sequence: Int? = nil, restoring: Bool, stamp: RemoteAutomationWriteStamp, startValue: Float, targetValue: Float, rampFrames: Int) {
-        self.sequence = sequence; self.restoring = restoring; self.stamp = stamp
-        self.startValue = startValue; self.targetValue = targetValue; self.rampFrames = rampFrames
+    public init(
+        sequence: Int? = nil, restoring: Bool, stamp: RemoteAutomationWriteStamp, startValue: Float, targetValue: Float,
+        rampFrames: Int
+    ) {
+        self.sequence = sequence
+        self.restoring = restoring
+        self.stamp = stamp
+        self.startValue = startValue
+        self.targetValue = targetValue
+        self.rampFrames = rampFrames
     }
 }
 public struct RemoteAutomationWriteCapturedRelease: Codable, Equatable, Sendable {
@@ -243,7 +271,9 @@ public struct RemoteAutomationWriteCapturedRelease: Codable, Equatable, Sendable
     public var lastControlFrame: Int?
     public var lastValue: Float?
     public init(stamp: RemoteAutomationWriteStamp, lastControlFrame: Int? = nil, lastValue: Float? = nil) {
-        self.stamp = stamp; self.lastControlFrame = lastControlFrame; self.lastValue = lastValue
+        self.stamp = stamp
+        self.lastControlFrame = lastControlFrame
+        self.lastValue = lastValue
     }
 }
 /// Verified artifact JSON. An incomplete terminal is review data, never an
@@ -260,9 +290,21 @@ public struct RemoteAutomationWriteDraftContent: Codable, Equatable, Sendable {
     public var originalPoints: [AutomationPoint]
     public var capturedRamps: [RemoteAutomationWriteCapturedRamp]
     public var terminal: RemoteAutomationWriteCapturedRelease?
-    public init(version: Int = 1, gestureID: UUID, trackID: UUID, target: RemoteAutomationWriteTarget, trackRevision: Int, baseline: Float, mapping: RemoteAutomationWriteMapping, reason: String, originalPoints: [AutomationPoint], capturedRamps: [RemoteAutomationWriteCapturedRamp], terminal: RemoteAutomationWriteCapturedRelease? = nil) {
-        self.version = version; self.gestureID = gestureID; self.trackID = trackID; self.target = target
-        self.trackRevision = trackRevision; self.baseline = baseline; self.mapping = mapping; self.reason = reason
-        self.originalPoints = originalPoints; self.capturedRamps = capturedRamps; self.terminal = terminal
+    public init(
+        version: Int = 1, gestureID: UUID, trackID: UUID, target: RemoteAutomationWriteTarget, trackRevision: Int,
+        baseline: Float, mapping: RemoteAutomationWriteMapping, reason: String, originalPoints: [AutomationPoint],
+        capturedRamps: [RemoteAutomationWriteCapturedRamp], terminal: RemoteAutomationWriteCapturedRelease? = nil
+    ) {
+        self.version = version
+        self.gestureID = gestureID
+        self.trackID = trackID
+        self.target = target
+        self.trackRevision = trackRevision
+        self.baseline = baseline
+        self.mapping = mapping
+        self.reason = reason
+        self.originalPoints = originalPoints
+        self.capturedRamps = capturedRamps
+        self.terminal = terminal
     }
 }

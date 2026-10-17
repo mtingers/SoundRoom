@@ -8,7 +8,8 @@ public enum FilterResponse {
         let descriptors = kind.parameters
         let cutoff = descriptors[0].clamped(parameters["frequency"] ?? descriptors[0].defaultValue)
         let q = descriptors[1].clamped(parameters["resonance"] ?? descriptors[1].defaultValue)
-        var filter = Biquad(); filter.configure(frequency: cutoff, q: q, mode: kind)
+        var filter = Biquad()
+        filter.configure(frequency: cutoff, q: q, mode: kind)
         let probe = frequency.isFinite ? max(0, min(sessionRate / 2, frequency)) : 0
         let omega = 2 * Double.pi * probe / sessionRate
         let nr = Double(filter.b0) + Double(filter.b1) * cos(omega) + Double(filter.b2) * cos(2 * omega)

@@ -6,23 +6,46 @@ struct Biquad {
     var z1: Float = 0, z2: Float = 0
     mutating func filter(_ input: Float) -> Float {
         let output = b0 * input + z1
-        z1 = b1 * input - a1 * output + z2; z2 = b2 * input - a2 * output
-        if !output.isFinite || !z1.isFinite || !z2.isFinite { z1 = 0; z2 = 0; return 0 }
+        z1 = b1 * input - a1 * output + z2
+        z2 = b2 * input - a2 * output
+        if !output.isFinite || !z1.isFinite || !z2.isFinite {
+            z1 = 0
+            z2 = 0
+            return 0
+        }
         return output
     }
     mutating func configure(frequency: Float, q: Float, gain: Float = 0, mode: RealtimeEffectKind) {
         let w = 2 * Float.pi * min(Float(sessionRate) * 0.45, frequency) / Float(sessionRate)
-        let c = cos(w), alpha = sin(w) / (2 * q)
+        let c = cos(w)
+        let alpha = sin(w) / (2 * q)
         var denominator: Float = 1 + alpha
-        if mode == .lowPass { b0 = (1 - c) / 2; b1 = 1 - c; b2 = b0; a1 = -2 * c; a2 = 1 - alpha }
-        else if mode == .highPass { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = b0; a1 = -2 * c; a2 = 1 - alpha }
-        else {
+        if mode == .lowPass {
+            b0 = (1 - c) / 2
+            b1 = 1 - c
+            b2 = b0
+            a1 = -2 * c
+            a2 = 1 - alpha
+        } else if mode == .highPass {
+            b0 = (1 + c) / 2
+            b1 = -(1 + c)
+            b2 = b0
+            a1 = -2 * c
+            a2 = 1 - alpha
+        } else {
             let amplitude = pow(Float(10), gain / 40)
             denominator = 1 + alpha / amplitude
-            b0 = 1 + alpha * amplitude; b1 = -2 * c; b2 = 1 - alpha * amplitude
-            a1 = -2 * c; a2 = 1 - alpha / amplitude
+            b0 = 1 + alpha * amplitude
+            b1 = -2 * c
+            b2 = 1 - alpha * amplitude
+            a1 = -2 * c
+            a2 = 1 - alpha / amplitude
         }
-        b0 /= denominator; b1 /= denominator; b2 /= denominator; a1 /= denominator; a2 /= denominator
+        b0 /= denominator
+        b1 /= denominator
+        b2 /= denominator
+        a1 /= denominator
+        a2 /= denominator
     }
 }
 
@@ -41,7 +64,10 @@ struct RoomNetwork {
         allpasses = [347, 113].map { Array(repeating: 0, count: $0 + offset) }
     }
     mutating func process(_ input: Float, decay: Float, tone: Float) -> Float {
-        if tone != lastTone { coefficient = 1 - exp(-2 * Float.pi * tone / Float(sessionRate)); lastTone = tone }
+        if tone != lastTone {
+            coefficient = 1 - exp(-2 * Float.pi * tone / Float(sessionRate))
+            lastTone = tone
+        }
         if decay != lastDecay {
             for i in 0..<4 { feedback[i] = pow(Float(10), -3 * Float(lines[i].count) / (Float(sessionRate) * decay)) }
             lastDecay = decay
@@ -68,9 +94,13 @@ struct RoomNetwork {
 extension EffectProcessor {
     func process(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, position: Int) {
         if usesLegacy {
-            processLegacy(left: left, right: right, count: count, position: position); return
+            processLegacy(left: left, right: right, count: count, position: position)
+            return
         }
-        if soundPuttyShapePending, let shape = soundPuttyShape { state.putty!.setShape(shape); soundPuttyShapePending = false }
+        if soundPuttyShapePending, let shape = soundPuttyShape {
+            state.putty!.setShape(shape)
+            soundPuttyShapePending = false
+        }
         var measurement = EffectMeterAccumulator()
         for j in descriptors.indices {
             let descriptor = descriptors[j]
@@ -116,35 +146,45 @@ extension EffectProcessor {
                 }
                 for j in values.indices { cachedValues[j] = values[j] }
             }
-            let dryL = left[i].isFinite ? left[i] : 0, dryR = right[i].isFinite ? right[i] : 0
-            var wetL = dryL, wetR = dryR
-            var alignedDryL = dryL, alignedDryR = dryR
+            let dryL = left[i].isFinite ? left[i] : 0
+            let dryR = right[i].isFinite ? right[i] : 0
+            var wetL = dryL
+            var wetR = dryR
+            var alignedDryL = dryL
+            var alignedDryR = dryR
             var reductionDB: Float = 0
             switch effect.kind {
             case .guitarRig:
                 (wetL, wetR) = state.guitarRig!.process(left: dryL, right: dryR)
-                alignedDryL = state.guitarRig!.lastDryLeft; alignedDryR = state.guitarRig!.lastDryRight
+                alignedDryL = state.guitarRig!.lastDryLeft
+                alignedDryR = state.guitarRig!.lastDryRight
             case .gate:
                 (wetL, wetR) = state.gate!.process(dryL, dryR, values)
                 reductionDB = state.gate!.reductionDB * bypassBlend
             case .utility:
                 (wetL, wetR) = state.utility!.process(dryL, dryR, values)
             case .gain:
-                let gain = pow(Float(10), values[0] / 20); wetL *= gain; wetR *= gain
+                let gain = pow(Float(10), values[0] / 20)
+                wetL *= gain
+                wetR *= gain
             case .lowPass, .highPass:
-                wetL = state.biquadsL[0].filter(dryL); wetR = state.biquadsR[0].filter(dryR)
+                wetL = state.biquadsL[0].filter(dryL)
+                wetR = state.biquadsR[0].filter(dryR)
             case .echo, .room:
                 let time = effect.kind == .echo ? values[0] : values[1]
                 let delay = max(Float(effect.kind == .echo ? 1 : 0), time / 1000 * Float(sessionRate))
                 let count = state.advancedDelayL.count
                 let cursor = Float(state.advancedDelayIndex) - delay
-                let floorCursor = Int(floor(cursor)), fraction = cursor - Float(floorCursor)
-                let first = (floorCursor % count + count) % count, next = (first + 1) % count
+                let floorCursor = Int(floor(cursor))
+                let fraction = cursor - Float(floorCursor)
+                let first = (floorCursor % count + count) % count
+                let next = (first + 1) % count
                 var delayedL = state.advancedDelayL[first] * (1 - fraction) + state.advancedDelayL[next] * fraction
                 var delayedR = state.advancedDelayR[first] * (1 - fraction) + state.advancedDelayR[next] * fraction
                 if effect.kind == .echo {
                     let coefficient = 1 - exp(-2 * Float.pi * values[3] / Float(sessionRate))
-                    state.toneL += coefficient * (delayedL - state.toneL); state.toneR += coefficient * (delayedR - state.toneR)
+                    state.toneL += coefficient * (delayedL - state.toneL)
+                    state.toneR += coefficient * (delayedR - state.toneR)
                     state.advancedDelayL[state.advancedDelayIndex] = dryL + state.toneL * values[1]
                     state.advancedDelayR[state.advancedDelayIndex] = dryR + state.toneR * values[1]
                     wetL = dryL * (1 - values[2]) + delayedL * values[2]
@@ -157,50 +197,63 @@ extension EffectProcessor {
                         delayedL = dryL * (1 - delay) + state.advancedDelayL[previous] * delay
                         delayedR = dryR * (1 - delay) + state.advancedDelayR[previous] * delay
                     }
-                    state.advancedDelayL[state.advancedDelayIndex] = dryL; state.advancedDelayR[state.advancedDelayIndex] = dryR
+                    state.advancedDelayL[state.advancedDelayIndex] = dryL
+                    state.advancedDelayR[state.advancedDelayIndex] = dryR
                     let reverbL = state.roomL!.process(delayedL, decay: values[0], tone: values[2])
                     let reverbR = state.roomR!.process(delayedR, decay: values[0], tone: values[2])
-                    let room = state.stereoRoom!.process(left: delayedL, right: delayedR, classicLeft: reverbL, classicRight: reverbR)
+                    let room = state.stereoRoom!.process(
+                        left: delayedL, right: delayedR, classicLeft: reverbL, classicRight: reverbR)
                     wetL = (dryL * (1 - values[3]) + room.0 * values[3]) * state.stereoRoom!.outputGain
                     wetR = (dryR * (1 - values[3]) + room.1 * values[3]) * state.stereoRoom!.outputGain
                 }
                 state.advancedDelayIndex = (state.advancedDelayIndex + 1) % count
             case .warmth:
-                (wetL, wetR) = state.warmth!.process(left: dryL, right: dryR, driveDB: values[0],
-                    tone: values[1], mix: values[2], outputDB: values[3], matchLevel: values[4] >= 0.5, character: Int(values[5]), bias: values[6], emphasisDB: values[7])
-                alignedDryL = state.warmth!.lastDryLeft; alignedDryR = state.warmth!.lastDryRight
+                (wetL, wetR) = state.warmth!.process(
+                    left: dryL, right: dryR, driveDB: values[0],
+                    tone: values[1], mix: values[2], outputDB: values[3], matchLevel: values[4] >= 0.5,
+                    character: Int(values[5]), bias: values[6], emphasisDB: values[7])
+                alignedDryL = state.warmth!.lastDryLeft
+                alignedDryR = state.warmth!.lastDryRight
             case .limiter:
                 (wetL, wetR) = state.limiter!.process(left: dryL, right: dryR)
-                alignedDryL = state.limiter!.lastDryLeft; alignedDryR = state.limiter!.lastDryRight
+                alignedDryL = state.limiter!.lastDryLeft
+                alignedDryR = state.limiter!.lastDryRight
                 reductionDB = state.limiter!.reductionDB * bypassBlend
                 measurement.snapshot.truePeak = max(measurement.snapshot.truePeak, state.limiter!.outputTruePeak)
                 measurement.snapshot.momentaryLUFS = state.limiter!.loudness.momentary
                 measurement.snapshot.shortTermLUFS = state.limiter!.loudness.shortTerm
             case .resonance:
                 (wetL, wetR) = state.resonance!.process(left: dryL, right: dryR)
-                alignedDryL = state.resonance!.lastDryLeft; alignedDryR = state.resonance!.lastDryRight
+                alignedDryL = state.resonance!.lastDryLeft
+                alignedDryR = state.resonance!.lastDryRight
                 reductionDB = state.resonance!.reductionDB * bypassBlend
                 measurement.snapshot.resonance = state.resonance!.display
             case .soundPutty:
                 (wetL, wetR) = state.putty!.process(left: dryL, right: dryR)
             case .vocalEnhancer:
                 (wetL, wetR) = state.vocal!.process(left: dryL, right: dryR)
-                alignedDryL = state.vocal!.lastDryLeft; alignedDryR = state.vocal!.lastDryRight
+                alignedDryL = state.vocal!.lastDryLeft
+                alignedDryR = state.vocal!.lastDryRight
                 reductionDB = state.vocal!.reductionDB * bypassBlend
             case .sourceIsolator:
                 (wetL, wetR) = state.isolation!.process(left: dryL, right: dryR)
-                alignedDryL = state.isolation!.lastDryLeft; alignedDryR = state.isolation!.lastDryRight
+                alignedDryL = state.isolation!.lastDryLeft
+                alignedDryR = state.isolation!.lastDryRight
                 reductionDB = state.isolation!.reductionDB * bypassBlend
                 measurement.snapshot.resonance = state.isolation!.display
             case .compressor:
                 let level = externalDetector?[externalDetectorOffset + i] ?? max(abs(dryL), abs(dryR))
                 let milliseconds = level > state.envelope ? values[2] : values[3]
                 state.envelope += (1 - exp(-1 / (milliseconds / 1000 * Float(sessionRate)))) * (level - state.envelope)
-                let inputDB = 20 * log10(max(0.000001, state.envelope)), over = inputDB - values[0]
+                let inputDB = 20 * log10(max(0.000001, state.envelope))
+                let over = inputDB - values[0]
                 let slope = 1 / values[1] - 1
                 let reduction: Float
-                if values[4] > 0 && abs(over) < values[4] / 2 { reduction = slope * pow(over + values[4] / 2, 2) / (2 * values[4]) }
-                else { reduction = over > 0 ? slope * over : 0 }
+                if values[4] > 0 && abs(over) < values[4] / 2 {
+                    reduction = slope * pow(over + values[4] / 2, 2) / (2 * values[4])
+                } else {
+                    reduction = over > 0 ? slope * over : 0
+                }
                 reductionDB = max(0, -reduction) * bypassBlend
                 let gain = pow(Float(10), (reduction + values[5]) / 20)
                 wetL = dryL * (1 - values[6]) + dryL * gain * values[6]
@@ -208,23 +261,30 @@ extension EffectProcessor {
             case .equalizer:
                 (wetL, wetR) = state.equalizer!.process(left: dryL, right: dryR)
             case .chorus:
-                (wetL, wetR) = state.chorus!.process(left: dryL, right: dryR, rate: values[0], depth: values[1],
+                (wetL, wetR) = state.chorus!.process(
+                    left: dryL, right: dryR, rate: values[0], depth: values[1],
                     delay: values[2], width: values[3], feedback: values[4], mix: values[5])
             case .pitchCorrection:
-                var controls = PitchCorrectionParameters(key: Int(values[0]), scale: Int(values[1]), mask: Int(values[2]),
+                var controls = PitchCorrectionParameters(
+                    key: Int(values[0]), scale: Int(values[1]), mask: Int(values[2]),
                     reference: values[3], retune: values[4], strength: values[5], humanize: values[6],
-                    tolerance: values[7], vibrato: values[8], formant: values[9], mix: values[10], manualTarget: values[11])
+                    tolerance: values[7], vibrato: values[8], formant: values[9], mix: values[10],
+                    manualTarget: values[11])
                 if let edit = pitchEditCursor?.sample(at: position + i) {
                     controls.manualTarget = edit.note
                     if effect.pitchEditsOnly { controls.mix *= edit.scopeBlend }
+                } else if effect.pitchEditsOnly {
+                    controls.mix = 0
                 }
-                else if effect.pitchEditsOnly { controls.mix = 0 }
                 (wetL, wetR) = state.pitch!.process(left: dryL, right: dryR, parameters: controls)
-                alignedDryL = state.pitch!.lastDryLeft; alignedDryR = state.pitch!.lastDryRight
+                alignedDryL = state.pitch!.lastDryLeft
+                alignedDryR = state.pitch!.lastDryRight
             case .dither:
-                wetL = DitherDSP.process(dryL, frame: position + i, channel: 0, seed: noiseSeed,
+                wetL = DitherDSP.process(
+                    dryL, frame: position + i, channel: 0, seed: noiseSeed,
                     bits: values[0], amount: values[1], quantize: values[2] >= 0.5)
-                wetR = DitherDSP.process(dryR, frame: position + i, channel: 1, seed: noiseSeed,
+                wetR = DitherDSP.process(
+                    dryR, frame: position + i, channel: 1, seed: noiseSeed,
                     bits: values[0], amount: values[1], quantize: values[2] >= 0.5)
             }
             advanceBypass()
@@ -238,7 +298,9 @@ extension EffectProcessor {
                 // latency. Keep the feedback timestamp in source timeline frames.
                 feedback.sourceFrame = position + i - effect.latencyFrames
                 if let loop = pitchMeterLoopRange {
-                    feedback.sourceFrame = loop.lowerBound + ((feedback.sourceFrame - loop.lowerBound) % loop.count + loop.count) % loop.count
+                    feedback.sourceFrame =
+                        loop.lowerBound + ((feedback.sourceFrame - loop.lowerBound) % loop.count + loop.count)
+                        % loop.count
                 }
                 feedback.wetBlend *= baked ? 0 : bypassBlend
                 measurement.snapshot.pitch = pitchMeterDelay?.process(feedback) ?? feedback

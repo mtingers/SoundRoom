@@ -1,13 +1,16 @@
-import XCTest
-@testable import Soundroom
 import SoundroomCore
+import XCTest
+
+@testable import Soundroom
 
 final class PitchTraceScaleTests: XCTestCase {
     private func meter(_ frame: Int, midi: Float) -> PitchMeterSnapshot {
         var pitch = PitchMeterSnapshot()
-        pitch.sourceFrame = frame; pitch.confidence = 1
+        pitch.sourceFrame = frame
+        pitch.confidence = 1
         pitch.inputFrequency = 440 * pow(2, (midi - 69) / 12)
-        pitch.targetFrequency = 440; pitch.correctionCents = (69 - midi) * 100
+        pitch.targetFrequency = 440
+        pitch.correctionCents = (69 - midi) * 100
         return pitch
     }
     func testSmallVariationsNeverMoveEstablishedVerticalScaleOrAlterReadings() {
@@ -55,18 +58,22 @@ final class PitchTraceScaleTests: XCTestCase {
         for _ in 0..<20 { scale.zoom(2) }
         XCTAssertEqual(scale.span, 96)
         let valid = scale
-        scale.zoom(.nan); scale.move(semitones: .infinity)
+        scale.zoom(.nan)
+        scale.move(semitones: .infinity)
         XCTAssertEqual(scale, valid)
     }
     func testUnvoicedAndInvalidDataCannotInitializeScale() {
         var history = PitchFeedbackHistory()
-        var pitch = meter(0, midi: 69); pitch.confidence = 0
+        var pitch = meter(0, midi: 69)
+        pitch.confidence = 0
         history.update(pitch, at: 0, running: true)
         XCTAssertFalse(history.scale.initialized)
-        var scale = PitchTraceScale(); scale.fit(notes: [.nan, .infinity])
+        var scale = PitchTraceScale()
+        scale.fit(notes: [.nan, .infinity])
         XCTAssertFalse(scale.initialized)
         scale.initialize(notes: [60])
-        XCTAssertEqual(scale.lower, 48); XCTAssertEqual(scale.upper, 72)
+        XCTAssertEqual(scale.lower, 48)
+        XCTAssertEqual(scale.upper, 72)
         scale.initialize(notes: [90])
         XCTAssertEqual(scale.lower, 48)
     }

@@ -1,5 +1,6 @@
 use crate::Error;
 use serde_json::Value;
+#[rustfmt::skip] // Generated binding layout belongs to protocol/generate.py.
 #[path = "../../../../protocol/generated/write_ranges.rs"]
 mod ranges;
 pub(crate) fn payload_type(operation: &str) -> Option<&'static str> {

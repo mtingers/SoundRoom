@@ -1,7 +1,8 @@
-import XCTest
 import SoundroomCore
-@testable import SoundroomRemote
 import SoundroomEngineControl
+import XCTest
+
+@testable import SoundroomRemote
 
 final class ServerCommandPolicyTests: XCTestCase {
     func testReadonlyAndInterruptPoliciesPreserveIndependentViewsAndTransportReserve() {
@@ -21,12 +22,14 @@ final class ServerCommandPolicyTests: XCTestCase {
         XCTAssertFalse(RemoteCommand.editor(.init(operation: "unapproved.operation")).canInterruptServerJob)
     }
     func testAuthoredEditMetadataAndWorkerPolicyRetainHistoryAndPreflight() {
-        let track = Track(name: "Source", color: 2), gesture = "drag"
+        let track = Track(name: "Source", color: 2)
+        let gesture = "drag"
         let command = RemoteCommand.replaceTracks(tracks: [track], name: "Move", gestureID: gesture)
         XCTAssertTrue(command.recordsServerHistory)
         XCTAssertFalse(command.changesServerCursor)
         XCTAssertEqual(command.serverTrackEdit, .init(tracks: [track], name: "Move", gestureID: gesture))
-        XCTAssertEqual(command.serverTitle, "Move"); XCTAssertEqual(command.serverGesture, gesture)
+        XCTAssertEqual(command.serverTitle, "Move")
+        XCTAssertEqual(command.serverGesture, gesture)
         for operation in ["effects.apply", "pitch.apply", "pitch.targets", "master.applyProposal", "clips.combine"] {
             let edit = RemoteCommand.editor(.init(operation: operation))
             XCTAssertTrue(edit.recordsServerHistory, operation)

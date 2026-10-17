@@ -9,32 +9,44 @@ import Foundation
 
     static func run(id: UUID, offset: Int, chunks: [Data], enqueue: Enqueue) async throws -> [RemoteReply] {
         guard (1...3).contains(chunks.count), offset >= 0,
-              chunks.allSatisfy({ !$0.isEmpty && $0.count <= RemoteProtocol.maximumUploadChunkBytes }) else { throw RemoteError.invalidFrame }
+            chunks.allSatisfy({ !$0.isEmpty && $0.count <= RemoteProtocol.maximumUploadChunkBytes })
+        else { throw RemoteError.invalidFrame }
         var next = offset
         var commands: [RemoteCommand] = []
         for chunk in chunks {
             let end = next.addingReportingOverflow(chunk.count)
             guard !end.overflow, end.partialValue <= 2 * 1024 * 1024 * 1024 else { throw RemoteError.invalidFrame }
-            commands.append(.uploadChunk(id: id, offset: next, data: chunk)); next = end.partialValue
+            commands.append(.uploadChunk(id: id, offset: next, data: chunk))
+            next = end.partialValue
         }
         try Task.checkCancellation()
         return try await withCheckedThrowingContinuation { continuation in
             var replies = [RemoteReply?](repeating: nil, count: commands.count)
-            var remaining = commands.count, finished = false
+            var remaining = commands.count
+            var finished = false
             for (index, command) in commands.enumerated() {
                 guard !finished else { break }
                 do {
                     try enqueue(command) { result in
                         guard !finished, replies[index] == nil else { return }
                         switch result {
-                        case .failure(let error): finished = true; continuation.resume(throwing: error)
+                        case .failure(let error):
+                            finished = true
+                            continuation.resume(throwing: error)
                         case .success(let reply):
-                            replies[index] = reply; remaining -= 1
-                            if remaining == 0 { finished = true; continuation.resume(returning: replies.compactMap { $0 }) }
+                            replies[index] = reply
+                            remaining -= 1
+                            if remaining == 0 {
+                                finished = true
+                                continuation.resume(returning: replies.compactMap { $0 })
+                            }
                         }
                     }
                 } catch {
-                    if !finished { finished = true; continuation.resume(throwing: error) }
+                    if !finished {
+                        finished = true
+                        continuation.resume(throwing: error)
+                    }
                     break
                 }
             }

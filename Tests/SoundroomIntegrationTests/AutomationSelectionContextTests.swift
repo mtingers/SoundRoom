@@ -1,5 +1,6 @@
-import XCTest
 import SoundroomCore
+import XCTest
+
 @testable import Soundroom
 
 @MainActor final class AutomationSelectionContextTests: XCTestCase {
@@ -7,11 +8,16 @@ import SoundroomCore
 
     private func fixture() -> SessionStore {
         let store = SessionStore()
-        var first = Track(name: "Voice", color: 0), second = Track(name: "Music", color: 1)
-        first.mixAutomation["volume"] = points; first.mixAutomation["pan"] = points
-        second.mixAutomation["volume"] = points; second.mixAutomation["pan"] = points
+        var first = Track(name: "Voice", color: 0)
+        var second = Track(name: "Music", color: 1)
+        first.mixAutomation["volume"] = points
+        first.mixAutomation["pan"] = points
+        second.mixAutomation["volume"] = points
+        second.mixAutomation["pan"] = points
         store.session.tracks = [first, second]
-        store.selectedTrack = first.id; store.automationTarget = .volume; store.effectMode = .realtime
+        store.selectedTrack = first.id
+        store.automationTarget = .volume
+        store.effectMode = .realtime
         store.selectAutomationRange(0..<200)
         return store
     }
@@ -33,11 +39,14 @@ import SoundroomCore
     func testInsertSwitchAndRemovalResetEvenWhenParametersAndFramesMatch() {
         let store = fixture()
         var a = RealtimeEffect(kind: .gain, parameters: ["gain": 0])
-        a.selectedAutomationParameter = "gain"; a.parameterAutomation["gain"] = points
+        a.selectedAutomationParameter = "gain"
+        a.parameterAutomation["gain"] = points
         var b = RealtimeEffect(kind: .gain, parameters: ["gain": -6])
-        b.selectedAutomationParameter = "gain"; b.parameterAutomation["gain"] = points
+        b.selectedAutomationParameter = "gain"
+        b.parameterAutomation["gain"] = points
         store.session.tracks[0].realtimeEffects = [a, b]
-        store.automationTarget = .effect; store.selectedRealtimeEffect = a.id
+        store.automationTarget = .effect
+        store.selectedRealtimeEffect = a.id
         store.selectAutomationRange(0..<200)
         store.selectedRealtimeEffect = b.id
         assertReset(store)
@@ -61,9 +70,11 @@ import SoundroomCore
         XCTAssertEqual(store.automationEditing.selectedFrames, [50, 150])
         XCTAssertTrue(store.automationEditing.hasFocus)
         var effect = RealtimeEffect(kind: .echo, parameters: RealtimeEffectKind.echo.defaultParameters)
-        effect.selectedAutomationParameter = "time"; effect.parameterAutomation["time"] = points
+        effect.selectedAutomationParameter = "time"
+        effect.parameterAutomation["time"] = points
         store.session.tracks[0].realtimeEffects = [effect]
-        store.automationTarget = .effect; store.selectedRealtimeEffect = effect.id
+        store.automationTarget = .effect
+        store.selectedRealtimeEffect = effect.id
         store.selectAutomationRange(0..<200)
         store.changeRealtimeEffect(effect.id, name: "Feedback") { $0.parameters["feedback"] = 0.5 }
         XCTAssertEqual(store.automationEditing.selectedFrames, [50, 150])

@@ -26,28 +26,41 @@ final class StereoRoomDSP {
 
     func configure(_ values: [Float]) {
         if values[0] != previousDecay {
-            for i in feedback.indices { feedback[i] = pow(10, -3 * Float(lines[i].count) / (Float(sessionRate) * values[0])) }
+            for i in feedback.indices {
+                feedback[i] = pow(10, -3 * Float(lines[i].count) / (Float(sessionRate) * values[0]))
+            }
             previousDecay = values[0]
         }
         if values[2] != previousTone {
-            tone = 1 - exp(-2 * .pi * values[2] / Float(sessionRate)); previousTone = values[2]
+            tone = 1 - exp(-2 * .pi * values[2] / Float(sessionRate))
+            previousTone = values[2]
         }
         if values[5] != previousCut {
-            lowCut = values[5] == 0 ? 0 : 1 - exp(-2 * .pi * values[5] / Float(sessionRate)); previousCut = values[5]
+            lowCut = values[5] == 0 ? 0 : 1 - exp(-2 * .pi * values[5] / Float(sessionRate))
+            previousCut = values[5]
         }
         diffusion = 0.35 + values[6] * 0.4
-        width = values[7]; earlyBalance = values[8]; outputGain = pow(10, values[9] / 20)
+        width = values[7]
+        earlyBalance = values[8]
+        outputGain = pow(10, values[9] / 20)
         algorithmTarget = values[4]
-        if !configured { algorithmBlend = algorithmTarget; configured = true }
+        if !configured {
+            algorithmBlend = algorithmTarget
+            configured = true
+        }
     }
 
     func process(left: Float, right: Float, classicLeft: Float, classicRight: Float) -> (Float, Float) {
         // Warm both engines so changing Character during playback can crossfade
         // continuous tails rather than replacing a live network with silence.
-        lowL += lowCut * (left - lowL); lowR += lowCut * (right - lowR)
-        let inputL = lowCut == 0 ? left : left - lowL, inputR = lowCut == 0 ? right : right - lowR
-        earlyL[earlyPosition] = inputL; earlyR[earlyPosition] = inputR
-        var reflectionL: Float = 0, reflectionR: Float = 0
+        lowL += lowCut * (left - lowL)
+        lowR += lowCut * (right - lowR)
+        let inputL = lowCut == 0 ? left : left - lowL
+        let inputR = lowCut == 0 ? right : right - lowR
+        earlyL[earlyPosition] = inputL
+        earlyR[earlyPosition] = inputR
+        var reflectionL: Float = 0
+        var reflectionR: Float = 0
         for i in 0..<6 {
             let l = (earlyPosition - Self.leftTaps[i] + earlyL.count) % earlyL.count
             let r = (earlyPosition - Self.rightTaps[i] + earlyL.count) % earlyL.count
@@ -55,7 +68,8 @@ final class StereoRoomDSP {
             reflectionR += (earlyR[r] * 0.8 + earlyL[l] * 0.2) * Self.tapGains[i]
         }
         earlyPosition = (earlyPosition + 1) % earlyL.count
-        var diffuseL = inputL, diffuseR = inputR
+        var diffuseL = inputL
+        var diffuseR = inputR
         for i in 0..<6 {
             let input = i < 3 ? diffuseL : diffuseR
             let delayed = diffusionLines[i][diffusionPositions[i]]
@@ -71,15 +85,21 @@ final class StereoRoomDSP {
         }
         // Different orthogonal projections preserve stereo input while giving
         // even a hard-panned source a spatially decorrelated stereo tail.
-        let lateL = (scratch[0] + scratch[1] - scratch[2] - scratch[3] + scratch[4] + scratch[5] - scratch[6] - scratch[7]) * 0.35355339
-        let lateR = (scratch[0] - scratch[1] + scratch[2] - scratch[3] + scratch[4] - scratch[5] + scratch[6] - scratch[7]) * 0.35355339
+        let lateL =
+            (scratch[0] + scratch[1] - scratch[2] - scratch[3] + scratch[4] + scratch[5] - scratch[6] - scratch[7])
+            * 0.35355339
+        let lateR =
+            (scratch[0] - scratch[1] + scratch[2] - scratch[3] + scratch[4] - scratch[5] + scratch[6] - scratch[7])
+            * 0.35355339
         var stride = 1
         while stride < 8 {
             var base = 0
             while base < 8 {
                 for j in 0..<stride {
-                    let a = scratch[base + j], b = scratch[base + j + stride]
-                    scratch[base + j] = a + b; scratch[base + j + stride] = a - b
+                    let a = scratch[base + j]
+                    let b = scratch[base + j + stride]
+                    scratch[base + j] = a + b
+                    scratch[base + j + stride] = a - b
                 }
                 base += stride * 2
             }
@@ -93,26 +113,51 @@ final class StereoRoomDSP {
         }
         let wetL = reflectionL * earlyBalance + lateL * (1 - earlyBalance)
         let wetR = reflectionR * earlyBalance + lateR * (1 - earlyBalance)
-        let mid = (wetL + wetR) * 0.5, side = (wetL - wetR) * 0.5 * width
-        if algorithmBlend < algorithmTarget { algorithmBlend = min(algorithmTarget, algorithmBlend + 1 / 240) }
-        else if algorithmBlend > algorithmTarget { algorithmBlend = max(algorithmTarget, algorithmBlend - 1 / 240) }
-        return ((classicLeft * (1 - algorithmBlend) + (mid + side) * algorithmBlend),
-                (classicRight * (1 - algorithmBlend) + (mid - side) * algorithmBlend))
+        let mid = (wetL + wetR) * 0.5
+        let side = (wetL - wetR) * 0.5 * width
+        if algorithmBlend < algorithmTarget {
+            algorithmBlend = min(algorithmTarget, algorithmBlend + 1 / 240)
+        } else if algorithmBlend > algorithmTarget {
+            algorithmBlend = max(algorithmTarget, algorithmBlend - 1 / 240)
+        }
+        return (
+            (classicLeft * (1 - algorithmBlend) + (mid + side) * algorithmBlend),
+            (classicRight * (1 - algorithmBlend) + (mid - side) * algorithmBlend)
+        )
     }
 
-    var storageBytes: Int { (lines.reduce(0) { $0 + $1.count } + diffusionLines.reduce(0) { $0 + $1.count } + earlyL.count + earlyR.count) * 4 + 1024 }
+    var storageBytes: Int {
+        (lines.reduce(0) { $0 + $1.count } + diffusionLines.reduce(0) { $0 + $1.count } + earlyL.count + earlyR.count)
+            * 4 + 1024
+    }
     func deepCopy() -> StereoRoomDSP {
         func floats(_ source: [Float]) -> [Float] { source.withUnsafeBufferPointer { Array($0) } }
         func ints(_ source: [Int]) -> [Int] { source.withUnsafeBufferPointer { Array($0) } }
         let copy = StereoRoomDSP()
-        copy.lines = lines.map(floats); copy.positions = ints(positions); copy.filtered = floats(filtered)
-        copy.feedback = floats(feedback); copy.scratch = floats(scratch)
-        copy.diffusionLines = diffusionLines.map(floats); copy.diffusionPositions = ints(diffusionPositions)
-        copy.earlyL = floats(earlyL); copy.earlyR = floats(earlyR); copy.earlyPosition = earlyPosition
-        copy.lowL = lowL; copy.lowR = lowR; copy.tone = tone; copy.lowCut = lowCut; copy.diffusion = diffusion
-        copy.width = width; copy.earlyBalance = earlyBalance; copy.outputGain = outputGain
-        copy.algorithmBlend = algorithmBlend; copy.algorithmTarget = algorithmTarget; copy.configured = configured
-        copy.previousDecay = previousDecay; copy.previousTone = previousTone; copy.previousCut = previousCut
+        copy.lines = lines.map(floats)
+        copy.positions = ints(positions)
+        copy.filtered = floats(filtered)
+        copy.feedback = floats(feedback)
+        copy.scratch = floats(scratch)
+        copy.diffusionLines = diffusionLines.map(floats)
+        copy.diffusionPositions = ints(diffusionPositions)
+        copy.earlyL = floats(earlyL)
+        copy.earlyR = floats(earlyR)
+        copy.earlyPosition = earlyPosition
+        copy.lowL = lowL
+        copy.lowR = lowR
+        copy.tone = tone
+        copy.lowCut = lowCut
+        copy.diffusion = diffusion
+        copy.width = width
+        copy.earlyBalance = earlyBalance
+        copy.outputGain = outputGain
+        copy.algorithmBlend = algorithmBlend
+        copy.algorithmTarget = algorithmTarget
+        copy.configured = configured
+        copy.previousDecay = previousDecay
+        copy.previousTone = previousTone
+        copy.previousCut = previousCut
         return copy
     }
 }

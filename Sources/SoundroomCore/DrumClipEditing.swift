@@ -6,8 +6,8 @@ extension Clip {
     public var editableDrumPattern: DrumPattern? {
         if let drumPattern { return drumPattern }
         return (previousStates ?? []).sorted { $0.createdAt > $1.createdAt }.first {
-            $0.drumPattern != nil && $0.assetID == assetID && offset >= $0.offset &&
-            offset - $0.offset <= $0.length && length <= $0.length - (offset - $0.offset)
+            $0.drumPattern != nil && $0.assetID == assetID && offset >= $0.offset && offset - $0.offset <= $0.length
+                && length <= $0.length - (offset - $0.offset)
         }?.drumPattern
     }
 
@@ -17,13 +17,16 @@ extension Clip {
         var clip = self
         let whole = editableDrumPattern.map { offset == 0 && length >= $0.renderedLoopFrames } ?? true
         if whole {
-            clip.offset = 0; clip.length = frameCount
+            clip.offset = 0
+            clip.length = frameCount
         } else {
             clip.offset = min(offset, max(0, frameCount - 1))
             clip.length = min(length, max(1, frameCount - clip.offset))
         }
         if clip.offset != offset || clip.length != length { clip.resetFadeEnvelope() }
-        clip.assetID = assetID; clip.drumPattern = pattern; clip.soundDesign = nil
+        clip.assetID = assetID
+        clip.drumPattern = pattern
+        clip.soundDesign = nil
         return clip
     }
 }

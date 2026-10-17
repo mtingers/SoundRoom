@@ -63,3 +63,7 @@ Demucs code and pretrained weights have different licensing considerations. Read
 ## License
 
 Soundroom's own source code is available under the [MIT License](LICENSE). Demo music is separate from the code license; see the [demo credits](DEMO.md). Third-party audio assets, downloaded sample libraries, model weights, and research datasets retain their respective terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The optional research separator is experimental and is not the production source-separation backend.
+
+## Code style and checks
+
+Run `make format` to format Swift and Rust, `make lint` for read-only style and Clippy checks, and `make check` to include protocol validation. The optional staged commit hook and editor settings are documented in [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -351,49 +351,143 @@ fn verified_wss_pairing_continues_and_revoke_preserves_operator() {
     let (root, shared, _, _) = super::publication_tests::control_fixture(0);
     let (operator, grant) = {
         let mut state = shared.lock().unwrap();
-        let operator = Credential::from_bytes(&serde_json::to_vec(&state.registry.issue("Operator", RemoteRole::Operator).unwrap()).unwrap()).unwrap();
+        let operator = Credential::from_bytes(
+            &serde_json::to_vec(
+                &state
+                    .registry
+                    .issue("Operator", RemoteRole::Operator)
+                    .unwrap(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
         let grant = state.registry.grant("Browser", RemoteRole::Editor).unwrap();
         (operator, grant)
     };
     let operator_id = operator.credential_id.clone();
-    let endpoint = Endpoint::bind(EndpointConfig {bind: "127.0.0.1:0".parse().unwrap(), approved_origins: vec!["https://localhost".into()]}, Path::new(&identity), &password).unwrap();
-    let config = WssConfig {endpoint: format!("wss://localhost:{}/control",endpoint.address().unwrap().port()),origin:Some("https://localhost".into()),root_ca_pem:Some(std::fs::read(ca).unwrap()),connect_timeout:Duration::from_secs(10)};
-    let stop=Arc::new(AtomicBool::new(false));let listener_stop=stop.clone();let listener_shared=shared.clone();
-    let listener=std::thread::spawn(move||endpoint.run(listener_shared,listener_stop).unwrap());
-    let runner=Runner{stop,joins:vec![listener]};
-    fn receive(transport:&mut WssTransport,kind:&str)->Value {
-        let deadline=Instant::now()+Duration::from_secs(10);
+    let endpoint = Endpoint::bind(
+        EndpointConfig {
+            bind: "127.0.0.1:0".parse().unwrap(),
+            approved_origins: vec!["https://localhost".into()],
+        },
+        Path::new(&identity),
+        &password,
+    )
+    .unwrap();
+    let config = WssConfig {
+        endpoint: format!(
+            "wss://localhost:{}/control",
+            endpoint.address().unwrap().port()
+        ),
+        origin: Some("https://localhost".into()),
+        root_ca_pem: Some(std::fs::read(ca).unwrap()),
+        connect_timeout: Duration::from_secs(10),
+    };
+    let stop = Arc::new(AtomicBool::new(false));
+    let listener_stop = stop.clone();
+    let listener_shared = shared.clone();
+    let listener =
+        std::thread::spawn(move || endpoint.run(listener_shared, listener_stop).unwrap());
+    let runner = Runner {
+        stop,
+        joins: vec![listener],
+    };
+    fn receive(transport: &mut WssTransport, kind: &str) -> Value {
+        let deadline = Instant::now() + Duration::from_secs(10);
         loop {
-            assert!(Instant::now()<deadline,"Expected protocol phase {kind}");
-            if let Some(bytes)=transport.receive(Duration::from_millis(50)).unwrap(){
-                let value:Value=serde_json::from_slice(&bytes).unwrap();
-                if value["kind"]==kind{return value;}
-                if value["kind"]=="heartbeat"{transport.send(&serde_json::to_vec(&json!({"version":3,"kind":"heartbeatReply","id":value["id"]})).unwrap()).unwrap();}
+            assert!(Instant::now() < deadline, "Expected protocol phase {kind}");
+            if let Some(bytes) = transport.receive(Duration::from_millis(50)).unwrap() {
+                let value: Value = serde_json::from_slice(&bytes).unwrap();
+                if value["kind"] == kind {
+                    return value;
+                }
+                if value["kind"] == "heartbeat" {
+                    transport
+                        .send(
+                            &serde_json::to_vec(
+                                &json!({"version":3,"kind":"heartbeatReply","id":value["id"]}),
+                            )
+                            .unwrap(),
+                        )
+                        .unwrap();
+                }
             }
         }
     }
-    let mut browser=WssTransport::connect(&config).unwrap();
-    let challenge=receive(&mut browser,"challenge");
-    browser.send(&serde_json::to_vec(&json!({"version":3,"kind":"pair","code":grant["code"],"name":"Browser"})).unwrap()).unwrap();
-    let paired=receive(&mut browser,"paired");
-    let credential=&paired["credential"];
-    let runtime=soundroom_client::auth::new_id().unwrap();
-    let secret=base64::engine::general_purpose::STANDARD.decode(credential["clientSecret"].as_str().unwrap()).unwrap();
-    let text=format!("soundroom-auth-v2|{}|{}|{}|Browser|{}",credential["serverID"].as_str().unwrap(),credential["credentialID"].as_str().unwrap(),runtime,challenge["nonce"].as_str().unwrap());
-    let proof=base64::engine::general_purpose::STANDARD.encode(soundroom_client::auth::hmac_sha256(&secret,text.as_bytes()));
+    let mut browser = WssTransport::connect(&config).unwrap();
+    let challenge = receive(&mut browser, "challenge");
+    browser
+        .send(
+            &serde_json::to_vec(
+                &json!({"version":3,"kind":"pair","code":grant["code"],"name":"Browser"}),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    let paired = receive(&mut browser, "paired");
+    let credential = &paired["credential"];
+    let runtime = soundroom_client::auth::new_id().unwrap();
+    let secret = base64::engine::general_purpose::STANDARD
+        .decode(credential["clientSecret"].as_str().unwrap())
+        .unwrap();
+    let text = format!(
+        "soundroom-auth-v2|{}|{}|{}|Browser|{}",
+        credential["serverID"].as_str().unwrap(),
+        credential["credentialID"].as_str().unwrap(),
+        runtime,
+        challenge["nonce"].as_str().unwrap()
+    );
+    let proof = base64::engine::general_purpose::STANDARD.encode(
+        soundroom_client::auth::hmac_sha256(&secret, text.as_bytes()),
+    );
     browser.send(&serde_json::to_vec(&json!({"version":3,"kind":"hello","serverID":credential["serverID"],"credentialID":credential["credentialID"],"peer":{"id":runtime,"name":"Browser","role":"operator"},"proof":proof})).unwrap()).unwrap();
-    let welcome=receive(&mut browser,"welcome");
-    assert_eq!(welcome["role"],"editor","Approved role must override the claimed role");
-    let mut operator=Client::<WssTransport>::connect(&config,operator,"Operator",None).unwrap();
-    let deadline=Instant::now()+Duration::from_secs(10);
-    while operator.connection!=ConnectionState::Ready{assert!(Instant::now()<deadline);operator.poll(Duration::from_millis(25)).unwrap();}
-    let revoke=|id:&str|serde_json::from_value(json!({"type":"editor","intent":{"operation":"server.revokeWebCredential","context":{"cursorFrame":0,"clipIDs":[]},"integers":{},"numbers":{},"strings":{"credentialID":id},"flags":{}}})).unwrap();
-    let denied=operator.request(revoke(&operator_id),None,BTreeMap::new(),Duration::from_secs(3)).unwrap();
-    assert_eq!(denied.status,RemoteReplyStatus::Rejected);
-    let revoked=operator.request(revoke(credential["credentialID"].as_str().unwrap()),None,BTreeMap::new(),Duration::from_secs(3)).unwrap();
-    assert_eq!(revoked.status,RemoteReplyStatus::Accepted);
-    let ping=operator.request(RemoteCommand::Ping { client_time: 0.0 },None,BTreeMap::new(),Duration::from_secs(3)).unwrap();
-    assert_eq!(ping.status,RemoteReplyStatus::Accepted);
-    assert_eq!(operator.connection,ConnectionState::Ready);
-    let _=browser.close();drop(browser);drop(operator);drop(runner);drop(shared);std::fs::remove_dir_all(root).unwrap();
+    let welcome = receive(&mut browser, "welcome");
+    assert_eq!(
+        welcome["role"], "editor",
+        "Approved role must override the claimed role"
+    );
+    let mut operator =
+        Client::<WssTransport>::connect(&config, operator, "Operator", None).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while operator.connection != ConnectionState::Ready {
+        assert!(Instant::now() < deadline);
+        operator.poll(Duration::from_millis(25)).unwrap();
+    }
+    let revoke = |id: &str| {
+        serde_json::from_value(json!({"type":"editor","intent":{"operation":"server.revokeWebCredential","context":{"cursorFrame":0,"clipIDs":[]},"integers":{},"numbers":{},"strings":{"credentialID":id},"flags":{}}})).unwrap()
+    };
+    let denied = operator
+        .request(
+            revoke(&operator_id),
+            None,
+            BTreeMap::new(),
+            Duration::from_secs(3),
+        )
+        .unwrap();
+    assert_eq!(denied.status, RemoteReplyStatus::Rejected);
+    let revoked = operator
+        .request(
+            revoke(credential["credentialID"].as_str().unwrap()),
+            None,
+            BTreeMap::new(),
+            Duration::from_secs(3),
+        )
+        .unwrap();
+    assert_eq!(revoked.status, RemoteReplyStatus::Accepted);
+    let ping = operator
+        .request(
+            RemoteCommand::Ping { client_time: 0.0 },
+            None,
+            BTreeMap::new(),
+            Duration::from_secs(3),
+        )
+        .unwrap();
+    assert_eq!(ping.status, RemoteReplyStatus::Accepted);
+    assert_eq!(operator.connection, ConnectionState::Ready);
+    let _ = browser.close();
+    drop(browser);
+    drop(operator);
+    drop(runner);
+    drop(shared);
+    std::fs::remove_dir_all(root).unwrap();
 }

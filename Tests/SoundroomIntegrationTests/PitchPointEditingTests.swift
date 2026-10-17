@@ -1,6 +1,7 @@
-import XCTest
 import AppKit
 import SoundroomCore
+import XCTest
+
 @testable import Soundroom
 
 final class PitchPointEditingTests: XCTestCase {
@@ -18,18 +19,21 @@ final class PitchPointEditingTests: XCTestCase {
         XCTAssertEqual(editing.insertionTarget(in: [original], defaultFrame: 1000).frame, 5500)
         let result = editing.adding(to: [original], frame: target.frame, note: target.note)
         let point = try XCTUnwrap(result.regions[0].points.first { $0.id == result.point })
-        XCTAssertEqual(point.frame, 5500); XCTAssertEqual(point.note, 64.25)
+        XCTAssertEqual(point.frame, 5500)
+        XCTAssertEqual(point.note, 64.25)
     }
     func testAnchorAndRangeSelectionClearOldInsertionLocation() {
         let original = region()
         var editing = PitchPointEditing()
         editing.placeInsertion(frame: 5000, note: 64)
         editing.select(original.points[1].id, extending: false)
-        XCTAssertNil(editing.insertionFrame); XCTAssertNil(editing.insertionNote)
+        XCTAssertNil(editing.insertionFrame)
+        XCTAssertNil(editing.insertionNote)
         XCTAssertEqual(editing.insertionTarget(in: [original], defaultFrame: 5000).frame, original.points[1].frame)
         editing.placeInsertion(frame: 5000, note: 64)
         editing.select(1000..<4000, regions: [original])
-        XCTAssertNil(editing.insertionFrame); XCTAssertNil(editing.insertionNote)
+        XCTAssertNil(editing.insertionFrame)
+        XCTAssertNil(editing.insertionNote)
     }
     func testClickedGapDoesNotAddAPointOrExtendVoicedRegions() {
         var editing = PitchPointEditing()
@@ -37,18 +41,24 @@ final class PitchPointEditingTests: XCTestCase {
         let original = [region(), region(20000, 30000)]
         let target = editing.insertionTarget(in: original, defaultFrame: 5000)
         let result = editing.adding(to: original, frame: target.frame, note: target.note)
-        XCTAssertNil(result.point); XCTAssertEqual(result.regions, original)
+        XCTAssertNil(result.point)
+        XCTAssertEqual(result.regions, original)
     }
     private func region(_ start: Int = 1000, _ end: Int = 10_000) -> PitchEditRegion {
-        .init(startFrame: start, endFrame: end, points: [
-            .init(frame: start, note: 69.1), .init(frame: start + 2000, note: 69.8),
-            .init(frame: end - 2000, note: 71.2), .init(frame: end, note: 72.1)])
+        .init(
+            startFrame: start, endFrame: end,
+            points: [
+                .init(frame: start, note: 69.1), .init(frame: start + 2000, note: 69.8),
+                .init(frame: end - 2000, note: 71.2), .init(frame: end, note: 72.1),
+            ])
     }
     func testShiftSelectionAndStableIDsSurviveMovement() {
         let original = region()
         var editing = PitchPointEditing()
-        let a = original.points[1].id, b = original.points[2].id
-        editing.select(a, extending: false); editing.select(b, extending: true)
+        let a = original.points[1].id
+        let b = original.points[2].id
+        editing.select(a, extending: false)
+        editing.select(b, extending: true)
         XCTAssertEqual(editing.selected, [a, b])
         let moved = editing.moving([original], frames: 500, notes: 0.15)
         XCTAssertEqual(moved[0].points[1].id, a)
@@ -79,10 +89,13 @@ final class PitchPointEditingTests: XCTestCase {
         var editing = PitchPointEditing()
         editing.select(1000..<10_001, regions: [original])
         let moved = editing.moving([original], frames: 10_000, notes: 0.2)
-        XCTAssertEqual(moved[0].points.map(\.frame), original.points.map(\.frame), "End-boundary anchors must not shift on pitch edits")
+        XCTAssertEqual(
+            moved[0].points.map(\.frame), original.points.map(\.frame),
+            "End-boundary anchors must not shift on pitch edits")
         editing.select(original.points[1].id, extending: false)
         // A plain click on an already selected point preserves group selection; make a new single selection.
-        editing = PitchPointEditing(); editing.select(original.points[1].id, extending: false)
+        editing = PitchPointEditing()
+        editing.select(original.points[1].id, extending: false)
         let free = editing.moving([original], frames: 0, notes: 0.13)
         XCTAssertEqual(free[0].points[1].note, 69.93, accuracy: 0.00001)
         let snapped = editing.moving([original], frames: 0, notes: 0.13, snap: true)
@@ -91,7 +104,8 @@ final class PitchPointEditingTests: XCTestCase {
         XCTAssertEqual(invalid, [original])
     }
     func testCurveAndLocalSmoothingLeaveOtherPointsAndGapsUntouched() {
-        let a = region(), b = region(20_000, 30_000)
+        let a = region()
+        let b = region(20_000, 30_000)
         var editing = PitchPointEditing()
         editing.select(a.points[1].id, extending: false)
         var changed = editing.settingCurve(.hold, in: [a, b])
@@ -108,7 +122,8 @@ final class PitchPointEditingTests: XCTestCase {
         XCTAssertNil(smoothed[0].note(at: 15_000))
     }
     func testAddDeleteAndRangeSelectionCannotBridgeUnvoicedGap() {
-        let a = region(), b = region(20_000, 30_000)
+        let a = region()
+        let b = region(20_000, 30_000)
         var editing = PitchPointEditing()
         let added = editing.adding(to: [a, b], frame: 5000, note: 70.25)
         let id = try! XCTUnwrap(added.point)
@@ -128,9 +143,12 @@ final class PitchPointEditingTests: XCTestCase {
         .init(frame: frame, frequency: 440 * pow(2, (note - 69) / 12), confidence: confidence)
     }
     func testMeasuredSeedingPreservesExplicitUnvoicedGapsAndPitch() {
-        let contour = [point(2000, note: 69.2), point(2256, note: 69.3), point(2512, note: 69.4),
-            point(2768, note: 69, confidence: 0), point(3024, note: 71.1), point(3280, note: 71.2)]
-        let seeds = PitchPointTargets.seed(contour: contour, scope: 1000..<4000, reference: 440,
+        let contour = [
+            point(2000, note: 69.2), point(2256, note: 69.3), point(2512, note: 69.4),
+            point(2768, note: 69, confidence: 0), point(3024, note: 71.1), point(3280, note: 71.2),
+        ]
+        let seeds = PitchPointTargets.seed(
+            contour: contour, scope: 1000..<4000, reference: 440,
             preset: .performance, toleranceCents: 0)
         XCTAssertEqual(seeds.count, 2)
         XCTAssertEqual(seeds[0].points[0].note, 69.2, accuracy: 0.001)
@@ -140,20 +158,30 @@ final class PitchPointEditingTests: XCTestCase {
         XCTAssertTrue(seeds.allSatisfy { $0.startFrame >= 1000 && $0.endFrame <= 4000 })
     }
     func testCurvePresetsChangeTargetsAndPreserveMeasuredSource() {
-        let contour = [point(2000, note: 69.2), point(12_000, note: 69.3), point(22_000, note: 70.3), point(32_000, note: 70.2)]
-        let natural = PitchPointTargets.seed(contour: contour, scope: 1000..<34_000, reference: 440, preset: .natural, toleranceCents: 0)
-        let tight = PitchPointTargets.seed(contour: contour, scope: 1000..<34_000, reference: 440, preset: .tight, toleranceCents: 0)
-        let robot = PitchPointTargets.seed(contour: contour, scope: 1000..<34_000, reference: 440, preset: .robotic, toleranceCents: 0)
+        let contour = [
+            point(2000, note: 69.2), point(12_000, note: 69.3), point(22_000, note: 70.3), point(32_000, note: 70.2),
+        ]
+        let natural = PitchPointTargets.seed(
+            contour: contour, scope: 1000..<34_000, reference: 440, preset: .natural, toleranceCents: 0)
+        let tight = PitchPointTargets.seed(
+            contour: contour, scope: 1000..<34_000, reference: 440, preset: .tight, toleranceCents: 0)
+        let robot = PitchPointTargets.seed(
+            contour: contour, scope: 1000..<34_000, reference: 440, preset: .robotic, toleranceCents: 0)
         XCTAssertEqual(natural[0].points[0].note, 69.1, accuracy: 0.001)
         XCTAssertEqual(natural[0].points[0].curve, .smooth)
         XCTAssertEqual(tight[0].points[0].note, 69)
         XCTAssertTrue(robot.flatMap(\.points).allSatisfy { $0.curve == .hold && $0.note.rounded() == $0.note })
-        XCTAssertEqual(robot[0].points.first { $0.note == 70 }?.frame, 22_000, "Held steps must keep the measured transition time")
+        XCTAssertEqual(
+            robot[0].points.first { $0.note == 70 }?.frame, 22_000, "Held steps must keep the measured transition time")
         XCTAssertEqual(contour[0].frequency, point(2000, note: 69.2).frequency)
-        XCTAssertTrue(PitchPointTargets.seed(contour: [point(2000, note: 69, confidence: 0)], scope: 1000..<4000, reference: 440).isEmpty)
+        XCTAssertTrue(
+            PitchPointTargets.seed(contour: [point(2000, note: 69, confidence: 0)], scope: 1000..<4000, reference: 440)
+                .isEmpty)
     }
     func testSimplificationHonorsCentToleranceAndKeepsEndpoints() {
-        let points = [PitchEditPoint(frame: 0, note: 69), .init(frame: 1000, note: 69.02), .init(frame: 2000, note: 69)]
+        let points = [
+            PitchEditPoint(frame: 0, note: 69), .init(frame: 1000, note: 69.02), .init(frame: 2000, note: 69),
+        ]
         let reduced = PitchPointTargets.simplify(points, toleranceCents: 5)
         XCTAssertEqual(reduced, [points[0], points[2]])
         XCTAssertEqual(PitchPointTargets.simplify(points, toleranceCents: 1), points)
@@ -168,16 +196,19 @@ final class PitchPointEditingTests: XCTestCase {
         XCTAssertEqual(custom, 1, "Custom note targets are absolute and never transposed by Key")
         XCTAssertEqual(PitchPointTargets.nearestAllowed(69.3, mask: custom), 72)
         let contour = [point(2000, note: 66.1), point(2256, note: 66.2)]
-        let tight = PitchPointTargets.seed(contour: contour, scope: 1000..<4000, reference: 440,
+        let tight = PitchPointTargets.seed(
+            contour: contour, scope: 1000..<4000, reference: 440,
             preset: .tight, toleranceCents: 0, allowedPitchClasses: dMajor)
         XCTAssertTrue(tight.flatMap(\.points).allSatisfy { dMajor & (1 << (Int($0.note) % 12)) != 0 })
-        let natural = PitchPointTargets.seed(contour: contour, scope: 1000..<4000, reference: 440,
+        let natural = PitchPointTargets.seed(
+            contour: contour, scope: 1000..<4000, reference: 440,
             preset: .natural, toleranceCents: 0, allowedPitchClasses: cMajor)
         XCTAssertEqual(natural[0].points[0].note, 66.55, accuracy: 0.001)
     }
     func testNoAllowedNotesPreservesPerformanceAndMalformedParametersStaySafe() {
         let contour = [point(2000, note: 69.3), point(2256, note: 69.4)]
-        let targets = PitchPointTargets.seed(contour: contour, scope: 1000..<4000, reference: 440,
+        let targets = PitchPointTargets.seed(
+            contour: contour, scope: 1000..<4000, reference: 440,
             preset: .robotic, toleranceCents: 0, allowedPitchClasses: 0)
         XCTAssertEqual(targets[0].points[0].note, 69.3, accuracy: 0.001)
         XCTAssertTrue(targets.flatMap(\.points).allSatisfy { $0.curve == .linear })
@@ -189,12 +220,15 @@ final class PitchPointEditingTests: XCTestCase {
         for frequency in [5.0, 5.5, 6.0] {
             for center in [Float(69.39), 69.48, 69.55, 69.61] {
                 let contour = (0..<300).map { index in
-                    point(index * 480, note: center + Float(0.32 * sin(2 * Double.pi * frequency * Double(index) / 100)))
+                    point(
+                        index * 480, note: center + Float(0.32 * sin(2 * Double.pi * frequency * Double(index) / 100)))
                 }
                 for preset in [PitchCurvePreset.tight, .robotic] {
-                    let targets = PitchPointTargets.seed(contour: contour, scope: 0..<144_000, reference: 440,
+                    let targets = PitchPointTargets.seed(
+                        contour: contour, scope: 0..<144_000, reference: 440,
                         preset: preset, toleranceCents: 0)
-                    XCTAssertEqual(Set(targets.flatMap(\.points).map(\.note)).count, 1,
+                    XCTAssertEqual(
+                        Set(targets.flatMap(\.points).map(\.note)).count, 1,
                         "\(frequency) Hz vibrato around \(center) caused \(preset.rawValue) note chatter")
                 }
             }
@@ -205,16 +239,20 @@ final class PitchPointEditingTests: XCTestCase {
             point(index * 480, note: index < 40 ? 69.2 : index < 47 ? 70.2 : index < 65 ? 69.2 : 71.2)
         }
         let mask = PitchPointTargets.allowedPitchClasses(parameters: ["scale": 1, "key": 0])
-        let targets = PitchPointTargets.seed(contour: contour, scope: 0..<67_200, reference: 440,
+        let targets = PitchPointTargets.seed(
+            contour: contour, scope: 0..<67_200, reference: 440,
             preset: .robotic, toleranceCents: 0, allowedPitchClasses: mask)
         XCTAssertEqual(Set(targets.flatMap(\.points).map(\.note)), [69, 71])
-        XCTAssertEqual(targets[0].points.first { $0.note == 71 }?.frame, 65 * 480,
+        XCTAssertEqual(
+            targets[0].points.first { $0.note == 71 }?.frame, 65 * 480,
             "Offline confirmation must preserve the original sustained transition onset")
         XCTAssertEqual(targets[0].note(at: 43 * 480), 69)
-        let natural = PitchPointTargets.seed(contour: contour, scope: 0..<67_200, reference: 440,
+        let natural = PitchPointTargets.seed(
+            contour: contour, scope: 0..<67_200, reference: 440,
             preset: .natural, toleranceCents: 0, allowedPitchClasses: mask)
         XCTAssertEqual(natural[0].note(at: 43 * 480) ?? .nan, 69.6, accuracy: 0.001)
-        let performance = PitchPointTargets.seed(contour: contour, scope: 0..<67_200, reference: 440,
+        let performance = PitchPointTargets.seed(
+            contour: contour, scope: 0..<67_200, reference: 440,
             preset: .performance, toleranceCents: 0, allowedPitchClasses: mask)
         XCTAssertEqual(performance[0].note(at: 43 * 480) ?? .nan, 70.2, accuracy: 0.001)
     }
@@ -222,7 +260,8 @@ final class PitchPointEditingTests: XCTestCase {
         var contour = (0..<30).map { point($0 * 480, note: 69.4) }
         contour.append(.init(frame: 14_400, frequency: 0, confidence: 0))
         contour.append(contentsOf: (31..<36).map { point($0 * 480, note: 70.2) })
-        let targets = PitchPointTargets.seed(contour: contour, scope: 0..<17_280, reference: 440,
+        let targets = PitchPointTargets.seed(
+            contour: contour, scope: 0..<17_280, reference: 440,
             preset: .tight, toleranceCents: 0)
         XCTAssertEqual(targets.count, 2)
         XCTAssertEqual(Set(targets[0].points.map(\.note)), [69])
@@ -241,10 +280,12 @@ final class PitchPointEditingTests: XCTestCase {
             let audio = AudioSamples(channels: [samples])
             let contour = try PitchContourAnalysis.analyze(audio, maximumPoints: 65_536)
             XCTAssertTrue(contour.contains(where: \.isVoiced))
-            let targets = PitchPointTargets.seed(contour: contour, scope: 0..<audio.count, reference: 440,
+            let targets = PitchPointTargets.seed(
+                contour: contour, scope: 0..<audio.count, reference: 440,
                 preset: .tight)
             let expected = Float(Int((69 + 12 * log2(center / 440)).rounded()))
-            XCTAssertEqual(Set(targets.flatMap(\.points).map(\.note)), [expected],
+            XCTAssertEqual(
+                Set(targets.flatMap(\.points).map(\.note)), [expected],
                 "Measured harmonic \(center) Hz input produced intermittent wrong semitones")
         }
     }
@@ -277,24 +318,36 @@ final class PitchPointEditingTests: XCTestCase {
     }
     func testExpandedKeyboardScopeDoesNotCaptureMainWindowOrTextEntry() {
         MainActor.assumeIsolated {
-            let main = NSWindow(), editor = NSWindow()
-            XCTAssertTrue(PitchEditorKeyboardRouting.accepts(eventWindow: editor, editorWindow: editor, isKey: true,
-                hasNestedSheet: false, responder: NSView()))
-            XCTAssertFalse(PitchEditorKeyboardRouting.accepts(eventWindow: main, editorWindow: editor, isKey: true,
-                hasNestedSheet: false, responder: NSView()))
-            XCTAssertFalse(PitchEditorKeyboardRouting.accepts(eventWindow: editor, editorWindow: editor, isKey: false,
-                hasNestedSheet: false, responder: NSView()))
-            XCTAssertFalse(PitchEditorKeyboardRouting.accepts(eventWindow: editor, editorWindow: editor, isKey: true,
-                hasNestedSheet: true, responder: NSView()))
-            XCTAssertFalse(PitchEditorKeyboardRouting.accepts(eventWindow: editor, editorWindow: editor, isKey: true,
-                hasNestedSheet: false, responder: NSTextView()))
+            let main = NSWindow()
+            let editor = NSWindow()
+            XCTAssertTrue(
+                PitchEditorKeyboardRouting.accepts(
+                    eventWindow: editor, editorWindow: editor, isKey: true,
+                    hasNestedSheet: false, responder: NSView()))
+            XCTAssertFalse(
+                PitchEditorKeyboardRouting.accepts(
+                    eventWindow: main, editorWindow: editor, isKey: true,
+                    hasNestedSheet: false, responder: NSView()))
+            XCTAssertFalse(
+                PitchEditorKeyboardRouting.accepts(
+                    eventWindow: editor, editorWindow: editor, isKey: false,
+                    hasNestedSheet: false, responder: NSView()))
+            XCTAssertFalse(
+                PitchEditorKeyboardRouting.accepts(
+                    eventWindow: editor, editorWindow: editor, isKey: true,
+                    hasNestedSheet: true, responder: NSView()))
+            XCTAssertFalse(
+                PitchEditorKeyboardRouting.accepts(
+                    eventWindow: editor, editorWindow: editor, isKey: true,
+                    hasNestedSheet: false, responder: NSTextView()))
         }
     }
     func testExpandedKeyboardRoutesAuditionUndoRedoAndIgnoresUnrelatedShortcuts() {
         XCTAssertEqual(PitchEditorKeyboardRouting.action(keyCode: 49, modifiers: [], repeated: false), .space)
         XCTAssertEqual(PitchEditorKeyboardRouting.action(keyCode: 49, modifiers: [], repeated: true), .consume)
         XCTAssertEqual(PitchEditorKeyboardRouting.action(keyCode: 6, modifiers: .command, repeated: false), .undo)
-        XCTAssertEqual(PitchEditorKeyboardRouting.action(keyCode: 6, modifiers: [.command, .shift], repeated: false), .redo)
+        XCTAssertEqual(
+            PitchEditorKeyboardRouting.action(keyCode: 6, modifiers: [.command, .shift], repeated: false), .redo)
         XCTAssertNil(PitchEditorKeyboardRouting.action(keyCode: 49, modifiers: .command, repeated: false))
         XCTAssertNil(PitchEditorKeyboardRouting.action(keyCode: 6, modifiers: [.command, .option], repeated: false))
         XCTAssertNil(PitchEditorKeyboardRouting.action(keyCode: 51, modifiers: [], repeated: false))

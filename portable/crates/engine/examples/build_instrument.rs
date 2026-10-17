@@ -32,7 +32,12 @@ fn resample(input: &[f32], from: f64) -> Vec<f32> {
     };
     let norm = bessel(beta);
     const TABLE: usize = 8192;
-    let table: Vec<f64> = (0..=TABLE).map(|k| { let w = k as f64 / TABLE as f64; bessel(beta * (1. - w * w).max(0.).sqrt()) / norm }).collect();
+    let table: Vec<f64> = (0..=TABLE)
+        .map(|k| {
+            let w = k as f64 / TABLE as f64;
+            bessel(beta * (1. - w * w).max(0.).sqrt()) / norm
+        })
+        .collect();
     let frames = (input.len() as f64 / ratio).ceil() as usize;
     (0..frames)
         .map(|i| {
@@ -48,8 +53,13 @@ fn resample(input: &[f32], from: f64) -> Vec<f32> {
                 if w >= 1. {
                     continue;
                 }
-                let sinc = if x.abs() < 1e-9 { 1. } else { (PI * cutoff * x).sin() / (PI * cutoff * x) };
-                acc += input[j as usize] as f64 * cutoff * sinc * table[(w * TABLE as f64) as usize];
+                let sinc = if x.abs() < 1e-9 {
+                    1.
+                } else {
+                    (PI * cutoff * x).sin() / (PI * cutoff * x)
+                };
+                acc +=
+                    input[j as usize] as f64 * cutoff * sinc * table[(w * TABLE as f64) as usize];
             }
             acc as f32
         })
@@ -60,7 +70,9 @@ fn resample(input: &[f32], from: f64) -> Vec<f32> {
 /// best matches the 30 ms before the end (positive-going zero crossings),
 /// then crossfade the end into the start so the jump is seamless.
 fn find_loop(channels: &mut [Vec<f32>]) -> Option<(usize, usize)> {
-    let mono: Vec<f32> = (0..channels[0].len()).map(|i| channels.iter().map(|c| c[i]).sum::<f32>()).collect();
+    let mono: Vec<f32> = (0..channels[0].len())
+        .map(|i| channels.iter().map(|c| c[i]).sum::<f32>())
+        .collect();
     let n = mono.len();
     if n < (RATE * 1.2) as usize {
         return None;
@@ -125,7 +137,9 @@ fn pitch(mono: &[f32]) -> Option<f64> {
     let max_lag = ((RATE / 25.) as usize).min(size - 1);
     let mut d = vec![0f64; max_lag + 1];
     for (lag, slot) in d.iter_mut().enumerate().skip(1) {
-        *slot = (0..size).map(|i| ((x[i] - x[i + lag]) as f64).powi(2)).sum();
+        *slot = (0..size)
+            .map(|i| ((x[i] - x[i + lag]) as f64).powi(2))
+            .sum();
     }
     let mut running = 0.;
     let mut cmnd = vec![1f64; max_lag + 1];
@@ -137,7 +151,14 @@ fn pitch(mono: &[f32]) -> Option<f64> {
     // Parabolic refinement.
     let (a, b, c) = (cmnd[lag - 1], cmnd[lag], cmnd[lag + 1]);
     let offset = 0.5 * (a - c) / (a - 2. * b + c);
-    Some(RATE / (lag as f64 + if offset.is_finite() { offset.clamp(-1., 1.) } else { 0. }))
+    Some(
+        RATE / (lag as f64
+            + if offset.is_finite() {
+                offset.clamp(-1., 1.)
+            } else {
+                0.
+            }),
+    )
 }
 fn write_wav16(path: &Path, channels: &[Vec<f32>], scale: f32) -> std::io::Result<()> {
     let frames = channels[0].len();
@@ -158,14 +179,21 @@ fn write_wav16(path: &Path, channels: &[Vec<f32>], scale: f32) -> std::io::Resul
     out.extend_from_slice(&(data as u32).to_le_bytes());
     for i in 0..frames {
         for c in channels {
-            out.extend_from_slice(&(((c[i] * scale).clamp(-1., 1.) * 32767.).round() as i16).to_le_bytes());
+            out.extend_from_slice(
+                &(((c[i] * scale).clamp(-1., 1.) * 32767.).round() as i16).to_le_bytes(),
+            );
         }
     }
     std::fs::create_dir_all(path.parent().unwrap())?;
     std::fs::write(path, out)
 }
 
-fn convert(input: &Path, output: &Path, looped: bool, max_seconds: f64) -> Result<serde_json::Value, String> {
+fn convert(
+    input: &Path,
+    output: &Path,
+    looped: bool,
+    max_seconds: f64,
+) -> Result<serde_json::Value, String> {
     let mut reader = WaveReader::open(input).map_err(|e| e.to_string())?;
     let info = reader.info.clone();
     let frames = info.frames as usize;
@@ -174,26 +202,43 @@ fn convert(input: &Path, output: &Path, looped: bool, max_seconds: f64) -> Resul
     while at < frames {
         let n = 8192.min(frames - at);
         let mut views: Vec<&mut [f32]> = planar.iter_mut().map(|c| &mut c[at..at + n]).collect();
-        reader.read_planar(at as u64, &mut views).map_err(|e| e.to_string())?;
+        reader
+            .read_planar(at as u64, &mut views)
+            .map_err(|e| e.to_string())?;
         at += n;
     }
     planar.truncate(2);
-    let mut channels: Vec<Vec<f32>> = planar.iter().map(|c| resample(c, info.sample_rate as f64)).collect();
+    let mut channels: Vec<Vec<f32>> = planar
+        .iter()
+        .map(|c| resample(c, info.sample_rate as f64))
+        .collect();
     let len = channels[0].len();
     let peak = channels.iter().flatten().fold(0f32, |m, v| m.max(v.abs()));
     if peak <= 0. {
         return Err("silent".into());
     }
-    let onset = (0..len).find(|&i| channels.iter().any(|c| c[i].abs() >= peak * 0.01)).unwrap_or(0).saturating_sub(96);
+    let onset = (0..len)
+        .find(|&i| channels.iter().any(|c| c[i].abs() >= peak * 0.01))
+        .unwrap_or(0)
+        .saturating_sub(96);
     let floor = peak * 10f32.powf(-72. / 20.);
-    let last = (0..len).rev().find(|&i| channels.iter().any(|c| c[i].abs() >= floor)).unwrap_or(len - 1);
+    let last = (0..len)
+        .rev()
+        .find(|&i| channels.iter().any(|c| c[i].abs() >= floor))
+        .unwrap_or(len - 1);
     let last = last.min(onset + (max_seconds * RATE) as usize);
     for c in channels.iter_mut() {
         *c = c[onset..=last].to_vec();
     }
-    let mono: Vec<f32> = (0..channels[0].len()).map(|i| channels.iter().map(|c| c[i]).sum::<f32>()).collect();
+    let mono: Vec<f32> = (0..channels[0].len())
+        .map(|i| channels.iter().map(|c| c[i]).sum::<f32>())
+        .collect();
     let detected = pitch(&mono);
-    let loop_points = if looped { find_loop(&mut channels) } else { None };
+    let loop_points = if looped {
+        find_loop(&mut channels)
+    } else {
+        None
+    };
     if loop_points.is_none() {
         let n = channels[0].len();
         let fade = 960.min(n);
@@ -212,18 +257,27 @@ fn convert(input: &Path, output: &Path, looped: bool, max_seconds: f64) -> Resul
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let jobs: Vec<serde_json::Value> = serde_json::from_slice(&std::fs::read(&args[1]).unwrap()).unwrap();
+    let jobs: Vec<serde_json::Value> =
+        serde_json::from_slice(&std::fs::read(&args[1]).unwrap()).unwrap();
     let next = std::sync::atomic::AtomicUsize::new(0);
     let results = std::sync::Mutex::new(Vec::new());
     std::thread::scope(|scope| {
-        for _ in 0..std::thread::available_parallelism().map_or(4, |n| n.get()).min(8) {
+        for _ in 0..std::thread::available_parallelism()
+            .map_or(4, |n| n.get())
+            .min(8)
+        {
             scope.spawn(|| loop {
                 let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 let Some(job) = jobs.get(i) else { break };
                 let input = Path::new(job["input"].as_str().unwrap());
                 let output = Path::new(job["output"].as_str().unwrap());
                 let max_seconds = job["maxSeconds"].as_f64().unwrap_or(30.);
-                let result = match convert(input, output, job["loop"].as_bool().unwrap_or(false), max_seconds) {
+                let result = match convert(
+                    input,
+                    output,
+                    job["loop"].as_bool().unwrap_or(false),
+                    max_seconds,
+                ) {
                     Ok(v) => v,
                     Err(e) => serde_json::json!({"output": output.to_string_lossy(), "error": e}),
                 };
@@ -231,5 +285,9 @@ fn main() {
             });
         }
     });
-    std::fs::write(&args[2], serde_json::to_vec_pretty(&results.into_inner().unwrap()).unwrap()).unwrap();
+    std::fs::write(
+        &args[2],
+        serde_json::to_vec_pretty(&results.into_inner().unwrap()).unwrap(),
+    )
+    .unwrap();
 }

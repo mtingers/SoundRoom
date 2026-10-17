@@ -10,15 +10,25 @@ struct LivePeakHistory: Equatable {
     private var callbacksPerBin = 1
     mutating func append(_ peaks: [Float]) {
         guard !peaks.isEmpty else { return }
-        if channels.count != peaks.count { channels = peaks.map { _ in [] }; pending = Array(repeating: 0, count: peaks.count); pendingCount = 0; callbacksPerBin = 1 }
+        if channels.count != peaks.count {
+            channels = peaks.map { _ in [] }
+            pending = Array(repeating: 0, count: peaks.count)
+            pendingCount = 0
+            callbacksPerBin = 1
+        }
         for c in peaks.indices { pending[c] = max(pending[c], peaks[c].isFinite ? abs(peaks[c]) : 0) }
         pendingCount += 1
         guard pendingCount >= callbacksPerBin else { return }
-        for c in peaks.indices { channels[c].append(pending[c]); pending[c] = 0 }
+        for c in peaks.indices {
+            channels[c].append(pending[c])
+            pending[c] = 0
+        }
         pendingCount = 0
         if (channels.first?.count ?? 0) >= 4096 {
             for c in channels.indices {
-                channels[c] = stride(from: 0, to: channels[c].count - 1, by: 2).map { max(channels[c][$0], channels[c][$0 + 1]) }
+                channels[c] = stride(from: 0, to: channels[c].count - 1, by: 2).map {
+                    max(channels[c][$0], channels[c][$0 + 1])
+                }
             }
             callbacksPerBin *= 2
         }

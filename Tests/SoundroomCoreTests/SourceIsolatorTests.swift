@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import SoundroomCore
 
 final class SourceIsolatorTests: XCTestCase {
@@ -22,12 +23,16 @@ final class SourceIsolatorTests: XCTestCase {
         let input = (0..<8192).map { (tone($0, 711) * 0.4, tone($0, 999) * 0.3) }
         for controls: [Float] in [[4, 0, -55, 20, 20000, 1, 0], [1, 1, -55, 20, 20000, 0, 0]] {
             let output = process(input, controls)
-            for i in input.indices { XCTAssertEqual(output[i].0, input[i].0); XCTAssertEqual(output[i].1, input[i].1) }
+            for i in input.indices {
+                XCTAssertEqual(output[i].0, input[i].0)
+                XCTAssertEqual(output[i].1, input[i].1)
+            }
         }
     }
     func testCenterAndSideComponentsRejectTheOppositeImage() {
         let input = (0..<24000).map { i -> (Float, Float) in
-            let center = 0.25 * tone(i, 750), side = 0.2 * tone(i, 2250)
+            let center = 0.25 * tone(i, 750)
+            let side = 0.2 * tone(i, 2250)
             return (center + side, center - side)
         }
         let center = process(input, [3, 1, -55, 20, 20000, 1, 0])
@@ -46,7 +51,9 @@ final class SourceIsolatorTests: XCTestCase {
         var seed: UInt64 = 0x123456789
         var colored = [[Float]](repeating: [0, 0], count: 2)
         func noise(_ channel: Int) -> Float {
-            seed ^= seed << 13; seed ^= seed >> 7; seed ^= seed << 17
+            seed ^= seed << 13
+            seed ^= seed >> 7
+            seed ^= seed << 17
             let white = (Float(seed >> 40) / Float(1 << 24) * 2 - 1) * 0.025
             colored[channel][0] += 0.5 * (white - colored[channel][0])
             colored[channel][1] += 0.5 * (colored[channel][0] - colored[channel][1])
@@ -81,7 +88,8 @@ final class SourceIsolatorTests: XCTestCase {
         for i in 6000..<12000 {
             let x = a.process(left: tone(i, 333), right: tone(i, 333))
             let y = b.process(left: tone(i, 333), right: tone(i, 333))
-            XCTAssertEqual(x.0, y.0); XCTAssertEqual(x.1, y.1)
+            XCTAssertEqual(x.0, y.0)
+            XCTAssertEqual(x.1, y.1)
         }
         a.configure([Float](repeating: .nan, count: 7))
         for i in 0..<10000 {
@@ -113,7 +121,8 @@ final class SourceIsolatorTests: XCTestCase {
                 XCTAssertTrue(out.0.isFinite && out.1.isFinite, "Mode \(mode), frame \(i)")
             }
             let settled = dsp.process(left: 0, right: 0)
-            XCTAssertLessThan(abs(settled.0), 1e-12); XCTAssertLessThan(abs(settled.1), 1e-12)
+            XCTAssertLessThan(abs(settled.0), 1e-12)
+            XCTAssertLessThan(abs(settled.1), 1e-12)
             XCTAssertTrue(dsp.display.bands.allSatisfy { $0.isFinite })
         }
     }

@@ -4,7 +4,13 @@ public enum AutomationCurve: String, Codable, CaseIterable, Identifiable, Sendab
     case linear, smooth, easeIn, easeOut, hold
     public var id: Self { self }
     public var name: String {
-        switch self { case .linear: return "Linear"; case .smooth: return "Smooth"; case .easeIn: return "Ease in"; case .easeOut: return "Ease out"; case .hold: return "Hold" }
+        switch self {
+        case .linear: return "Linear"
+        case .smooth: return "Smooth"
+        case .easeIn: return "Ease in"
+        case .easeOut: return "Ease out"
+        case .hold: return "Hold"
+        }
     }
     public func fraction(_ fraction: Float) -> Float {
         let f = max(0, min(1, fraction))
@@ -42,18 +48,27 @@ public enum AutomationInterpolation {
         let position = max(0, min(1, Float(frame - first.frame) / Float(last.frame - first.frame)))
         if first.curve == .linear { return position }
         if first.curveStart == 0 && first.curveEnd == 1 { return first.curve.fraction(position) }
-        let start = first.curve.fraction(first.curveStart), end = first.curve.fraction(first.curveEnd)
+        let start = first.curve.fraction(first.curveStart)
+        let end = first.curve.fraction(first.curveEnd)
         let raw = first.curve.fraction(first.curveStart + (first.curveEnd - first.curveStart) * position)
         return abs(end - start) > 0.000001 ? (raw - start) / (end - start) : position
     }
-    public static func between(_ first: AutomationPoint, _ last: AutomationPoint, at frame: Int, scale: AutomationValueScale = .linear) -> Float {
+    public static func between(
+        _ first: AutomationPoint, _ last: AutomationPoint, at frame: Int, scale: AutomationValueScale = .linear
+    ) -> Float {
         scale.interpolate(first.value, last.value, fraction: fraction(first, last, at: frame))
     }
-    public static func value(_ points: [AutomationPoint], at frame: Int, baseline: Float, scale: AutomationValueScale = .linear) -> Float {
-        var lower: AutomationPoint?, upper: AutomationPoint?
+    public static func value(
+        _ points: [AutomationPoint], at frame: Int, baseline: Float, scale: AutomationValueScale = .linear
+    ) -> Float {
+        var lower: AutomationPoint?
+        var upper: AutomationPoint?
         for point in points {
-            if point.frame <= frame { if lower == nil || point.frame >= lower!.frame { lower = point } }
-            else if upper == nil || point.frame < upper!.frame { upper = point }
+            if point.frame <= frame {
+                if lower == nil || point.frame >= lower!.frame { lower = point }
+            } else if upper == nil || point.frame < upper!.frame {
+                upper = point
+            }
         }
         guard let lower else { return baseline }
         guard let upper else { return lower.value }
@@ -65,7 +80,9 @@ public enum AutomationSimplifier {
     /// Ramer-Douglas-Peucker in time/value coordinates. Keeps every nonlinear segment,
     /// endpoints and duplicate-time resolution. Linear curves stay within tolerance
     /// at every original knot and between knots in the selected interpolation domain.
-    public static func simplify(_ points: [AutomationPoint], tolerance: Float, scale: AutomationValueScale = .linear) -> [AutomationPoint] {
+    public static func simplify(_ points: [AutomationPoint], tolerance: Float, scale: AutomationValueScale = .linear)
+        -> [AutomationPoint]
+    {
         var unique: [Int: AutomationPoint] = [:]
         for point in points { unique[point.frame] = point }
         let sorted = unique.values.sorted { $0.frame < $1.frame }
@@ -74,37 +91,53 @@ public enum AutomationSimplifier {
         if scale == .decibels {
             for i in sorted.indices where sorted[i].value == 0 { keep.insert(i) }
         }
-        for i in 0..<(sorted.count - 1) where sorted[i].curve != .linear { keep.insert(i); keep.insert(i + 1) }
+        for i in 0..<(sorted.count - 1) where sorted[i].curve != .linear {
+            keep.insert(i)
+            keep.insert(i + 1)
+        }
         let required = keep.sorted()
         var stack: [(Int, Int)] = zip(required, required.dropFirst()).map { ($0, $1) }
         while let (first, last) = stack.popLast() {
             guard last - first > 1 else { continue }
-            var maximum: Float = 0; var chosen = first
-            let a = scale.axisValue(sorted[first].value), b = scale.axisValue(sorted[last].value)
+            var maximum: Float = 0
+            var chosen = first
+            let a = scale.axisValue(sorted[first].value)
+            let b = scale.axisValue(sorted[last].value)
             for i in (first + 1)..<last {
-                let fraction = Float(sorted[i].frame - sorted[first].frame) / Float(sorted[last].frame - sorted[first].frame)
+                let fraction =
+                    Float(sorted[i].frame - sorted[first].frame) / Float(sorted[last].frame - sorted[first].frame)
                 let error = abs(scale.axisValue(sorted[i].value) - (a + (b - a) * fraction))
-                if error > maximum { maximum = error; chosen = i }
+                if error > maximum {
+                    maximum = error
+                    chosen = i
+                }
             }
-            if maximum > tolerance { keep.insert(chosen); stack.append((first, chosen)); stack.append((chosen, last)) }
+            if maximum > tolerance {
+                keep.insert(chosen)
+                stack.append((first, chosen))
+                stack.append((chosen, last))
+            }
         }
         return keep.sorted().map { sorted[$0] }
     }
 }
 
-
 public extension AutomationPoint {
     func relocated(frame: Int, value: Float? = nil) -> AutomationPoint {
-        AutomationPoint(frame: frame, value: value ?? self.value, curve: curve, curveStart: curveStart, curveEnd: curveEnd)
+        AutomationPoint(
+            frame: frame, value: value ?? self.value, curve: curve, curveStart: curveStart, curveEnd: curveEnd)
     }
 }
 public enum AutomationCurveEditing {
     /// Shift a curve and preserve its original nonlinear domain when clipping
     /// before time zero. Nil indicates an integer overflow, before any mutation.
-    public static func relocating(_ points: [AutomationPoint], by shift: Int, baseline: Float, scale: AutomationValueScale = .linear) -> [AutomationPoint]? {
+    public static func relocating(
+        _ points: [AutomationPoint], by shift: Int, baseline: Float, scale: AutomationValueScale = .linear
+    ) -> [AutomationPoint]? {
         guard shift != Int.min else { return nil }
-        let retained = shift < 0 && points.contains(where: { $0.frame < -shift }) ?
-            insertingBoundary(points, at: -shift, baseline: baseline, scale: scale) : points
+        let retained =
+            shift < 0 && points.contains(where: { $0.frame < -shift })
+            ? insertingBoundary(points, at: -shift, baseline: baseline, scale: scale) : points
         var result: [AutomationPoint] = []
         for point in retained {
             let (frame, overflow) = point.frame.addingReportingOverflow(shift)
@@ -115,18 +148,24 @@ public enum AutomationCurveEditing {
     }
     /// Split a nonlinear transition without changing any samples outside the edit.
     /// The outgoing point retains the original curve's fractional domain.
-    public static func insertingBoundary(_ points: [AutomationPoint], at frame: Int, baseline: Float, scale: AutomationValueScale = .linear) -> [AutomationPoint] {
+    public static func insertingBoundary(
+        _ points: [AutomationPoint], at frame: Int, baseline: Float, scale: AutomationValueScale = .linear
+    ) -> [AutomationPoint] {
         var sorted = points.sorted { $0.frame < $1.frame }
         guard !sorted.contains(where: { $0.frame == frame }) else { return sorted }
         let value = AutomationInterpolation.value(sorted, at: frame, baseline: baseline, scale: scale)
         guard let lower = sorted.lastIndex(where: { $0.frame < frame }), lower + 1 < sorted.count else {
-            sorted.append(.init(frame: frame, value: value)); return sorted.sorted { $0.frame < $1.frame }
+            sorted.append(.init(frame: frame, value: value))
+            return sorted.sorted { $0.frame < $1.frame }
         }
-        let original = sorted[lower], next = sorted[lower + 1]
+        let original = sorted[lower]
+        let next = sorted[lower + 1]
         let fraction = Float(frame - original.frame) / Float(next.frame - original.frame)
         let middle = original.curveStart + (original.curveEnd - original.curveStart) * fraction
         sorted[lower].curveEnd = middle
-        sorted.insert(.init(frame: frame, value: value, curve: original.curve, curveStart: middle, curveEnd: original.curveEnd), at: lower + 1)
+        sorted.insert(
+            .init(frame: frame, value: value, curve: original.curve, curveStart: middle, curveEnd: original.curveEnd),
+            at: lower + 1)
         return sorted
     }
 }

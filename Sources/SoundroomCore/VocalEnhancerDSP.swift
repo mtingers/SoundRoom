@@ -25,10 +25,14 @@ final class VocalEnhancerDSP {
     private var compressionEnvelope: Double = 0, compressionDB: Double = 0
     private var warm = VocalWarmth(), guardDSP = VocalPeakGuard()
     private var dryL = [Float](repeating: 0, count: latencyFrames), dryR = [Float](repeating: 0, count: latencyFrames)
-    private var mixes = [Float](repeating: 1, count: latencyFrames), reductions = [Float](repeating: 0, count: latencyFrames)
+    private var mixes = [Float](repeating: 1, count: latencyFrames),
+        reductions = [Float](repeating: 0, count: latencyFrames)
     private var dryIndex = 0, initialized = false
     private(set) var lastDryLeft: Float = 0, lastDryRight: Float = 0, reductionDB: Float = 0
-    var storageBytes: Int { (200 * 8 + Self.latencyFrames * 4 * 4) + periodicity.storageBytes + warm.storageBytes + guardDSP.storageBytes + 1024 }
+    var storageBytes: Int {
+        (200 * 8 + Self.latencyFrames * 4 * 4) + periodicity.storageBytes + warm.storageBytes + guardDSP.storageBytes
+            + 1024
+    }
 
     init() { configure(Self.defaults) }
 
@@ -54,23 +58,35 @@ final class VocalEnhancerDSP {
             for i in mixes.indices { mixes[i] = Float(v[8]) }
             initialized = true
         }
-        let mix = mixes[dryIndex], oldReduction = reductions[dryIndex]
+        let mix = mixes[dryIndex]
+        let oldReduction = reductions[dryIndex]
         // Mix before the peak guard, using the dry/control frame aligned with
         // the warmth stage. Partial wet blends receive the same protection.
         let warmIndex = (dryIndex + 128) % Self.latencyFrames
-        let warmDryL = dryL[warmIndex], warmDryR = dryR[warmIndex], warmMix = mixes[warmIndex]
-        lastDryLeft = dryL[dryIndex]; lastDryRight = dryR[dryIndex]
-        dryL[dryIndex] = xL; dryR[dryIndex] = xR; mixes[dryIndex] = Float(v[8])
+        let warmDryL = dryL[warmIndex]
+        let warmDryR = dryR[warmIndex]
+        let warmMix = mixes[warmIndex]
+        lastDryLeft = dryL[dryIndex]
+        lastDryRight = dryR[dryIndex]
+        dryL[dryIndex] = xL
+        dryR[dryIndex] = xR
+        mixes[dryIndex] = Float(v[8])
         let original = (Double(xL), Double(xR))
         let low = rumbleFirst.sample(original)
         let high = (original.0 - low.0, original.1 - low.1)
         let lowAgain = rumbleSecond.sample(high)
-        let cleaned = (original.0 + (high.0 - lowAgain.0 - original.0) * v[0],
-                       original.1 + (high.1 - lowAgain.1 - original.1) * v[0])
-        let bodyBand = body.sample(cleaned), mudBand = mud.sample(cleaned), harshBand = harsh.sample(cleaned)
-        let lowEss = ess.sample(cleaned), essBand = (cleaned.0 - lowEss.0, cleaned.1 - lowEss.1)
+        let cleaned = (
+            original.0 + (high.0 - lowAgain.0 - original.0) * v[0],
+            original.1 + (high.1 - lowAgain.1 - original.1) * v[0]
+        )
+        let bodyBand = body.sample(cleaned)
+        let mudBand = mud.sample(cleaned)
+        let harshBand = harsh.sample(cleaned)
+        let lowEss = ess.sample(cleaned)
+        let essBand = (cleaned.0 - lowEss.0, cleaned.1 - lowEss.1)
         let presenceBand = presence.sample(cleaned)
-        let lowAir = air.sample(cleaned), airBand = (cleaned.0 - lowAir.0, cleaned.1 - lowAir.1)
+        let lowAir = air.sample(cleaned)
+        let airBand = (cleaned.0 - lowAir.0, cleaned.1 - lowAir.1)
         Self.follow(&totalPower, Self.power(cleaned), attack: times.ms10, release: times.ms120)
         Self.follow(&voicePower, Self.power(bodyBand) + Self.power(mudBand), attack: times.ms20, release: times.ms160)
         Self.follow(&mudPower, Self.power(mudBand), attack: times.ms25, release: times.ms150)
@@ -83,19 +99,22 @@ final class VocalEnhancerDSP {
         // A -52 dB upper bound prevents learning a quiet voice as the noise bed.
         noiseClock += 1
         if noiseClock == 480 {
-            noiseClock = 0; noiseBins[noiseIndex] = totalPower
-            noiseIndex = (noiseIndex + 1) % noiseBins.count; noiseCount = min(noiseBins.count, noiseCount + 1)
+            noiseClock = 0
+            noiseBins[noiseIndex] = totalPower
+            noiseIndex = (noiseIndex + 1) % noiseBins.count
+            noiseCount = min(noiseBins.count, noiseCount + 1)
             var minimum = Double.infinity
             for i in 0..<noiseCount { minimum = min(minimum, noiseBins[i]) }
             let target = max(1e-8, min(6.3095734448e-6, minimum))
             let k: Double
-            if target > noisePower && tonal > 0.7 { k = 0 }
-            else { k = target < noisePower ? 0.15 : 0.025 }
+            if target > noisePower && tonal > 0.7 { k = 0 } else { k = target < noisePower ? 0.15 : 0.025 }
             noisePower += k * (target - noisePower)
         }
-        let totalDB = Self.db(totalPower), noiseDB = Self.db(noisePower)
+        let totalDB = Self.db(totalPower)
+        let noiseDB = Self.db(noisePower)
         let signalActivity = Self.smooth((totalDB - noiseDB - 6) / 12) * Self.smooth((totalDB + 64) / 14)
-        let bodyHint = Self.smooth((voicePower / max(1e-20, totalPower) - 0.25) / 0.5) * Self.smooth((totalDB + 78) / 16)
+        let bodyHint =
+            Self.smooth((voicePower / max(1e-20, totalPower) - 0.25) / 0.5) * Self.smooth((totalDB + 78) / 16)
         let active = max(signalActivity, bodyHint, tonal * Self.smooth((totalDB + 80) / 18))
         Self.follow(&activity, active, attack: times.ms3, release: times.ms250)
         let quiet = Self.smooth((noiseDB + 9 - totalDB) / 12)
@@ -106,7 +125,8 @@ final class VocalEnhancerDSP {
         let mudTarget = 4 * v[2] * Self.smooth((mudFraction - 0.6) / 0.35) * Self.smooth((Self.db(mudPower) + 30) / 16)
         Self.follow(&mudDB, mudTarget, attack: times.ms25, release: times.ms150)
         let harshFraction = harshPower / max(1e-20, totalPower)
-        let harshTarget = 3 * v[2] * Self.smooth((harshFraction - 0.32) / 0.48) * Self.smooth((Self.db(harshPower) + 36) / 18)
+        let harshTarget =
+            3 * v[2] * Self.smooth((harshFraction - 0.32) / 0.48) * Self.smooth((Self.db(harshPower) + 36) / 18)
         Self.follow(&harshDB, harshTarget, attack: times.ms8, release: times.ms100)
         let essRatio = Self.db(essPower / max(1e-20, totalPower))
         let essTarget = 9 * v[3] * Self.smooth((essRatio + 11) / 9) * Self.smooth((Self.db(essPower) + 50) / 16)
@@ -120,30 +140,42 @@ final class VocalEnhancerDSP {
         let levelCoefficient = abs(levelTarget) < abs(levelDB) ? times.ms70 : times.ms300
         levelDB += levelCoefficient * (levelTarget - levelDB)
         let bodyGain = Self.gain(v[1]) - 1
-        let mudCut = 1 - Self.gain(-mudDB), harshCut = 1 - Self.gain(-harshDB), essCut = 1 - Self.gain(-essDB)
+        let mudCut = 1 - Self.gain(-mudDB)
+        let harshCut = 1 - Self.gain(-harshDB)
+        let essCut = 1 - Self.gain(-essDB)
         let presenceGain = Self.gain(1.8 * v[2]) - 1
         let airGain = (Self.gain(3 * v[5]) - 1) * (1 - Self.unit(essDB / 9))
         let levelGain = Self.gain(levelDB - cleanupDB)
-        var wetL = (cleaned.0 + bodyBand.0 * bodyGain - mudBand.0 * mudCut - harshBand.0 * harshCut
-                    - essBand.0 * essCut + presenceBand.0 * presenceGain + airBand.0 * airGain) * levelGain
-        var wetR = (cleaned.1 + bodyBand.1 * bodyGain - mudBand.1 * mudCut - harshBand.1 * harshCut
-                    - essBand.1 * essCut + presenceBand.1 * presenceGain + airBand.1 * airGain) * levelGain
+        var wetL =
+            (cleaned.0 + bodyBand.0 * bodyGain - mudBand.0 * mudCut - harshBand.0 * harshCut
+                - essBand.0 * essCut + presenceBand.0 * presenceGain + airBand.0 * airGain) * levelGain
+        var wetR =
+            (cleaned.1 + bodyBand.1 * bodyGain - mudBand.1 * mudCut - harshBand.1 * harshCut
+                - essBand.1 * essCut + presenceBand.1 * presenceGain + airBand.1 * airGain) * levelGain
         let peak = max(abs(wetL), abs(wetR))
         Self.follow(&compressionEnvelope, peak, attack: times.ms2, release: times.ms90)
         let over = 20 * log10(max(1e-10, compressionEnvelope)) - (-18 - 6 * v[4])
         let slope = 1 - 1 / (1 + 3 * v[4])
         let compressionTarget: Double
-        if over <= -4.5 { compressionTarget = 0 }
-        else if over < 4.5 { let knee = over + 4.5; compressionTarget = slope * (knee * knee) / 18 }
-        else { compressionTarget = slope * over }
+        if over <= -4.5 {
+            compressionTarget = 0
+        } else if over < 4.5 {
+            let knee = over + 4.5
+            compressionTarget = slope * (knee * knee) / 18
+        } else {
+            compressionTarget = slope * over
+        }
         Self.follow(&compressionDB, compressionTarget, attack: times.ms2, release: times.ms100)
         let compressionGain = Self.gain(-compressionDB)
-        wetL *= compressionGain; wetR *= compressionGain
+        wetL *= compressionGain
+        wetR *= compressionGain
         reductions[dryIndex] = Float(cleanupDB + compressionDB + essDB)
         dryIndex = (dryIndex + 1) % Self.latencyFrames
         let warmed = warm.process(left: Float(wetL), right: Float(wetR), warmth: Float(v[6]), output: trim)
-        let mixed = (warmDryL + (warmed.0 - warmDryL) * warmMix,
-                     warmDryR + (warmed.1 - warmDryR) * warmMix)
+        let mixed = (
+            warmDryL + (warmed.0 - warmDryL) * warmMix,
+            warmDryR + (warmed.1 - warmDryR) * warmMix
+        )
         let protected = guardDSP.process(mixed)
         reductionDB = mix == 0 ? 0 : max(oldReduction * mix, guardDSP.reductionDB)
         if mix == 0 { return (lastDryLeft, lastDryRight) }
@@ -152,20 +184,47 @@ final class VocalEnhancerDSP {
 
     func deepCopy() -> VocalEnhancerDSP {
         let copy = VocalEnhancerDSP()
-        copy.controls = controls; copy.trim = trim
-        copy.rumbleFirst = rumbleFirst; copy.rumbleSecond = rumbleSecond
-        copy.body = body; copy.ess = ess; copy.air = air; copy.mud = mud; copy.harsh = harsh; copy.presence = presence
-        copy.totalPower = totalPower; copy.voicePower = voicePower; copy.mudPower = mudPower
-        copy.harshPower = harshPower; copy.essPower = essPower; copy.slowPower = slowPower; copy.noisePower = noisePower
-        copy.noiseBins = noiseBins.map { $0 }; copy.noiseCount = noiseCount; copy.noiseIndex = noiseIndex; copy.noiseClock = noiseClock
+        copy.controls = controls
+        copy.trim = trim
+        copy.rumbleFirst = rumbleFirst
+        copy.rumbleSecond = rumbleSecond
+        copy.body = body
+        copy.ess = ess
+        copy.air = air
+        copy.mud = mud
+        copy.harsh = harsh
+        copy.presence = presence
+        copy.totalPower = totalPower
+        copy.voicePower = voicePower
+        copy.mudPower = mudPower
+        copy.harshPower = harshPower
+        copy.essPower = essPower
+        copy.slowPower = slowPower
+        copy.noisePower = noisePower
+        copy.noiseBins = noiseBins.map { $0 }
+        copy.noiseCount = noiseCount
+        copy.noiseIndex = noiseIndex
+        copy.noiseClock = noiseClock
         copy.periodicity = periodicity.deepCopy()
-        copy.activity = activity; copy.cleanupDB = cleanupDB; copy.mudDB = mudDB; copy.harshDB = harshDB
-        copy.essDB = essDB; copy.levelDB = levelDB; copy.compressionEnvelope = compressionEnvelope; copy.compressionDB = compressionDB
-        copy.warm = warm.deepCopy(); copy.guardDSP = guardDSP.deepCopy()
-        copy.dryL = dryL.map { $0 }; copy.dryR = dryR.map { $0 }
-        copy.mixes = mixes.map { $0 }; copy.reductions = reductions.map { $0 }
-        copy.dryIndex = dryIndex; copy.initialized = initialized
-        copy.lastDryLeft = lastDryLeft; copy.lastDryRight = lastDryRight; copy.reductionDB = reductionDB
+        copy.activity = activity
+        copy.cleanupDB = cleanupDB
+        copy.mudDB = mudDB
+        copy.harshDB = harshDB
+        copy.essDB = essDB
+        copy.levelDB = levelDB
+        copy.compressionEnvelope = compressionEnvelope
+        copy.compressionDB = compressionDB
+        copy.warm = warm.deepCopy()
+        copy.guardDSP = guardDSP.deepCopy()
+        copy.dryL = dryL.map { $0 }
+        copy.dryR = dryR.map { $0 }
+        copy.mixes = mixes.map { $0 }
+        copy.reductions = reductions.map { $0 }
+        copy.dryIndex = dryIndex
+        copy.initialized = initialized
+        copy.lastDryLeft = lastDryLeft
+        copy.lastDryRight = lastDryRight
+        copy.reductionDB = reductionDB
         return copy
     }
 
@@ -173,7 +232,10 @@ final class VocalEnhancerDSP {
     private static func db(_ power: Double) -> Double { 10 * log10(max(1e-20, power)) }
     private static func gain(_ db: Double) -> Double { pow(10, db / 20) }
     private static func unit(_ value: Double) -> Double { max(0, min(1, value)) }
-    private static func smooth(_ value: Double) -> Double { let x = unit(value); return x * x * (3 - 2 * x) }
+    private static func smooth(_ value: Double) -> Double {
+        let x = unit(value)
+        return x * x * (3 - 2 * x)
+    }
     private static func follow(_ state: inout Double, _ target: Double, attack: Double, release: Double) {
         state += (target > state ? attack : release) * (target - state)
     }
@@ -192,8 +254,11 @@ private final class VocalPeriodicity {
     var storageBytes: Int { (Self.size * 4 + Self.size + 1) * 8 + 64 }
 
     func process(_ input: (Double, Double)) -> Double {
-        left[index] = input.0; right[index] = input.1
-        index = (index + 1) % Self.size; count = min(Self.size, count + 1); clock += 1
+        left[index] = input.0
+        right[index] = input.1
+        index = (index + 1) % Self.size
+        count = min(Self.size, count + 1)
+        clock += 1
         if clock == 480 {
             clock = 0
             if count == Self.size { analyze() }
@@ -205,15 +270,23 @@ private final class VocalPeriodicity {
         prefix[0] = 0
         for i in 0..<Self.size {
             let cursor = (index + i) % Self.size
-            scratchL[i] = left[cursor]; scratchR[i] = right[cursor]
+            scratchL[i] = left[cursor]
+            scratchR[i] = right[cursor]
             prefix[i + 1] = prefix[i] + scratchL[i] * scratchL[i] + scratchR[i] * scratchR[i]
         }
         let energy = prefix[1200] - prefix[688]
-        if energy < 1e-16 { confidence = 0; return }
-        var best: Double = 0, bestLag = 40
+        if energy < 1e-16 {
+            confidence = 0
+            return
+        }
+        var best: Double = 0
+        var bestLag = 40
         for lag in stride(from: 40, through: 684, by: 4) {
             let value = correlation(lag: lag, energy: energy)
-            if value > best { best = value; bestLag = lag }
+            if value > best {
+                best = value
+                bestLag = lag
+            }
         }
         for lag in max(40, bestLag - 4)...min(685, bestLag + 4) {
             best = max(best, correlation(lag: lag, energy: energy))
@@ -234,9 +307,15 @@ private final class VocalPeriodicity {
 
     func deepCopy() -> VocalPeriodicity {
         let copy = VocalPeriodicity()
-        copy.left = left.map { $0 }; copy.right = right.map { $0 }
-        copy.scratchL = scratchL.map { $0 }; copy.scratchR = scratchR.map { $0 }; copy.prefix = prefix.map { $0 }
-        copy.index = index; copy.count = count; copy.clock = clock; copy.confidence = confidence
+        copy.left = left.map { $0 }
+        copy.right = right.map { $0 }
+        copy.scratchL = scratchL.map { $0 }
+        copy.scratchR = scratchR.map { $0 }
+        copy.prefix = prefix.map { $0 }
+        copy.index = index
+        copy.count = count
+        copy.clock = clock
+        copy.confidence = confidence
         return copy
     }
 }
@@ -256,12 +335,16 @@ private struct VocalLowPass {
     private var zL: Double = 0, zR: Double = 0
     init(hz: Double) {
         let g = tan(Double.pi * hz / sessionRate)
-        b = g / (1 + g); a = (g - 1) / (g + 1)
+        b = g / (1 + g)
+        a = (g - 1) / (g + 1)
     }
     mutating func sample(_ input: (Double, Double)) -> (Double, Double) {
-        let left = b * input.0 + zL, right = b * input.1 + zR
-        zL = b * input.0 - a * left; zR = b * input.1 - a * right
-        if abs(zL) < 1e-30 { zL = 0 }; if abs(zR) < 1e-30 { zR = 0 }
+        let left = b * input.0 + zL
+        let right = b * input.1 + zR
+        zL = b * input.0 - a * left
+        zR = b * input.1 - a * right
+        if abs(zL) < 1e-30 { zL = 0 }
+        if abs(zR) < 1e-30 { zR = 0 }
         return (left, right)
     }
 }
@@ -270,16 +353,24 @@ private struct VocalBandPass {
     let b: Double, a1: Double, a2: Double
     private var z1L: Double = 0, z2L: Double = 0, z1R: Double = 0, z2R: Double = 0
     init(hz: Double, q: Double) {
-        let omega = 2 * Double.pi * hz / sessionRate, alpha = sin(omega) / (2 * q)
+        let omega = 2 * Double.pi * hz / sessionRate
+        let alpha = sin(omega) / (2 * q)
         let denominator = 1 + alpha
-        b = alpha / denominator; a1 = -2 * cos(omega) / denominator; a2 = (1 - alpha) / denominator
+        b = alpha / denominator
+        a1 = -2 * cos(omega) / denominator
+        a2 = (1 - alpha) / denominator
     }
     mutating func sample(_ input: (Double, Double)) -> (Double, Double) {
-        let left = b * input.0 + z1L, right = b * input.1 + z1R
-        z1L = -a1 * left + z2L; z1R = -a1 * right + z2R
-        z2L = -b * input.0 - a2 * left; z2R = -b * input.1 - a2 * right
-        if abs(z1L) < 1e-30 { z1L = 0 }; if abs(z1R) < 1e-30 { z1R = 0 }
-        if abs(z2L) < 1e-30 { z2L = 0 }; if abs(z2R) < 1e-30 { z2R = 0 }
+        let left = b * input.0 + z1L
+        let right = b * input.1 + z1R
+        z1L = -a1 * left + z2L
+        z1R = -a1 * right + z2R
+        z2L = -b * input.0 - a2 * left
+        z2R = -b * input.1 - a2 * right
+        if abs(z1L) < 1e-30 { z1L = 0 }
+        if abs(z1R) < 1e-30 { z1R = 0 }
+        if abs(z2L) < 1e-30 { z2L = 0 }
+        if abs(z2R) < 1e-30 { z2R = 0 }
         return (left, right)
     }
 }
@@ -298,15 +389,20 @@ private final class VocalPeakGuard {
     var storageBytes: Int { Self.lookahead * 2 * 4 + Self.capacity * 12 + 256 }
 
     func process(_ x: (Float, Float)) -> (Float, Float) {
-        let delayedLeft = left[cursor], delayedRight = right[cursor]
-        left[cursor] = x.0; right[cursor] = x.1; cursor = (cursor + 1) % Self.lookahead
+        let delayedLeft = left[cursor]
+        let delayedRight = right[cursor]
+        left[cursor] = x.0
+        right[cursor] = x.1
+        cursor = (cursor + 1) % Self.lookahead
         let peak = detector.process(x.0, x.1)
         while head != tail {
             let previous = (tail + Self.capacity - 1) % Self.capacity
             if values[previous] > peak { break }
             tail = previous
         }
-        values[tail] = peak; frames[tail] = frame; tail = (tail + 1) % Self.capacity
+        values[tail] = peak
+        frames[tail] = frame
+        tail = (tail + 1) % Self.capacity
         while head != tail && frames[head] < frame - 140 { head = (head + 1) % Self.capacity }
         let target = min(1, Self.ceiling / max(1e-20, values[head]))
         let coefficient: Float = target < gain ? 0.08 : release
@@ -319,10 +415,17 @@ private final class VocalPeakGuard {
 
     func deepCopy() -> VocalPeakGuard {
         let copy = VocalPeakGuard()
-        copy.left = left.map { $0 }; copy.right = right.map { $0 }
-        copy.values = values.map { $0 }; copy.frames = frames.map { $0 }
-        copy.head = head; copy.tail = tail; copy.cursor = cursor; copy.frame = frame
-        copy.detector = detector.deepCopy(); copy.gain = gain; copy.reductionDB = reductionDB
+        copy.left = left.map { $0 }
+        copy.right = right.map { $0 }
+        copy.values = values.map { $0 }
+        copy.frames = frames.map { $0 }
+        copy.head = head
+        copy.tail = tail
+        copy.cursor = cursor
+        copy.frame = frame
+        copy.detector = detector.deepCopy()
+        copy.gain = gain
+        copy.reductionDB = reductionDB
         return copy
     }
 }
@@ -333,7 +436,8 @@ private final class VocalWarmth {
     static let latencyFrames = 16
     private static let taps: [Float] = {
         let values = (0..<65).map { i -> Double in
-            let distance = Double(i - 32), cutoff = 0.105
+            let distance = Double(i - 32)
+            let cutoff = 0.105
             let sinc = distance == 0 ? 2 * cutoff : sin(2 * .pi * cutoff * distance) / (.pi * distance)
             let phase = 2 * Double.pi * Double(i) / 64
             return sinc * (0.42 - 0.5 * cos(phase) + 0.08 * cos(2 * phase))
@@ -344,7 +448,8 @@ private final class VocalWarmth {
     private var inputL = [Float](repeating: 0, count: 17), inputR = [Float](repeating: 0, count: 17)
     private var highL = [Float](repeating: 0, count: 65), highR = [Float](repeating: 0, count: 65)
     private var dryL = [Float](repeating: 0, count: latencyFrames), dryR = [Float](repeating: 0, count: latencyFrames)
-    private var blends = [Float](repeating: 0, count: latencyFrames), outputs = [Float](repeating: 1, count: latencyFrames)
+    private var blends = [Float](repeating: 0, count: latencyFrames),
+        outputs = [Float](repeating: 1, count: latencyFrames)
     private var inputIndex = 0, highIndex = 0, dryIndex = 0
     private var initialized = false
     var storageBytes: Int { (17 * 2 + 65 * 2 + Self.latencyFrames * 4) * 4 + 64 }
@@ -352,47 +457,69 @@ private final class VocalWarmth {
 
     func process(left: Float, right: Float, warmth: Float, output: Float) -> (Float, Float) {
         if !initialized {
-            for i in blends.indices { blends[i] = warmth * 0.35; outputs[i] = output }
+            for i in blends.indices {
+                blends[i] = warmth * 0.35
+                outputs[i] = output
+            }
             initialized = true
         }
-        let delayedLeft = dryL[dryIndex], delayedRight = dryR[dryIndex]
-        let delayedBlend = blends[dryIndex], delayedOutput = outputs[dryIndex]
-        dryL[dryIndex] = left; dryR[dryIndex] = right
-        blends[dryIndex] = warmth * 0.35; outputs[dryIndex] = output
+        let delayedLeft = dryL[dryIndex]
+        let delayedRight = dryR[dryIndex]
+        let delayedBlend = blends[dryIndex]
+        let delayedOutput = outputs[dryIndex]
+        dryL[dryIndex] = left
+        dryR[dryIndex] = right
+        blends[dryIndex] = warmth * 0.35
+        outputs[dryIndex] = output
         dryIndex = (dryIndex + 1) % Self.latencyFrames
-        inputL[inputIndex] = left; inputR[inputIndex] = right
-        var downL: Float = 0, downR: Float = 0
+        inputL[inputIndex] = left
+        inputR[inputIndex] = right
+        var downL: Float = 0
+        var downR: Float = 0
         for phase in 0..<4 {
-            var upL: Float = 0, upR: Float = 0
-            var tap = phase, history = inputIndex
+            var upL: Float = 0
+            var upR: Float = 0
+            var tap = phase
+            var history = inputIndex
             while tap < Self.taps.count {
                 let coefficient = Self.taps[tap] * 4
-                upL += coefficient * inputL[history]; upR += coefficient * inputR[history]
-                tap += 4; history = (history + 16) % 17
+                upL += coefficient * inputL[history]
+                upR += coefficient * inputR[history]
+                tap += 4
+                history = (history + 16) % 17
             }
             highL[highIndex] = tanh(upL * 1.8) / 1.8
             highR[highIndex] = tanh(upR * 1.8) / 1.8
             if phase == 0 {
                 var history = highIndex
                 for coefficient in Self.taps {
-                    downL += coefficient * highL[history]; downR += coefficient * highR[history]
+                    downL += coefficient * highL[history]
+                    downR += coefficient * highR[history]
                     history = (history + 64) % 65
                 }
             }
             highIndex = (highIndex + 1) % 65
         }
         inputIndex = (inputIndex + 1) % 17
-        return ((delayedLeft + (downL - delayedLeft) * delayedBlend) * delayedOutput,
-                (delayedRight + (downR - delayedRight) * delayedBlend) * delayedOutput)
+        return (
+            (delayedLeft + (downL - delayedLeft) * delayedBlend) * delayedOutput,
+            (delayedRight + (downR - delayedRight) * delayedBlend) * delayedOutput
+        )
     }
 
     func deepCopy() -> VocalWarmth {
         let copy = VocalWarmth()
-        copy.inputL = inputL.map { $0 }; copy.inputR = inputR.map { $0 }
-        copy.highL = highL.map { $0 }; copy.highR = highR.map { $0 }
-        copy.dryL = dryL.map { $0 }; copy.dryR = dryR.map { $0 }
-        copy.blends = blends.map { $0 }; copy.outputs = outputs.map { $0 }
-        copy.inputIndex = inputIndex; copy.highIndex = highIndex; copy.dryIndex = dryIndex
+        copy.inputL = inputL.map { $0 }
+        copy.inputR = inputR.map { $0 }
+        copy.highL = highL.map { $0 }
+        copy.highR = highR.map { $0 }
+        copy.dryL = dryL.map { $0 }
+        copy.dryR = dryR.map { $0 }
+        copy.blends = blends.map { $0 }
+        copy.outputs = outputs.map { $0 }
+        copy.inputIndex = inputIndex
+        copy.highIndex = highIndex
+        copy.dryIndex = dryIndex
         copy.initialized = initialized
         return copy
     }

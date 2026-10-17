@@ -11,8 +11,8 @@ public struct PitchMeterSnapshot: Equatable, Codable, Sendable {
     public init() {}
 
     public var isVoiced: Bool {
-        inputFrequency.isFinite && (50...1000).contains(inputFrequency) &&
-            confidence.isFinite && confidence > 0.75 && sourceFrame >= 0
+        inputFrequency.isFinite && (50...1000).contains(inputFrequency) && confidence.isFinite && confidence > 0.75
+            && sourceFrame >= 0
     }
     public var estimatedWetFrequency: Float {
         guard isVoiced, correctionCents.isFinite else { return 0 }
@@ -48,7 +48,8 @@ final class PitchMeterDelay {
     var storageBytes: Int { samples.count * MemoryLayout<PitchMeterSnapshot>.stride + 32 }
     func deepCopy() -> PitchMeterDelay {
         let copy = PitchMeterDelay(frames: 0)
-        copy.samples = samples.map { $0 }; copy.index = index
+        copy.samples = samples.map { $0 }
+        copy.index = index
         return copy
     }
     func process(_ value: PitchMeterSnapshot) -> PitchMeterSnapshot {
@@ -67,11 +68,17 @@ public final class EffectMeter {
     private let lock = NSLock()
     private var value = EffectMeterSnapshot()
     public init() {}
-    public func snapshot() -> EffectMeterSnapshot { lock.lock(); defer { lock.unlock() }; return value }
+    public func snapshot() -> EffectMeterSnapshot {
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
     func publish(_ snapshot: EffectMeterSnapshot) {
         guard lock.try() else { return }
         let next = value.revision &+ 1
-        value = snapshot; value.revision = next; lock.unlock()
+        value = snapshot
+        value.revision = next
+        lock.unlock()
     }
 }
 

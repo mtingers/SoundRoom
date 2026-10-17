@@ -12,8 +12,14 @@ actor RemoteSnapshotEncodingPool {
         var documentEncodes: Int
         var messageEncodes: Int
     }
-    enum Output: Sendable { case frame(Data), snapshot(RemoteSnapshotLease) }
-    struct Result: Sendable { var state: RemoteWebDocumentState; var output: Output }
+    enum Output: Sendable {
+        case frame(Data)
+        case snapshot(RemoteSnapshotLease)
+    }
+    struct Result: Sendable {
+        var state: RemoteWebDocumentState
+        var output: Output
+    }
     private struct Entry {
         let id: UUID
         let snapshot: RemoteSnapshot
@@ -31,10 +37,13 @@ actor RemoteSnapshotEncodingPool {
     private let documentReservationBytes: Int
     private let maximumEntries: Int
 
-    init(maximumSerializedBytes: Int = 128 * 1024 * 1024,
-         documentReservationBytes: Int = RemoteSnapshotPages.maximumSnapshotBytes,
-         maximumEntries: Int = 16) {
-        precondition(maximumSerializedBytes >= documentReservationBytes && documentReservationBytes > 0 && maximumEntries > 0)
+    init(
+        maximumSerializedBytes: Int = 128 * 1024 * 1024,
+        documentReservationBytes: Int = RemoteSnapshotPages.maximumSnapshotBytes,
+        maximumEntries: Int = 16
+    ) {
+        precondition(
+            maximumSerializedBytes >= documentReservationBytes && documentReservationBytes > 0 && maximumEntries > 0)
         self.maximumSerializedBytes = maximumSerializedBytes
         self.documentReservationBytes = documentReservationBytes
         self.maximumEntries = maximumEntries
@@ -50,7 +59,8 @@ actor RemoteSnapshotEncodingPool {
         // Once one peer proves this change needs pages, other peers reuse that
         // document instead of repeatedly encoding the same oversized track.
         if case .event(.delta(let delta)) = message, !delta.tracks.isEmpty,
-           let snapshot = state.snapshot, let index = matching(metadata(snapshot)), entries[index].oversizedDelta {
+            let snapshot = state.snapshot, let index = matching(metadata(snapshot)), entries[index].oversizedDelta
+        {
             return .init(state: state, output: .snapshot(try lease(at: index, live: snapshot)))
         }
         messageEncodes += 1
@@ -58,22 +68,29 @@ actor RemoteSnapshotEncodingPool {
         try Task.checkCancellation()
         switch output {
         case .frame(let bytes): return .init(state: state, output: .frame(bytes))
-        case .snapshot(let snapshot): return .init(state: state, output: .snapshot(try prepare(snapshot, oversizedDelta: true)))
+        case .snapshot(let snapshot):
+            return .init(state: state, output: .snapshot(try prepare(snapshot, oversizedDelta: true)))
         }
     }
 
     func statistics() -> Statistics {
-        .init(retainedBytes: retainedBytes, activeLeases: entries.reduce(0) { $0 + $1.active }, entries: entries.count,
-              documentEncodes: documentEncodes, messageEncodes: messageEncodes)
+        .init(
+            retainedBytes: retainedBytes, activeLeases: entries.reduce(0) { $0 + $1.active }, entries: entries.count,
+            documentEncodes: documentEncodes, messageEncodes: messageEncodes)
     }
 
     private func metadata(_ snapshot: RemoteSnapshot) -> RemoteSnapshot {
         var document = snapshot
-        document.transport = .init(hostTime: 0); document.status = ""; document.peers = []
+        document.transport = .init(hostTime: 0)
+        document.status = ""
+        document.peers = []
         return document
     }
     private func matching(_ snapshot: RemoteSnapshot) -> Int? {
-        entries.firstIndex { $0.snapshot.serverID == snapshot.serverID && $0.snapshot.revision == snapshot.revision && $0.snapshot == snapshot }
+        entries.firstIndex {
+            $0.snapshot.serverID == snapshot.serverID && $0.snapshot.revision == snapshot.revision
+                && $0.snapshot == snapshot
+        }
     }
     private func prepare(_ snapshot: RemoteSnapshot, oversizedDelta: Bool) throws -> RemoteSnapshotLease {
         let document = metadata(snapshot)
@@ -84,10 +101,15 @@ actor RemoteSnapshotEncodingPool {
         // Reserve the maximum document before serializing, so retained bytes and
         // this worker's new serialized result together cannot exceed the bound.
         while retainedBytes > maximumSerializedBytes - documentReservationBytes || entries.count >= maximumEntries {
-            guard let index = entries.indices.filter({ entries[$0].active == 0 }).min(by: { entries[$0].used < entries[$1].used }) else {
+            guard
+                let index = entries.indices.filter({ entries[$0].active == 0 }).min(by: {
+                    entries[$0].used < entries[$1].used
+                })
+            else {
                 throw RemoteError.queueFull
             }
-            retainedBytes -= entries[index].pages.bytes.count; entries.remove(at: index)
+            retainedBytes -= entries[index].pages.bytes.count
+            entries.remove(at: index)
         }
         try Task.checkCancellation()
         let pages = try RemoteSnapshotPages(snapshot: document)
@@ -103,7 +125,9 @@ actor RemoteSnapshotEncodingPool {
             try RemoteV3Codec.encodeMessage(.event($0))
         }
         try Task.checkCancellation()
-        useSequence &+= 1; entries[index].used = useSequence; entries[index].active += 1
+        useSequence &+= 1
+        entries[index].used = useSequence
+        entries[index].active += 1
         let id = entries[index].id
         return RemoteSnapshotLease(pages: .init(sharing: entries[index].pages), overlays: overlays) { [weak self] in
             Task { await self?.release(id) }
@@ -123,7 +147,9 @@ final class RemoteSnapshotLease: @unchecked Sendable {
     let overlays: [Data]
     private let release: @Sendable () -> Void
     init(pages: RemoteSnapshotPages, overlays: [Data], release: @escaping @Sendable () -> Void) {
-        self.pages = pages; self.overlays = overlays; self.release = release
+        self.pages = pages
+        self.overlays = overlays
+        self.release = release
     }
     deinit { release() }
 }

@@ -1,5 +1,6 @@
-import XCTest
 import SoundroomCore
+import XCTest
+
 @testable import Soundroom
 
 final class PortablePresetTests: XCTestCase {
@@ -13,12 +14,14 @@ final class PortablePresetTests: XCTestCase {
             try library.exportPreset(saved.id, to: file)
             try library.replace(saved.id, parameters: ["time": 900, "mix": 0.6], legacyAmount: nil)
             XCTAssertEqual(library.presets.first?.parameters["time"], 900)
-            try library.undoChange(); XCTAssertEqual(library.presets, [saved])
+            try library.undoChange()
+            XCTAssertEqual(library.presets, [saved])
             XCTAssertEqual(try library.importPresets(from: file), 1)
             XCTAssertEqual(library.presets[1].name, "Dry repeats (2)")
             XCTAssertNotEqual(library.presets[1].id, saved.id)
             XCTAssertEqual(library.presets[1].parameters, saved.parameters)
-            try library.undoChange(); XCTAssertEqual(library.presets, [saved])
+            try library.undoChange()
+            XCTAssertEqual(library.presets, [saved])
             XCTAssertEqual(EffectPresetLibrary(url: library.url).presets, [saved])
         }
     }
@@ -33,14 +36,16 @@ final class PortablePresetTests: XCTestCase {
             gain.parameterAutomation = ["gain": [.init(frame: 10, value: 0.7)]]
             let dry = try library.save(name: "Settings", effects: [echo, gain], includeAutomation: false)
             XCTAssertEqual(dry.effects.map(\.kind), [.echo, .gain])
-            XCTAssertFalse(dry.effects[0].enabled); XCTAssertTrue(dry.effects[0].parameters.isEmpty)
+            XCTAssertFalse(dry.effects[0].enabled)
+            XCTAssertTrue(dry.effects[0].parameters.isEmpty)
             XCTAssertEqual(dry.effects[0].amount, 0.6)
             XCTAssertTrue(dry.effects.allSatisfy { $0.automation.isEmpty && $0.parameterAutomation.isEmpty })
             let wet = try library.save(name: "With curves", effects: [echo, gain], includeAutomation: true)
             XCTAssertEqual(wet.effects[0].automation, echo.automation)
             XCTAssertEqual(wet.effects[1].parameterAutomation, gain.parameterAutomation)
             let reloaded = EffectChainLibrary(url: library.url)
-            XCTAssertNil(reloaded.loadError); XCTAssertEqual(reloaded.chains, library.chains)
+            XCTAssertNil(reloaded.loadError)
+            XCTAssertEqual(reloaded.chains, library.chains)
             let file = directory.appendingPathComponent("export.soundchain")
             try library.exportChain(wet.id, to: file)
             XCTAssertEqual(try library.importChains(from: file), 1)
@@ -55,11 +60,15 @@ final class PortablePresetTests: XCTestCase {
             defer { try? FileManager.default.removeItem(at: directory) }
             let library = EffectChainLibrary(url: directory.appendingPathComponent("chains.json"))
             let saved = try library.save(name: "Original", effects: [.init(kind: .gain)], includeAutomation: false)
-            try library.save(name: "Updated", effects: [.init(kind: .room)], includeAutomation: false, replacing: saved.id)
+            try library.save(
+                name: "Updated", effects: [.init(kind: .room)], includeAutomation: false, replacing: saved.id)
             XCTAssertEqual(library.chains.first?.effects.first?.kind, .room)
-            try library.undoChange(); XCTAssertEqual(library.chains, [saved])
-            try library.delete(saved.id); XCTAssertTrue(library.chains.isEmpty)
-            try library.undoChange(); XCTAssertEqual(library.chains, [saved])
+            try library.undoChange()
+            XCTAssertEqual(library.chains, [saved])
+            try library.delete(saved.id)
+            XCTAssertTrue(library.chains.isEmpty)
+            try library.undoChange()
+            XCTAssertEqual(library.chains, [saved])
         }
     }
 

@@ -312,7 +312,10 @@ fn serve_local(root: &Path, rest: &[String]) -> std::result::Result<(), soundroo
                     .registry
                     .issue("Soundroom GUI", RemoteRole::Operator)?;
                 write_new_private(&credential_path, &serde_json::to_vec(&credential)?)?;
-                credential["credentialID"].as_str().unwrap_or_default().to_owned()
+                credential["credentialID"]
+                    .as_str()
+                    .unwrap_or_default()
+                    .to_owned()
             }
         };
         state.protect_credential(&id);
@@ -324,7 +327,8 @@ fn serve_local(root: &Path, rest: &[String]) -> std::result::Result<(), soundroo
         },
         &tls.join("server.p12"),
         &password,
-    )?.with_connection_diagnostics();
+    )?
+    .with_connection_diagnostics();
     let endpoint = match web_assets {
         Some(path) => endpoint.with_web_assets(Path::new(&path))?,
         None => endpoint,

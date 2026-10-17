@@ -3,7 +3,7 @@ import Foundation
 /// Fixed-value control block; callers can construct this on the audio thread without allocation.
 struct PitchCorrectionParameters {
     var key: Int = 0
-    var scale: Int = 0 // chromatic, major, natural minor, absolute custom pitch classes
+    var scale: Int = 0  // chromatic, major, natural minor, absolute custom pitch classes
     var mask: Int = 4095
     var reference: Float = 440
     var retune: Float = 40
@@ -13,7 +13,7 @@ struct PitchCorrectionParameters {
     var vibrato: Float = 0.5
     var formant: Float = 0
     var mix: Float = 1
-    var manualTarget: Float = -1 // automatic, otherwise an absolute fractional MIDI note including octave
+    var manualTarget: Float = -1  // automatic, otherwise an absolute fractional MIDI note including octave
 }
 
 /// Monophonic YIN analysis with stereo-linked pitch-synchronous overlap-add synthesis.
@@ -62,55 +62,94 @@ final class PitchCorrectionState {
     private(set) var lastDryLeft: Float = 0, lastDryRight: Float = 0
     private(set) var detectedFrequency: Float = 0, confidence: Float = 0, targetFrequency: Float = 0
 
-    var storageBytes: Int { (Self.capacity * 12 + 512 + 242 + 7 + 2049) * MemoryLayout<Float>.stride + Self.capacity * MemoryLayout<PitchCorrectionParameters>.stride }
+    var storageBytes: Int {
+        (Self.capacity * 12 + 512 + 242 + 7 + 2049) * MemoryLayout<Float>.stride + Self.capacity
+            * MemoryLayout<PitchCorrectionParameters>.stride
+    }
     func deepCopy() -> PitchCorrectionState {
         let result = PitchCorrectionState()
         // Force independent storage now, never a copy-on-write allocation in process().
-        result.inputL = inputL.map { $0 }; result.inputR = inputR.map { $0 }
-        result.pulseSignal = pulseSignal.map { $0 }; result.frequencies = frequencies.map { $0 }
-        result.confidences = confidences.map { $0 }; result.outputL = outputL.map { $0 }
-        result.outputR = outputR.map { $0 }; result.weights = weights.map { $0 }; result.activity = activity.map { $0 }
-        result.normalizationWeights = normalizationWeights.map { $0 }; result.targetSum = targetSum.map { $0 }; result.correctionSum = correctionSum.map { $0 }
-        result.lastPulse = lastPulse; result.lastPulsePeriod = lastPulsePeriod; result.meterSnapshot = meterSnapshot
-        result.controls = controls.map { $0 }; result.decimated = decimated.map { $0 }; result.difference = difference.map { $0 }; result.refinedDifference = refinedDifference.map { $0 }
-        result.frame = frame; result.decimatedCount = decimatedCount
-        result.lowpass1 = lowpass1; result.lowpass2 = lowpass2
+        result.inputL = inputL.map { $0 }
+        result.inputR = inputR.map { $0 }
+        result.pulseSignal = pulseSignal.map { $0 }
+        result.frequencies = frequencies.map { $0 }
+        result.confidences = confidences.map { $0 }
+        result.outputL = outputL.map { $0 }
+        result.outputR = outputR.map { $0 }
+        result.weights = weights.map { $0 }
+        result.activity = activity.map { $0 }
+        result.normalizationWeights = normalizationWeights.map { $0 }
+        result.targetSum = targetSum.map { $0 }
+        result.correctionSum = correctionSum.map { $0 }
+        result.lastPulse = lastPulse
+        result.lastPulsePeriod = lastPulsePeriod
+        result.meterSnapshot = meterSnapshot
+        result.controls = controls.map { $0 }
+        result.decimated = decimated.map { $0 }
+        result.difference = difference.map { $0 }
+        result.refinedDifference = refinedDifference.map { $0 }
+        result.frame = frame
+        result.decimatedCount = decimatedCount
+        result.lowpass1 = lowpass1
+        result.lowpass2 = lowpass2
         result.usesRightChannel = usesRightChannel
-        result.energyL = energyL; result.energyR = energyR; result.nextEpoch = nextEpoch
-        result.correction = correction; result.centerPitch = centerPitch
-        result.previousTarget = previousTarget; result.sustainedFrames = sustainedFrames
-        result.dcInputL = dcInputL; result.dcInputR = dcInputR; result.dcOutputL = dcOutputL; result.dcOutputR = dcOutputR
-        result.voicedBlend = voicedBlend; result.lastGrainCorrection = lastGrainCorrection
-        result.lastGrainFormant = lastGrainFormant; result.synthesisConfidence = synthesisConfidence
+        result.energyL = energyL
+        result.energyR = energyR
+        result.nextEpoch = nextEpoch
+        result.correction = correction
+        result.centerPitch = centerPitch
+        result.previousTarget = previousTarget
+        result.sustainedFrames = sustainedFrames
+        result.dcInputL = dcInputL
+        result.dcInputR = dcInputR
+        result.dcOutputL = dcOutputL
+        result.dcOutputR = dcOutputR
+        result.voicedBlend = voicedBlend
+        result.lastGrainCorrection = lastGrainCorrection
+        result.lastGrainFormant = lastGrainFormant
+        result.synthesisConfidence = synthesisConfidence
         result.renderedManualCorrection = renderedManualCorrection
-        result.lastDryLeft = lastDryLeft; result.lastDryRight = lastDryRight
-        result.detectedFrequency = detectedFrequency; result.confidence = confidence
+        result.lastDryLeft = lastDryLeft
+        result.lastDryRight = lastDryRight
+        result.detectedFrequency = detectedFrequency
+        result.confidence = confidence
         result.targetFrequency = targetFrequency
         return result
     }
 
     func process(left: Float, right: Float, parameters p: PitchCorrectionParameters) -> (Float, Float) {
-        let l = left.isFinite ? left : 0, r = right.isFinite ? right : 0
+        let l = left.isFinite ? left : 0
+        let r = right.isFinite ? right : 0
         let index = frame & Self.ringMask
-        inputL[index] = l; inputR[index] = r; controls[index] = p
-        energyL += 0.001 * (l * l - energyL); energyR += 0.001 * (r * r - energyR)
+        inputL[index] = l
+        inputR[index] = r
+        controls[index] = p
+        energyL += 0.001 * (l * l - energyL)
+        energyR += 0.001 * (r * r - energyR)
         // Hysteresis keeps equal-level stereo phase offsets from switching analysis
         // channels every half-cycle; summing would cancel antiphase voices.
-        if energyR > 1.5 * energyL + 0.000000001 { usesRightChannel = true }
-        else if energyL > 1.5 * energyR + 0.000000001 { usesRightChannel = false }
+        if energyR > 1.5 * energyL + 0.000000001 {
+            usesRightChannel = true
+        } else if energyL > 1.5 * energyR + 0.000000001 {
+            usesRightChannel = false
+        }
         let mono = usesRightChannel ? r : l
-        lowpass1 += 0.23 * (mono - lowpass1); lowpass2 += 0.23 * (lowpass1 - lowpass2)
+        lowpass1 += 0.23 * (mono - lowpass1)
+        lowpass2 += 0.23 * (lowpass1 - lowpass2)
         pulseSignal[index] = lowpass2
         if frame & 3 == 0 {
-            decimated[decimatedCount & 511] = lowpass2; decimatedCount += 1
+            decimated[decimatedCount & 511] = lowpass2
+            decimatedCount += 1
             if decimatedCount >= 512 && decimatedCount & 63 == 0 { analyze() }
         }
-        frequencies[index] = detectedFrequency; confidences[index] = confidence
+        frequencies[index] = detectedFrequency
+        confidences[index] = confidence
         // Schedule sufficiently early that even a low voice with -12 semitone formants
         // has its whole synthesis window available before the first output sample.
         while nextEpoch <= Double(frame + 2048) { synthesize() }
         let source = frame - Self.latencyFrames
-        lastDryLeft = sample(inputL, source); lastDryRight = sample(inputR, source)
+        lastDryLeft = sample(inputL, source)
+        lastDryRight = sample(inputR, source)
         let weight = weights[index]
         let delayedControls = source >= 0 ? controls[source & Self.ringMask] : PitchCorrectionParameters()
         // At natural formants, normalize actual coverage. Expected steady overlap
@@ -139,7 +178,8 @@ final class PitchCorrectionState {
             renderedManualCorrection = 0
             manualEpochWeight = 0
         }
-        let divisor = naturalFormants && coverage > 0.00001
+        let divisor =
+            naturalFormants && coverage > 0.00001
             ? (manualEpochWeight > 0 ? coverage * (1 - manualEpochWeight) + manualEpochWeight : coverage) : 1
         let unfilteredL = outputL[index] / divisor
         let unfilteredR = outputR[index] / divisor
@@ -147,8 +187,10 @@ final class PitchCorrectionState {
         // from the synthesized branch only; unvoiced/tolerated dry remains exact.
         dcOutputL = unfilteredL - dcInputL + 0.998692 * dcOutputL
         dcOutputR = unfilteredR - dcInputR + 0.998692 * dcOutputR
-        dcInputL = unfilteredL; dcInputR = unfilteredR
-        let wetL = dcOutputL, wetR = dcOutputR
+        dcInputL = unfilteredL
+        dcInputR = unfilteredR
+        let wetL = dcOutputL
+        let wetR = dcOutputR
         let active = voiced && weight > 0.00001 && activity[index] / weight > 0.01
         // Release quickly through consonants, without a discontinuity or a 10 ms
         // dropout caused by continuing to crossfade into an empty synthesis ring.
@@ -156,7 +198,8 @@ final class PitchCorrectionState {
         let coveredBlend = naturalFormants ? min(1, max(0, coverage * 4)) : 1
         // Filling each grain's envelope trough with the dry carrier would restore
         // the octave alias. Unvoiced/uncertain audio still uses the existing dry path.
-        let availableBlend = manualEpochWeight > 0 ? coveredBlend * (1 - manualEpochWeight) + manualEpochWeight : coveredBlend
+        let availableBlend =
+            manualEpochWeight > 0 ? coveredBlend * (1 - manualEpochWeight) + manualEpochWeight : coveredBlend
         let blend = voicedBlend * availableBlend * finiteClamp(delayedControls.mix, 0, 1, fallback: 1)
         meterSnapshot.sourceFrame = source
         meterSnapshot.referenceFrequency = finiteClamp(delayedControls.reference, 420, 460, fallback: 440)
@@ -165,8 +208,13 @@ final class PitchCorrectionState {
         meterSnapshot.targetFrequency = voiced && weight > 0.00001 ? targetSum[index] / weight : 0
         meterSnapshot.correctionCents = voiced && weight > 0.00001 ? correctionSum[index] / weight : 0
         meterSnapshot.wetBlend = blend
-        outputL[index] = 0; outputR[index] = 0; weights[index] = 0; activity[index] = 0
-        normalizationWeights[index] = 0; targetSum[index] = 0; correctionSum[index] = 0
+        outputL[index] = 0
+        outputR[index] = 0
+        weights[index] = 0
+        activity[index] = 0
+        normalizationWeights[index] = 0
+        targetSum[index] = 0
+        correctionSum[index] = 0
         frame += 1
         return (lastDryLeft + (wetL - lastDryLeft) * blend, lastDryRight + (wetR - lastDryRight) * blend)
     }
@@ -174,14 +222,22 @@ final class PitchCorrectionState {
         position >= 0 && position <= frame && frame - position < Self.capacity ? ring[position & Self.ringMask] : 0
     }
     private func interpolated(_ ring: [Float], _ position: Double) -> Float {
-        let first = Int(floor(position)), fraction = Float(position - Double(first))
+        let first = Int(floor(position))
+        let fraction = Float(position - Double(first))
         return sample(ring, first) * (1 - fraction) + sample(ring, first + 1) * fraction
     }
     private func analyze() {
         let start = decimatedCount - 512
         var energy: Float = 0
-        for j in 0..<256 { let value = decimated[(start + j) & 511]; energy += value * value }
-        guard energy / 256 > 0.000003 else { confidence = 0; detectedFrequency = 0; return }
+        for j in 0..<256 {
+            let value = decimated[(start + j) & 511]
+            energy += value * value
+        }
+        guard energy / 256 > 0.000003 else {
+            confidence = 0
+            detectedFrequency = 0
+            return
+        }
         difference[0] = 1
         var cumulative: Float = 0
         for lag in 1...241 {
@@ -202,8 +258,14 @@ final class PitchCorrectionState {
             }
             lag += 1
         }
-        guard lag <= 240, difference[lag] < 0.25 else { confidence = 0; detectedFrequency = 0; return }
-        let a = difference[lag - 1], b = difference[lag], c = difference[lag + 1]
+        guard lag <= 240, difference[lag] < 0.25 else {
+            confidence = 0
+            detectedFrequency = 0
+            return
+        }
+        let a = difference[lag - 1]
+        let b = difference[lag]
+        let c = difference[lag + 1]
         let denominator = a - 2 * b + c
         let adjustment = abs(denominator) > 0.000001 ? max(-0.5, min(0.5, 0.5 * (a - c) / denominator)) : 0
         let approximatePeriod = 4 * (Float(lag) + adjustment)
@@ -223,14 +285,18 @@ final class PitchCorrectionState {
             assert(frame - windowStart < Self.capacity)
             var sum: Float = 0
             for j in 0..<1024 {
-                let d = pulseSignal[(windowStart + j) & Self.ringMask] - pulseSignal[(windowStart + j + candidate) & Self.ringMask]
+                let d =
+                    pulseSignal[(windowStart + j) & Self.ringMask]
+                    - pulseSignal[(windowStart + j + candidate) & Self.ringMask]
                 sum += d * d
             }
             refinedDifference[index] = sum
         }
         var best = 1
         for index in 2...5 where refinedDifference[index] < refinedDifference[best] { best = index }
-        let ra = refinedDifference[best - 1], rb = refinedDifference[best], rc = refinedDifference[best + 1]
+        let ra = refinedDifference[best - 1]
+        let rb = refinedDifference[best]
+        let rc = refinedDifference[best + 1]
         let rd = ra - 2 * rb + rc
         let fraction = abs(rd) > 0.000001 ? max(-0.5, min(0.5, 0.5 * (ra - rc) / rd)) : 0
         detectedFrequency = Float(sessionRate) / (Float(base + best - 3) + fraction)
@@ -240,19 +306,23 @@ final class PitchCorrectionState {
         let root = (key % 12 + 12) % 12
         let scaleMask: Int
         switch scale {
-        case 1: scaleMask = 0b101010110101 // C major: C D E F G A B
-        case 2: scaleMask = 0b010110101101 // C natural minor: C D Eb F G Ab Bb
+        case 1: scaleMask = 0b101010110101  // C major: C D E F G A B
+        case 2: scaleMask = 0b010110101101  // C natural minor: C D Eb F G Ab Bb
         case 3: scaleMask = mask & 4095
         default: return Int(midi.rounded())
         }
         guard scaleMask != 0 else { return Int(midi.rounded()) }
         let middle = Int(midi.rounded())
-        var nearest = middle, distance = Float.infinity
+        var nearest = middle
+        var distance = Float.infinity
         for note in (middle - 12)...(middle + 12) {
             let pitchClass = (note % 12 + 12) % 12
             let bit = scale == 3 ? pitchClass : (pitchClass - root + 12) % 12
             let d = abs(Float(note) - midi)
-            if scaleMask & (1 << bit) != 0 && d < distance { nearest = note; distance = d }
+            if scaleMask & (1 << bit) != 0 && d < distance {
+                nearest = note
+                distance = d
+            }
         }
         return nearest
     }
@@ -263,19 +333,29 @@ final class PitchCorrectionState {
         target.isFinite && target >= 0 ? min(95, target) : nil
     }
     private func synthesize() {
-        let outputCenter = nextEpoch, sourceCenter = outputCenter - Double(Self.latencyFrames)
+        let outputCenter = nextEpoch
+        let sourceCenter = outputCenter - Double(Self.latencyFrames)
         // Analysis describes a window centred ~1024 samples before its decision.
         let sourceFrame = Int(sourceCenter)
-        let p = sourceFrame >= 0 && sourceFrame <= frame ? controls[sourceFrame & Self.ringMask] : PitchCorrectionParameters()
+        let p =
+            sourceFrame >= 0 && sourceFrame <= frame
+            ? controls[sourceFrame & Self.ringMask] : PitchCorrectionParameters()
         let decision = sourceFrame + 1024
-        let f0 = sample(frequencies, decision), certainty = sample(confidences, decision)
+        let f0 = sample(frequencies, decision)
+        let certainty = sample(confidences, decision)
         guard f0 >= 50 && f0 <= 1000 && certainty > 0.75 else {
-            synthesisConfidence = 0; targetFrequency = 0
+            synthesisConfidence = 0
+            targetFrequency = 0
             // A new voiced phrase must not inherit the previous vowel's epoch,
             // target or retune lag. The wet output already queued fades normally.
-            lastPulse = nil; lastPulsePeriod = 0; centerPitch = 0
-            correction = 0; previousTarget = -.infinity; sustainedFrames = 0
-            nextEpoch += 128; return
+            lastPulse = nil
+            lastPulsePeriod = 0
+            centerPitch = 0
+            correction = 0
+            previousTarget = -.infinity
+            sustainedFrames = 0
+            nextEpoch += 128
+            return
         }
         let period = Float(sessionRate) / f0
         let reference = finiteClamp(p.reference, 420, 460, fallback: 440)
@@ -286,18 +366,28 @@ final class PitchCorrectionState {
         let vibrato = finiteClamp(p.vibrato, 0, 1, fallback: 0.5)
         let targetingPitch = midi * (1 - vibrato) + centerPitch * vibrato
         let manualTarget = Self.clampedManualTarget(p.manualTarget)
-        var target = manualTarget ?? Float(Self.nearestNote(midi: targetingPitch, key: p.key, scale: p.scale, mask: p.mask))
+        var target =
+            manualTarget ?? Float(Self.nearestNote(midi: targetingPitch, key: p.key, scale: p.scale, mask: p.mask))
         // Six cents of boundary hysteresis avoids a repeated semitone jump when
         // a breathy vowel's estimate straddles the nearest-note decision boundary.
-        if manualTarget == nil && previousTarget.isFinite && target != previousTarget &&
-            Float(Self.nearestNote(midi: previousTarget, key: p.key, scale: p.scale, mask: p.mask)) == previousTarget &&
-            abs(targetingPitch - previousTarget) <= abs(targetingPitch - target) + 0.12 {
+        if manualTarget == nil && previousTarget.isFinite && target != previousTarget
+            && Float(Self.nearestNote(midi: previousTarget, key: p.key, scale: p.scale, mask: p.mask)) == previousTarget
+            && abs(targetingPitch - previousTarget) <= abs(targetingPitch - target) + 0.12
+        {
             target = previousTarget
         }
-        if target == previousTarget { sustainedFrames += interval } else { sustainedFrames = 0; previousTarget = target }
+        if target == previousTarget {
+            sustainedFrames += interval
+        } else {
+            sustainedFrames = 0
+            previousTarget = target
+        }
         targetFrequency = reference * pow(2, (target - 69) / 12)
         var desired = (target - midi + vibrato * (midi - centerPitch)) * 100
-        if manualTarget == nil && p.scale == 3 && p.mask & 4095 == 0 { desired = 0; targetFrequency = f0 }
+        if manualTarget == nil && p.scale == 3 && p.mask & 4095 == 0 {
+            desired = 0
+            targetFrequency = f0
+        }
         // Absolute note selection retains the existing one-octave synthesis limit.
         // Clamp before retune interpolation so distant manual requests cannot build
         // an oversized correction state or report a correction beyond this range.
@@ -305,7 +395,8 @@ final class PitchCorrectionState {
         if abs(desired) <= finiteClamp(p.tolerance, 0, 100, fallback: 5) { desired = 0 }
         desired *= finiteClamp(p.strength, 0, 1, fallback: 1)
         let human = finiteClamp(p.humanize, 0, 1, fallback: 0.35)
-        let time = finiteClamp(p.retune, 0, 500, fallback: 40) + human * 250 * min(1, sustainedFrames / Float(sessionRate))
+        let time =
+            finiteClamp(p.retune, 0, 500, fallback: 40) + human * 250 * min(1, sustainedFrames / Float(sessionRate))
         let alpha: Float = time <= 0 ? 1 : 1 - exp(-interval / (time * 0.001 * Float(sessionRate)))
         correction += alpha * (desired - correction)
         let ratio = max(0.5, min(2, pow(2, correction / 1200)))
@@ -319,21 +410,29 @@ final class PitchCorrectionState {
             pulseCenter = previous + ((sourceCenter - previous) / Double(period)).rounded() * Double(period)
             tracked = true
         } else {
-            pulseCenter = sourceCenter; tracked = false
+            pulseCenter = sourceCenter
+            tracked = false
         }
-        let middle = Int(pulseCenter.rounded()), search = max(1, Int(period * (tracked ? 0.2 : 0.5)))
-        var pulse = middle, peak = -Float.infinity
+        let middle = Int(pulseCenter.rounded())
+        let search = max(1, Int(period * (tracked ? 0.2 : 0.5)))
+        var pulse = middle
+        var peak = -Float.infinity
         for position in (middle - search)...(middle + search) {
             let value = sample(pulseSignal, position)
-            if value > peak { peak = value; pulse = position }
+            if value > peak {
+                peak = value
+                pulse = position
+            }
         }
-        lastPulse = Double(pulse); lastPulsePeriod = period
+        lastPulse = Double(pulse)
+        lastPulsePeriod = period
         // Formant-shifted grains retain expected overlap gain: dividing by each
         // sample's coverage cancels their compressed pulse envelope and shifts
         // the fundamental along with the formants. Natural-formant grains are
         // normalized against actual coverage when read from the output ring.
         let normalization = max(0.125, radius / (period / ratio))
-        let first = Int(ceil(outputCenter - Double(radius))), last = Int(floor(outputCenter + Double(radius)))
+        let first = Int(ceil(outputCenter - Double(radius)))
+        let last = Int(floor(outputCenter + Double(radius)))
         if first <= last {
             for position in first...last where position >= frame {
                 let displacement = Float(Double(position) - outputCenter)
@@ -350,7 +449,9 @@ final class PitchCorrectionState {
                 if abs(correction) > 0.01 || abs(formant) > 0.001 { activity[index] += window }
             }
         }
-        synthesisConfidence = certainty; lastGrainCorrection = correction; lastGrainFormant = formant
+        synthesisConfidence = certainty
+        lastGrainCorrection = correction
+        lastGrainFormant = formant
         nextEpoch += Double(period / ratio)
     }
     private func finiteClamp(_ value: Float, _ low: Float, _ high: Float, fallback: Float) -> Float {

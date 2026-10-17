@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import SoundroomRemote
 
 @MainActor final class RemoteWebPairingTests: XCTestCase {
@@ -54,10 +55,17 @@ import XCTest
         XCTAssertEqual(try RemoteWebCredentialFile.load(from: file).record, record)
         let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
         XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o600)
-        XCTAssertThrowsError(try RemoteWebCredentialFile(credential: credential, record: .init(id: credential.clientID, name: record.name, role: .operator)).write(to: file))
-        XCTAssertEqual(try RemoteWebCredentialFile.load(from: file).credential, credential, "Rejected replacement must retain existing credential")
+        XCTAssertThrowsError(
+            try RemoteWebCredentialFile(
+                credential: credential, record: .init(id: credential.clientID, name: record.name, role: .operator)
+            ).write(to: file))
+        XCTAssertEqual(
+            try RemoteWebCredentialFile.load(from: file).credential, credential,
+            "Rejected replacement must retain existing credential")
         try credential.write(to: file)
-        XCTAssertEqual(try RemoteWebCredentialFile.load(from: file).record.id, credential.clientID, "Legacy browser records remain revocable")
+        XCTAssertEqual(
+            try RemoteWebCredentialFile.load(from: file).record.id, credential.clientID,
+            "Legacy browser records remain revocable")
         let publicRecord = try JSONSerialization.jsonObject(with: JSONEncoder().encode(record)) as! [String: Any]
         XCTAssertEqual(Set(publicRecord.keys), ["id", "name", "role"])
     }

@@ -285,7 +285,14 @@ fn half() -> f32 {
 }
 impl Session {
     pub fn required_version(&self) -> u32 {
-        if self.tracks.iter().chain(std::iter::once(&self.master_track)).any(|t| t.realtime_effects.iter().any(|e| e.kind == "guitarRig")) { return self.version.max(11); }
+        if self
+            .tracks
+            .iter()
+            .chain(std::iter::once(&self.master_track))
+            .any(|t| t.realtime_effects.iter().any(|e| e.kind == "guitarRig"))
+        {
+            return self.version.max(11);
+        }
         if self
             .tracks
             .iter()
@@ -506,7 +513,11 @@ impl Session {
     /// they can be unmuted live. Undo history and alternate takes remain in
     /// project custody, but do not occupy playback decoders or resident PCM.
     pub fn playback_asset_ids(&self) -> BTreeSet<String> {
-        self.tracks.iter().flat_map(|t| &t.clips).map(|c| c.asset_id.to_uppercase()).collect()
+        self.tracks
+            .iter()
+            .flat_map(|t| &t.clips)
+            .map(|c| c.asset_id.to_uppercase())
+            .collect()
     }
     pub fn asset_ids(&self) -> BTreeSet<String> {
         self.tracks

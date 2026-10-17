@@ -5,8 +5,8 @@ extension Clip {
     public var editableSoundDesign: SoundDesignPattern? {
         if let soundDesign { return soundDesign }
         return (previousStates ?? []).sorted { $0.createdAt > $1.createdAt }.first {
-            $0.soundDesign != nil && $0.assetID == assetID && offset >= $0.offset &&
-            offset - $0.offset <= $0.length && length <= $0.length - (offset - $0.offset)
+            $0.soundDesign != nil && $0.assetID == assetID && offset >= $0.offset && offset - $0.offset <= $0.length
+                && length <= $0.length - (offset - $0.offset)
         }?.soundDesign
     }
 
@@ -14,13 +14,17 @@ extension Clip {
     public func replacingSoundDesignRender(assetID: UUID, pattern: SoundDesignPattern, frameCount: Int) -> Clip {
         var clip = self
         let whole = editableSoundDesign.map { offset == 0 && length >= $0.sequenceFrames } ?? true
-        if whole { clip.offset = 0; clip.length = frameCount }
-        else {
+        if whole {
+            clip.offset = 0
+            clip.length = frameCount
+        } else {
             clip.offset = min(offset, max(0, frameCount - 1))
             clip.length = min(length, max(1, frameCount - clip.offset))
         }
         if clip.offset != offset || clip.length != length { clip.resetFadeEnvelope() }
-        clip.assetID = assetID; clip.soundDesign = pattern; clip.drumPattern = nil
+        clip.assetID = assetID
+        clip.soundDesign = pattern
+        clip.drumPattern = nil
         return clip
     }
 }

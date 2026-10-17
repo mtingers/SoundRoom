@@ -41,9 +41,21 @@ fn mode_envelope(x: &[f32], hz: f64, seconds: f64, dense: bool) -> Vec<f64> {
         re[i + 1] = re[i] + x[i] as f64 * c;
         im[i + 1] = im[i] - x[i] as f64 * s;
     }
-    let box1 = |p: &[f64], i: usize| if i + 1 >= half { p[i + 1] - p[i + 1 - half] } else { p[i + 1] };
+    let box1 = |p: &[f64], i: usize| {
+        if i + 1 >= half {
+            p[i + 1] - p[i + 1 - half]
+        } else {
+            p[i + 1]
+        }
+    };
     let (b1r, b1i): (Vec<f64>, Vec<f64>) = (0..n).map(|i| (box1(&re, i), box1(&im, i))).unzip();
-    let prefix = |v: &[f64]| { let mut p = vec![0.; v.len() + 1]; for i in 0..v.len() { p[i + 1] = p[i] + v[i]; } p };
+    let prefix = |v: &[f64]| {
+        let mut p = vec![0.; v.len() + 1];
+        for i in 0..v.len() {
+            p[i + 1] = p[i] + v[i];
+        }
+        p
+    };
     let (p2r, p2i) = (prefix(&b1r), prefix(&b1i));
     let norm = (half * half) as f64;
     // Report each frame at the triangle centre (delay of `half` samples).
@@ -63,17 +75,36 @@ fn two_stage(track: &[f64], floor: f64) -> (f64, f64, f64, f64) {
     let top = track.iter().cloned().fold(f64::MIN, f64::max);
     let at = track.iter().position(|&v| v == top).unwrap_or(0);
     let times: Vec<f64> = (0..track.len()).map(|i| i as f64 * dt).collect();
-    let fast_end = (at..track.len()).find(|&i| track[i] < top - 20.).unwrap_or(track.len() - 1).max(at + 2).min(track.len() - 1);
+    let fast_end = (at..track.len())
+        .find(|&i| track[i] < top - 20.)
+        .unwrap_or(track.len() - 1)
+        .max(at + 2)
+        .min(track.len() - 1);
     let (a, fs, _) = fit(&times[at..=fast_end], &track[at..=fast_end]);
-    let fast = if fs < -1e-3 { (-60. / fs).clamp(0.005, 6.) } else { 6. };
+    let fast = if fs < -1e-3 {
+        (-60. / fs).clamp(0.005, 6.)
+    } else {
+        6.
+    };
     let level = a.clamp(top, top + 6.);
     let (slow, slow_db) = match (at..track.len()).find(|&i| track[i] < top - 25.) {
         Some(from) => {
-            let idx: Vec<usize> = (from..track.len()).take_while(|&i| track[i] > floor + 6.).collect();
+            let idx: Vec<usize> = (from..track.len())
+                .take_while(|&i| track[i] > floor + 6.)
+                .collect();
             if idx.len() >= 3 {
-                let (a, b, _) = fit(&idx.iter().map(|&i| times[i]).collect::<Vec<_>>(), &idx.iter().map(|&i| track[i]).collect::<Vec<_>>());
-                if b < -1e-3 { ((-60. / b).clamp(fast, 8.), (a - level).min(-6.)) } else { (fast, -120.) }
-            } else { (fast, -120.) }
+                let (a, b, _) = fit(
+                    &idx.iter().map(|&i| times[i]).collect::<Vec<_>>(),
+                    &idx.iter().map(|&i| track[i]).collect::<Vec<_>>(),
+                );
+                if b < -1e-3 {
+                    ((-60. / b).clamp(fast, 8.), (a - level).min(-6.))
+                } else {
+                    (fast, -120.)
+                }
+            } else {
+                (fast, -120.)
+            }
         }
         None => (fast, -120.),
     };
@@ -84,7 +115,9 @@ fn tolerance(hz: f64) -> f64 {
     0.04 + 0.1 * (150. / hz).min(1.)
 }
 fn band_edges() -> Vec<f64> {
-    (0..=BANDS).map(|b| 30. * (18_000f64 / 30.).powf(b as f64 / BANDS as f64)).collect()
+    (0..=BANDS)
+        .map(|b| 30. * (18_000f64 / 30.).powf(b as f64 / BANDS as f64))
+        .collect()
 }
 fn db(x: f64) -> f64 {
     20. * x.max(1e-12).log10()
@@ -100,15 +133,26 @@ fn fit(xs: &[f64], ys: &[f64]) -> (f64, f64, f64) {
     let sxy: f64 = xs.iter().zip(ys).map(|(x, y)| (x - mx) * (y - my)).sum();
     let b = if sxx > 0. { sxy / sxx } else { 0. };
     let a = my - b * mx;
-    let spread = (xs.iter().zip(ys).map(|(x, y)| (y - a - b * x).powi(2)).sum::<f64>() / n).sqrt();
+    let spread = (xs
+        .iter()
+        .zip(ys)
+        .map(|(x, y)| (y - a - b * x).powi(2))
+        .sum::<f64>()
+        / n)
+        .sqrt();
     (a, b, spread)
 }
 /// Decay of a dB track whose frame `i` is centred at `t0 + i * dt` seconds:
 /// (T60, level extrapolated back to t = 0), fitted from the track maximum
 /// until it is within 6 dB of `floor`.
 fn decay(track: &[f64], t0: f64, dt: f64, floor: f64) -> (f64, f64) {
-    let peak = track.iter().enumerate().fold((0, f64::MIN), |m, (i, &v)| if v > m.1 { (i, v) } else { m });
-    let idx: Vec<usize> = (peak.0..track.len()).take_while(|&i| track[i] > floor + 6.).collect();
+    let peak = track
+        .iter()
+        .enumerate()
+        .fold((0, f64::MIN), |m, (i, &v)| if v > m.1 { (i, v) } else { m });
+    let idx: Vec<usize> = (peak.0..track.len())
+        .take_while(|&i| track[i] > floor + 6.)
+        .collect();
     if idx.len() < 3 {
         return (dt * 2., peak.1);
     }
@@ -129,7 +173,7 @@ struct HitAnalysis {
     velocity: f64,
     peak_db: f64,
     modes: Vec<(f64, f64, f64, f64, f64)>, // (Hz, dB re peak, fast T60, slow T60, slow dB)
-    glide: (f64, f64),           // (ratio at onset - 1, time constant)
+    glide: (f64, f64),                     // (ratio at onset - 1, time constant)
     noise: Vec<(f64, f64, f64, f64)>, // per band: (dB re peak, fast T60, slow T60, slow-stage dB at t=0 re start)
     overhead_ratio: f64,
     room_ratio: f64,
@@ -140,9 +184,16 @@ struct HitAnalysis {
     bloom: f64,
 }
 
-fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[f64]>) -> HitAnalysis {
+fn analyze(
+    stems: &[Vec<f32>],
+    velocity: f64,
+    cymbal: bool,
+    reference: Option<&[f64]>,
+) -> HitAnalysis {
     let n = stems[0].len();
-    let mono = |a: usize, b: usize| -> Vec<f32> { (0..n).map(|i| 0.5 * (stems[a][i] + stems[b][i])).collect() };
+    let mono = |a: usize, b: usize| -> Vec<f32> {
+        (0..n).map(|i| 0.5 * (stems[a][i] + stems[b][i])).collect()
+    };
     let close = mono(0, 1);
     let overhead = mono(2, 3);
     let room = mono(4, 5);
@@ -166,7 +217,10 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
     if let Some(reference) = reference {
         for &hz in reference {
             let tol = tolerance(hz);
-            let (lo, hi) = (((hz * (1. - tol)) / bin_hz) as usize, (((hz * (1. + tol)) / bin_hz) as usize).min(spec.len() - 2));
+            let (lo, hi) = (
+                ((hz * (1. - tol)) / bin_hz) as usize,
+                (((hz * (1. + tol)) / bin_hz) as usize).min(spec.len() - 2),
+            );
             if let Some(k) = (lo.max(2)..=hi).max_by(|&a, &b| spec[a].total_cmp(&spec[b])) {
                 chosen.push((k, spec[k]));
             }
@@ -174,7 +228,10 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
         peaks.clear();
     }
     for (k, m) in peaks {
-        let local = (k.saturating_sub(40)..(k + 40).min(spec.len())).map(|i| spec[i]).sum::<f64>() / 80.;
+        let local = (k.saturating_sub(40)..(k + 40).min(spec.len()))
+            .map(|i| spec[i])
+            .sum::<f64>()
+            / 80.;
         if m > 3. * local && chosen.iter().all(|(c, _)| (*c as i64 - k as i64).abs() > 6) {
             chosen.push((k, m));
         }
@@ -187,11 +244,16 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
         .iter()
         .map(|&(k, _)| {
             // Parabolic interpolation for the frequency.
-            let (a, b, c) = (spec[k - 1].max(1e-12).ln(), spec[k].max(1e-12).ln(), spec[k + 1].max(1e-12).ln());
+            let (a, b, c) = (
+                spec[k - 1].max(1e-12).ln(),
+                spec[k].max(1e-12).ln(),
+                spec[k + 1].max(1e-12).ln(),
+            );
             let offset = 0.5 * (a - c) / (a - 2. * b + c);
             let hz = (k as f64 + offset) * bin_hz;
             let track = mode_envelope(direct, hz, 3., cymbal);
-            let floor = track[track.len().saturating_sub(20)..].iter().sum::<f64>() / 20f64.min(track.len() as f64).max(1.);
+            let floor = track[track.len().saturating_sub(20)..].iter().sum::<f64>()
+                / 20f64.min(track.len() as f64).max(1.);
             let (level, fast, slow, slow_db) = two_stage(&track, floor);
             (hz, level - db(peak), fast, slow, slow_db)
         })
@@ -210,7 +272,11 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
                     let lo = ((hz * 0.8) / w) as usize;
                     let hi = (((hz * 1.5) / w) as usize).min(s.len() - 2);
                     let k = (lo.max(1)..=hi).max_by(|&a, &b| s[a].total_cmp(&s[b]))?;
-                    let (a, b, c) = (s[k - 1].max(1e-12).ln(), s[k].max(1e-12).ln(), s[k + 1].max(1e-12).ln());
+                    let (a, b, c) = (
+                        s[k - 1].max(1e-12).ln(),
+                        s[k].max(1e-12).ln(),
+                        s[k + 1].max(1e-12).ln(),
+                    );
                     let off = 0.5 * (a - c) / (a - 2. * b + c);
                     Some(((f * hop + size / 2) as f64 / RATE, (k as f64 + off) * w))
                 })
@@ -222,7 +288,12 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
             let ratio = (early / hz - 1.).clamp(0., 0.6);
             // Time for the excess to fall by 1/e.
             let target = hz * (1. + ratio / std::f64::consts::E);
-            let tau = points.iter().find(|p| p.1 <= target).map(|p| p.0).unwrap_or(0.05).clamp(0.004, 0.2);
+            let tau = points
+                .iter()
+                .find(|p| p.1 <= target)
+                .map(|p| p.0)
+                .unwrap_or(0.05)
+                .clamp(0.004, 0.2);
             (ratio, tau)
         })
         .unwrap_or((0., 0.03));
@@ -235,14 +306,21 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
         let s = spectrum(direct, f * nhop, nsize);
         let w = RATE / nsize as f64;
         for (b, band) in bands.iter_mut().enumerate() {
-            let (lo, hi) = ((edges[b] / w) as usize, ((edges[b + 1] / w) as usize).max((edges[b] / w) as usize + 1));
+            let (lo, hi) = (
+                (edges[b] / w) as usize,
+                ((edges[b + 1] / w) as usize).max((edges[b] / w) as usize + 1),
+            );
             let bins: Vec<f64> = (lo..hi.min(s.len()))
                 .filter(|&k| modes.iter().all(|m| ((k as f64 * w) - m.0).abs() > 1.5 * w))
                 .map(|k| s[k] * s[k])
                 .collect();
             // Σ|X|² over a band's bins is 3× that band's time-domain power
             // for Hann-windowed noise at this scaling.
-            band[f] = if bins.is_empty() { 1e-24 } else { bins.iter().sum::<f64>() / bins.len() as f64 * (hi - lo) as f64 / 3. };
+            band[f] = if bins.is_empty() {
+                1e-24
+            } else {
+                bins.iter().sum::<f64>() / bins.len() as f64 * (hi - lo) as f64 / 3.
+            };
         }
     }
     let noise: Vec<(f64, f64, f64, f64)> = bands
@@ -251,22 +329,39 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
             let track: Vec<f64> = band.iter().map(|e| 10. * e.max(1e-24).log10()).collect();
             let top = track.iter().cloned().fold(f64::MIN, f64::max);
             let at = track.iter().position(|&v| v == top).unwrap_or(0);
-            let nf = track[track.len().saturating_sub(10)..].iter().sum::<f64>() / 10f64.min(track.len() as f64).max(1.);
-            let times: Vec<f64> = (0..track.len()).map(|i| (i * nhop + nsize / 2) as f64 / RATE).collect();
+            let nf = track[track.len().saturating_sub(10)..].iter().sum::<f64>()
+                / 10f64.min(track.len() as f64).max(1.);
+            let times: Vec<f64> = (0..track.len())
+                .map(|i| (i * nhop + nsize / 2) as f64 / RATE)
+                .collect();
             // Fast stage: the first 20 dB of decay after the maximum.
-            let fast_end = (at..track.len()).find(|&i| track[i] < top - 20.).unwrap_or(track.len() - 1).max(at + 2).min(track.len() - 1);
+            let fast_end = (at..track.len())
+                .find(|&i| track[i] < top - 20.)
+                .unwrap_or(track.len() - 1)
+                .max(at + 2)
+                .min(track.len() - 1);
             let (_, fs, _) = fit(&times[at..=fast_end], &track[at..=fast_end]);
-            let fast = if fs < -1e-3 { (-60. / fs).clamp(0.005, 4.) } else { 4. };
+            let fast = if fs < -1e-3 {
+                (-60. / fs).clamp(0.005, 4.)
+            } else {
+                4.
+            };
             // Slow stage: from 25 dB down until near the noise floor.
             let slow_from = (at..track.len()).find(|&i| track[i] < top - 25.);
             let (slow, slow_db) = match slow_from {
                 Some(from) => {
-                    let idx: Vec<usize> = (from..track.len()).take_while(|&i| track[i] > nf + 6.).collect();
+                    let idx: Vec<usize> = (from..track.len())
+                        .take_while(|&i| track[i] > nf + 6.)
+                        .collect();
                     if idx.len() >= 3 {
                         let xs: Vec<f64> = idx.iter().map(|&i| times[i]).collect();
                         let ys: Vec<f64> = idx.iter().map(|&i| track[i]).collect();
                         let (a, b, _) = fit(&xs, &ys);
-                        if b < -1e-3 { ((-60. / b).clamp(fast, 8.), (a - top).min(-6.)) } else { (fast, -120.) }
+                        if b < -1e-3 {
+                            ((-60. / b).clamp(fast, 8.), (a - top).min(-6.))
+                        } else {
+                            (fast, -120.)
+                        }
                     } else {
                         (fast, -120.)
                     }
@@ -280,8 +375,15 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
         })
         .collect();
     // Space: overhead/room energy relative to the direct sound and room decay.
-    let room_peak = room.iter().enumerate().fold((0, 0f32), |m, (i, v)| if v.abs() > m.1 { (i, v.abs()) } else { m });
-    let direct_peak = direct.iter().position(|v| v.abs() as f64 >= peak * 0.999).unwrap_or(0);
+    let room_peak =
+        room.iter().enumerate().fold(
+            (0, 0f32),
+            |m, (i, v)| if v.abs() > m.1 { (i, v.abs()) } else { m },
+        );
+    let direct_peak = direct
+        .iter()
+        .position(|v| v.abs() as f64 >= peak * 0.999)
+        .unwrap_or(0);
     let room_t60: Vec<f64> = (0..BANDS)
         .step_by(4)
         .map(|b| {
@@ -290,27 +392,44 @@ fn analyze(stems: &[Vec<f32>], velocity: f64, cymbal: bool, reference: Option<&[
                 .map(|f| {
                     let s = spectrum(&room, f * 480, 1024);
                     let w = RATE / 1024.;
-                    let (lo, hi) = ((edges[b] / w) as usize, ((edges[(b + 4).min(BANDS)] / w) as usize).min(s.len()));
-                    10. * ((lo..hi.max(lo + 1)).map(|k| s[k.min(s.len() - 1)].powi(2)).sum::<f64>()).max(1e-24).log10()
+                    let (lo, hi) = (
+                        (edges[b] / w) as usize,
+                        ((edges[(b + 4).min(BANDS)] / w) as usize).min(s.len()),
+                    );
+                    10. * ((lo..hi.max(lo + 1))
+                        .map(|k| s[k.min(s.len() - 1)].powi(2))
+                        .sum::<f64>())
+                    .max(1e-24)
+                    .log10()
                 })
                 .collect();
-            let nf = track[track.len().saturating_sub(10)..].iter().sum::<f64>() / 10f64.min(track.len() as f64).max(1.);
+            let nf = track[track.len().saturating_sub(10)..].iter().sum::<f64>()
+                / 10f64.min(track.len() as f64).max(1.);
             t60(&track, 0.01, nf)
         })
         .collect();
     // Level of this piece in the recorded natural mix (close + 0.8 overhead
     // + 0.45 room, the StudioNatural balance) relative to its direct sound.
-    let mix: Vec<f32> = (0..n).map(|i| close[i] + 0.8 * overhead[i] + 0.45 * room[i]).collect();
+    let mix: Vec<f32> = (0..n)
+        .map(|i| close[i] + 0.8 * overhead[i] + 0.45 * room[i])
+        .collect();
     let bloom = {
         let frames = (n.saturating_sub(2048) / 480).min(60);
         let track: Vec<f64> = (0..frames)
             .map(|f| {
                 let s = spectrum(direct, f * 480, 2048);
                 let w = RATE / 2048.;
-                (((1000. / w) as usize)..((16000. / w) as usize).min(s.len())).map(|k| s[k] * s[k]).sum::<f64>()
+                (((1000. / w) as usize)..((16000. / w) as usize).min(s.len()))
+                    .map(|k| s[k] * s[k])
+                    .sum::<f64>()
             })
             .collect();
-        track.iter().enumerate().fold((0, f64::MIN), |m, (i, &v)| if v > m.1 { (i, v) } else { m }).0 as f64 * 0.01
+        track
+            .iter()
+            .enumerate()
+            .fold((0, f64::MIN), |m, (i, &v)| if v > m.1 { (i, v) } else { m })
+            .0 as f64
+            * 0.01
     };
     HitAnalysis {
         bloom,
@@ -350,12 +469,21 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let kit = Path::new(&args[1]);
     let mut groups: BTreeMap<(String, String), Vec<(String, f64)>> = BTreeMap::new();
-    for line in std::fs::read_to_string(kit.join("hits.jsonl")).unwrap().lines() {
+    for line in std::fs::read_to_string(kit.join("hits.jsonl"))
+        .unwrap()
+        .lines()
+    {
         let v: serde_json::Value = serde_json::from_str(line).unwrap();
         groups
-            .entry((v["voice"].as_str().unwrap().into(), v["articulation"].as_str().unwrap().into()))
+            .entry((
+                v["voice"].as_str().unwrap().into(),
+                v["articulation"].as_str().unwrap().into(),
+            ))
             .or_default()
-            .push((v["file"].as_str().unwrap().into(), v["power"].as_f64().unwrap()));
+            .push((
+                v["file"].as_str().unwrap().into(),
+                v["power"].as_f64().unwrap(),
+            ));
     }
     let holdout_every = 4; // every 4th layer is held out for validation
     let mut models = serde_json::Map::new();
@@ -364,14 +492,28 @@ fn main() {
         let (lo, hi) = (hits[0].1.ln(), hits[hits.len() - 1].1.ln());
         let cymbal = matches!(voice.as_str(), "crash" | "ride" | "openHat" | "closedHat");
         // Reference modes from the loudest training hit.
-        let loudest = (0..hits.len()).rev().find(|i| i % holdout_every != holdout_every - 1).unwrap();
-        let reference: Vec<f64> = analyze(&read(&kit.join(&hits[loudest].0)), 1., cymbal, None).modes.iter().map(|m| m.0).collect();
+        let loudest = (0..hits.len())
+            .rev()
+            .find(|i| i % holdout_every != holdout_every - 1)
+            .unwrap();
+        let reference: Vec<f64> = analyze(&read(&kit.join(&hits[loudest].0)), 1., cymbal, None)
+            .modes
+            .iter()
+            .map(|m| m.0)
+            .collect();
         let analyses: Vec<(bool, HitAnalysis)> = hits
             .iter()
             .enumerate()
             .map(|(i, (file, power))| {
-                let v = if hi > lo { (power.ln() - lo) / (hi - lo) } else { 1. };
-                (i % holdout_every == holdout_every - 1, analyze(&read(&kit.join(file)), v, cymbal, Some(&reference)))
+                let v = if hi > lo {
+                    (power.ln() - lo) / (hi - lo)
+                } else {
+                    1.
+                };
+                (
+                    i % holdout_every == holdout_every - 1,
+                    analyze(&read(&kit.join(file)), v, cymbal, Some(&reference)),
+                )
             })
             .collect();
         let train: Vec<&HitAnalysis> = analyses.iter().filter(|a| !a.0).map(|a| &a.1).collect();
@@ -382,7 +524,10 @@ fn main() {
         };
         // Modes: reference set from the loudest training hit; each mode's
         // parameters are fitted across hits by matching the nearest peak.
-        let reference = train.iter().max_by(|a, b| a.velocity.total_cmp(&b.velocity)).unwrap();
+        let reference = train
+            .iter()
+            .max_by(|a, b| a.velocity.total_cmp(&b.velocity))
+            .unwrap();
         let modes: Vec<serde_json::Value> = reference
             .modes
             .iter()

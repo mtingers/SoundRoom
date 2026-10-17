@@ -1,12 +1,14 @@
 import Foundation
+import SoundroomCore
 import UniformTypeIdentifiers
 import XCTest
-import SoundroomCore
+
 @testable import Soundroom
 
 final class ProjectFileSelectionTests: XCTestCase {
     private func withDirectory(_ body: (URL) throws -> Void) throws {
-        let root = FileManager.default.temporaryDirectory.appendingPathComponent("soundroom-open-\(UUID().uuidString)", isDirectory: true)
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "soundroom-open-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         try body(root)
@@ -14,7 +16,8 @@ final class ProjectFileSelectionTests: XCTestCase {
     func testOrdinaryProjectDirectoryCanBeSelectedAndLoadedWithoutPackageMetadata() throws {
         try withDirectory { root in
             let project = root.appendingPathComponent("Nutshell.soundroom", isDirectory: true)
-            var session = Session(); session.name = "Nutshell fixture"
+            var session = Session()
+            session.name = "Nutshell fixture"
             try ProjectPersistence.saveSynchronously(session: session, assets: [:], to: project)
             // No Finder flags or content-type registration are needed.
             XCTAssertNoThrow(try ProjectFileSelection.validate(project))
@@ -24,7 +27,9 @@ final class ProjectFileSelectionTests: XCTestCase {
         }
     }
     func testPickerIncludesOrdinaryFoldersAlongsideTheDeclaredProjectType() {
-        XCTAssertTrue(ProjectFileSelection.contentTypes.contains(.folder), "A package-only filter disables unregistered .soundroom directories")
+        XCTAssertTrue(
+            ProjectFileSelection.contentTypes.contains(.folder),
+            "A package-only filter disables unregistered .soundroom directories")
         XCTAssertTrue(ProjectFileSelection.contentTypes.contains { $0.identifier == "com.soundroom.session" })
     }
     func testContainingDirectoryCannotBeMistakenForTheProject() throws {
@@ -49,7 +54,8 @@ final class ProjectFileSelectionTests: XCTestCase {
             XCTAssertThrowsError(try ProjectFileSelection.validate(project)) { error in
                 XCTAssertTrue(error.localizedDescription.contains("session.json"))
             }
-            try FileManager.default.createDirectory(at: project.appendingPathComponent("session.json"), withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(
+                at: project.appendingPathComponent("session.json"), withIntermediateDirectories: true)
             XCTAssertThrowsError(try ProjectFileSelection.validate(project))
         }
     }

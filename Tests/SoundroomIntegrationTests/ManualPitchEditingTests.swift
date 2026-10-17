@@ -1,5 +1,6 @@
-import XCTest
 import SoundroomCore
+import XCTest
+
 @testable import Soundroom
 
 final class ManualPitchEditingTests: XCTestCase {
@@ -75,7 +76,8 @@ final class ManualPitchEditingTests: XCTestCase {
     }
 
     func testPitchAxisOnlyChangesOnExplicitZoomPanOrFit() {
-        var viewport = PitchChartViewport(), editing = ManualPitchEditing()
+        var viewport = PitchChartViewport()
+        var editing = ManualPitchEditing()
         let contour = [point(2000), point(5000)]
         viewport.fit(frames: 12_000, contour: contour, reference: 440)
         editing.load(frames: 12_000, contour: contour, reference: 440)
@@ -100,7 +102,8 @@ final class ManualPitchEditingTests: XCTestCase {
 
     @MainActor
     private func fixture() -> (SessionStore, UUID, UUID) {
-        let store = SessionStore(), asset = UUID()
+        let store = SessionStore()
+        let asset = UUID()
         let voice = (0..<36_000).map { Float(0.2 * sin(2 * Double.pi * 450 * Double($0) / sessionRate)) }
         store.assets[asset] = AudioSamples(channels: [voice])
         let track = store.session.tracks[0].id
@@ -118,6 +121,4 @@ final class ManualPitchEditingTests: XCTestCase {
         while store.busy, Date() < deadline { try? await Task.sleep(nanoseconds: 1_000_000) }
         XCTAssertFalse(store.busy, "Manual render did not finish")
     }
-
-
 }

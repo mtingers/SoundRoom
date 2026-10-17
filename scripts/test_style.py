@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Regression checks for generated-file exclusions and partially staged commits."""
+
+import contextlib
+import io
+from pathlib import Path
+import subprocess
+import tempfile
+import unittest
+from unittest.mock import patch
+
+import style
+
+
+class StagedStyleTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(prefix="soundroom-style-test-")
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        subprocess.run(["git", "init", "--quiet", str(self.root)], check=True)
+        for name in [".swift-format", "portable/rustfmt.toml"]:
+            target = self.root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((style.ROOT / name).read_bytes())
+        self.root_patch = patch.object(style, "ROOT", self.root)
+        self.root_patch.start()
+        self.addCleanup(self.root_patch.stop)
+
+    def add(self, name, contents):
+        path = self.root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(contents)
+        subprocess.run(["git", "add", "--", name], cwd=self.root, check=True)
+        return path
+
+    def test_unformatted_rust_index_is_rejected_even_when_worktree_is_formatted(self):
+        name = "portable/crates/example/src/lib.rs"
+        staged = b"pub fn example( ) { }\n"
+        path = self.add(name, staged)
+        worktree = b"pub fn example() {}\n"
+        path.write_bytes(worktree)
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(RuntimeError):
+                style.staged()
+        self.assertEqual(path.read_bytes(), worktree)
+        self.assertEqual(style.git("show", ":" + name), staged)
+
+    def test_formatted_swift_index_is_accepted_without_rewriting_unstaged_edits(self):
+        name = "Sources/Example.swift"
+        staged = b"struct Example {\n    let value: Int\n}\n"
+        path = self.add(name, staged)
+        worktree = b"struct Example{let value:Int;let other:Int}\n"
+        path.write_bytes(worktree)
+        with contextlib.redirect_stdout(io.StringIO()):
+            style.staged()
+        self.assertEqual(path.read_bytes(), worktree)
+        self.assertEqual(style.git("show", ":" + name), staged)
+
+    def test_generated_bindings_and_ignored_build_outputs_are_excluded(self):
+        for name in style.GENERATED_SWIFT:
+            self.add(name, b"generated binding\n")
+        self.add("protocol/generated/models.rs", b"generated binding\n")
+        self.add("Sources/Example.swift", b"struct Example {}\n")
+        self.add(".gitignore", b"build/\n")
+        output = self.root / "build/Example.swift"
+        output.parent.mkdir()
+        output.write_text("this is an ignored build output")
+        self.assertEqual(style.files(), ["Sources/Example.swift"])
+        self.assertEqual(style.files(staged=True), ["Sources/Example.swift"])
+
+    def test_staged_configuration_wins_over_unstaged_configuration(self):
+        self.add(".swift-format", (self.root / ".swift-format").read_bytes())
+        (self.root / ".swift-format").write_text("invalid unstaged configuration")
+        self.assertTrue(style.index_configuration(".swift-format").startswith(b"{"))
+
+    def test_installer_preserves_an_existing_default_hook(self):
+        hook = self.root / ".git/hooks/pre-commit"
+        hook.write_text("#!/bin/sh\nexit 0\n")
+        with self.assertRaises(RuntimeError):
+            style.install_hook()
+        self.assertEqual(hook.read_text(), "#!/bin/sh\nexit 0\n")
+        result = subprocess.run(
+            ["git", "config", "--get", "core.hooksPath"],
+            cwd=self.root, capture_output=True,
+        )
+        self.assertEqual(result.returncode, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
