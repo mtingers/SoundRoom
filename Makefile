@@ -1,4 +1,4 @@
-.PHONY: format fmt format-check lint lint-swift lint-rust check protocol-check install-hooks
+.PHONY: format fmt format-check lint lint-swift lint-rust lint-scripts check protocol-check install-hooks setup-style
 
 PYTHON ?= python3
 
@@ -15,7 +15,10 @@ lint-rust:
 	$(PYTHON) scripts/style.py check --language rust
 	cargo clippy --manifest-path portable/Cargo.toml --release --workspace --all-targets --all-features --locked -- -D warnings
 
-lint: lint-swift lint-rust
+lint-scripts:
+	$(PYTHON) scripts/style.py check --language scripts
+
+lint: lint-swift lint-rust lint-scripts
 
 protocol-check:
 	bash protocol/check.sh
@@ -24,3 +27,7 @@ check: lint protocol-check
 
 install-hooks:
 	$(PYTHON) scripts/style.py install-hook
+
+setup-style:
+	$(PYTHON) -m venv build/Tools/style
+	build/Tools/style/bin/python -m pip install --disable-pip-version-check -r scripts/requirements-style.txt

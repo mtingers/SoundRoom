@@ -1,0 +1,2 @@
+# Development tooling only; independent of the optional ML/audio runtime.
+ruff==0.14.14

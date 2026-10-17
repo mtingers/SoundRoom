@@ -5,6 +5,7 @@ inheritance, #define $VAR value, #include "file" (resolved through a fetch
 callback), note names, and the opcodes Soundroom maps (key ranges, velocity
 ranges, pitch centre, tune, volume, round robins, trigger, loops).
 """
+
 import re
 
 NOTE = {"c": 0, "d": 2, "e": 4, "f": 5, "g": 7, "a": 9, "b": 11}
@@ -60,7 +61,7 @@ def parse(text, include, defines=None):
         if header:
             current = header.group(1)
             if current in order:
-                for lower in order[order.index(current):]:
+                for lower in order[order.index(current) :]:
                     levels[lower] = {}
             if current == "region":
                 regions.append({})
@@ -101,13 +102,20 @@ def note_regions(regions, max_robins=2, exclude=("noise", "harmonic", "release",
         lorand = float(r.get("lorand", "0"))
         if "lorand" in r or "hirand" in r:
             robin = 1 + int(round(lorand * 5))
-        out.append({
-            "sample": r["sample"], "lokey": lo, "hikey": hi, "centre": centre,
-            "lovel": int(r.get("lovel", "1")), "hivel": int(r.get("hivel", "127")),
-            "robin": robin, "tune": float(r.get("tune", "0")),
-            "volume": float(r.get("volume", "0")),
-            "release": float(r.get("ampeg_release", "0.25")),
-        })
+        out.append(
+            {
+                "sample": r["sample"],
+                "lokey": lo,
+                "hikey": hi,
+                "centre": centre,
+                "lovel": int(r.get("lovel", "1")),
+                "hivel": int(r.get("hivel", "127")),
+                "robin": robin,
+                "tune": float(r.get("tune", "0")),
+                "volume": float(r.get("volume", "0")),
+                "release": float(r.get("ampeg_release", "0.25")),
+            }
+        )
     zones = {}
     for r in sorted(out, key=lambda r: r["robin"]):
         zone = (r["lokey"], r["hikey"], r["lovel"], r["hivel"])

@@ -26,14 +26,16 @@ fi
 export CLANG_MODULE_CACHE_PATH="$PWD/.build/clang-cache"
 export SWIFTPM_MODULECACHE_OVERRIDE="$CLANG_MODULE_CACHE_PATH"
 mkdir -p build/Release
-swift test -c release --disable-sandbox --cache-path .build/cache -debug-info-format none > build/Release/tests.log 2>&1
+swift test -c release --disable-sandbox --cache-path .build/cache -debug-info-format none \
+    > build/Release/tests.log 2>&1
 zsh scripts/build-app.sh > build/Release/build.log 2>&1
 release_version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' scripts/Info.plist)
 release_folder="$PWD/build/Release/Soundroom-$release_version"
 mkdir -p "$release_folder"
 ditto build/Soundroom.app "$release_folder/Soundroom.app"
 release_app="$release_folder/Soundroom.app"
-codesign --force --sign "$SOUNDROOM_SIGN_IDENTITY" --timestamp --options runtime --entitlements scripts/Release.entitlements "$release_app"
+codesign --force --sign "$SOUNDROOM_SIGN_IDENTITY" --timestamp --options runtime \
+    --entitlements scripts/Release.entitlements "$release_app"
 codesign --verify --deep --strict --verbose=2 "$release_app"
 release_archive="$release_folder/Soundroom-$release_version.zip"
 ditto -c -k --keepParent "$release_app" "$release_archive"
@@ -50,10 +52,13 @@ if [[ "$release_mode" == notarize ]]; then
     xcrun notarytool submit "$release_archive" --keychain-profile "$SOUNDROOM_NOTARY_PROFILE" --wait --output-format json > "$release_folder/notarization.json"
     python3 - "$release_folder/notarization.json" <<'PY'
 import json, sys
+
 with open(sys.argv[1]) as source:
     result = json.load(source)
 if result.get("status") != "Accepted":
-    sys.exit("Notarization was not accepted; inspect notarization.json and obtain the notarytool log.")
+    sys.exit(
+        "Notarization was not accepted; inspect notarization.json and obtain the notarytool log."
+    )
 PY
     xcrun stapler staple "$release_app"
     xcrun stapler validate "$release_app"

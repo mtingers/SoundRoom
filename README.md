@@ -66,4 +66,4 @@ Soundroom's own source code is available under the [MIT License](LICENSE). Demo 
 
 ## Code style and checks
 
-Run `make format` to format Swift and Rust, `make lint` for read-only style and Clippy checks, and `make check` to include protocol validation. The optional staged commit hook and editor settings are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+Run `make setup-style` once for Python development tooling. Use `make format` for Swift, Rust, and Python, `make lint` for style, Clippy, and shell syntax checks, and `make check` to include protocol validation. `make lint-scripts` checks the Python and shell tools on their own. The optional staged commit hook and editor settings are documented in [CONTRIBUTING.md](CONTRIBUTING.md).

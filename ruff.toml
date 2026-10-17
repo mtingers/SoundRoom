@@ -1,0 +1,15 @@
+required-version = "==0.14.14"
+target-version = "py39"
+line-length = 100
+cache-dir = "build/Tools/ruff-cache"
+extend-exclude = ["build", ".build", "portable/target", "protocol/generated"]
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I"]
+# Named callback lambdas are intentional in DSP/model experiments.
+ignore = ["E731"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

@@ -7,6 +7,7 @@ The provider's htdemucs_ft bag gives each source weight 1 in exactly one model;
 loading that source's model produces the same selected stem with lower memory.
 Provenance: https://github.com/facebookresearch/demucs/blob/main/demucs/remote/
 """
+
 from __future__ import annotations
 
 import argparse
@@ -15,11 +16,11 @@ import importlib.metadata
 import json
 import math
 import os
-from pathlib import Path
 import sys
 import tempfile
 import time
 import urllib.request
+from pathlib import Path
 
 RATE = 48000
 SEGMENT_SECONDS = 7.8
@@ -39,8 +40,11 @@ Converting weights or downloading them separately does not establish permission.
 Reviewed 2026-10-15; see Soundroom's THIRD_PARTY_NOTICES.md.
 """
 EXPECTED_PACKAGES = {
-    "demucs": "4.0.1", "torch": "2.0.1", "torchaudio": "2.0.2",
-    "numpy": "1.26.4", "soundfile": "0.12.1",
+    "demucs": "4.0.1",
+    "torch": "2.0.1",
+    "torchaudio": "2.0.2",
+    "numpy": "1.26.4",
+    "soundfile": "0.12.1",
 }
 MODEL_FILES = {
     "955717e8": "955717e8-8726e21a.th",
@@ -52,8 +56,10 @@ MODEL_FILES = {
 }
 TARGETS = ("vocals", "drums", "bass", "other", "guitar", "piano")
 QUALITY_MODELS = {
-    "vocals": "04573f0d", "drums": "f7e0c4bc",
-    "bass": "d12395a8", "other": "92cfc3b6",
+    "vocals": "04573f0d",
+    "drums": "f7e0c4bc",
+    "bass": "d12395a8",
+    "other": "92cfc3b6",
 }
 MODELS = {
     "quality": {"name": "htdemucs_ft", "experimental": False, "targets": tuple(QUALITY_MODELS)},
@@ -107,7 +113,11 @@ def load_manifest(folder: Path) -> dict:
         return {"schema": 1, "provider": PROVIDER, "files": {}}
     try:
         manifest = json.loads(path.read_text())
-        if manifest.get("schema") == 1 and manifest.get("provider") == PROVIDER and isinstance(manifest.get("files"), dict):
+        if (
+            manifest.get("schema") == 1
+            and manifest.get("provider") == PROVIDER
+            and isinstance(manifest.get("files"), dict)
+        ):
             return manifest
     except (OSError, ValueError, AttributeError):
         pass
@@ -124,7 +134,11 @@ def verified_model(folder: Path, signature: str, manifest: dict, full: bool = Fa
     if not isinstance(record, dict) or not path.is_file() or path.is_symlink():
         return False
     digest = record.get("sha256", "")
-    if not isinstance(digest, str) or len(digest) != 64 or not digest.startswith(checksum_prefix(signature)):
+    if (
+        not isinstance(digest, str)
+        or len(digest) != 64
+        or not digest.startswith(checksum_prefix(signature))
+    ):
         return False
     stamp = path.stat()
     if record.get("bytes") != stamp.st_size or record.get("mtime_ns") != stamp.st_mtime_ns:
@@ -154,16 +168,28 @@ def runtime_status(folder: Path) -> dict:
     manifest = load_manifest(folder)
     models = {}
     for name, info in MODELS.items():
-        available = [target for target in info["targets"] if verified_model(folder, signature_for(name, target), manifest)]
+        available = [
+            target
+            for target in info["targets"]
+            if verified_model(folder, signature_for(name, target), manifest)
+        ]
         models[name] = {
-            **info, "available": packages_ready and len(available) == len(info["targets"]),
+            **info,
+            "available": packages_ready and len(available) == len(info["targets"]),
             "availableTargets": available if packages_ready else [],
         }
     return {
-        "runtimeReady": packages_ready, "packages": installed, "expectedPackages": EXPECTED_PACKAGES,
-        "models": models, "modelsDir": str(folder), "sampleRate": RATE,
-        "offline": True, "provider": PROVIDER, "license": "unresolved",
-        "codeLicense": "MIT", "weightsLicense": "unresolved",
+        "runtimeReady": packages_ready,
+        "packages": installed,
+        "expectedPackages": EXPECTED_PACKAGES,
+        "models": models,
+        "modelsDir": str(folder),
+        "sampleRate": RATE,
+        "offline": True,
+        "provider": PROVIDER,
+        "license": "unresolved",
+        "codeLicense": "MIT",
+        "weightsLicense": "unresolved",
         "weightsUsageStatement": WEIGHTS_USAGE_STATEMENT,
         "weightsLicenseSource": WEIGHTS_LICENSE_SOURCE,
         "extendedWarning": "Guitar and piano are experimental; piano commonly contains bleed and artifacts.",
@@ -183,11 +209,14 @@ def atomic_text(path: Path, content: str) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def download_model(folder: Path, signature: str, manifest: dict, opener=urllib.request.urlopen) -> None:
+def download_model(
+    folder: Path, signature: str, manifest: dict, opener=urllib.request.urlopen
+) -> None:
     """Only allowlisted Meta URLs; verify provider hash before publishing bytes."""
     filename = MODEL_FILES[signature]
     weight_terms = {
-        "license": "unresolved", "licenseSource": WEIGHTS_LICENSE_SOURCE,
+        "license": "unresolved",
+        "licenseSource": WEIGHTS_LICENSE_SOURCE,
         "usageStatement": WEIGHTS_USAGE_STATEMENT,
     }
     if verified_model(folder, signature, manifest, full=True):
@@ -202,7 +231,9 @@ def download_model(folder: Path, signature: str, manifest: dict, opener=urllib.r
     try:
         digest = hashlib.sha256()
         total = 0
-        request = urllib.request.Request(url, headers={"User-Agent": "Soundroom-SourceSeparation/1"})
+        request = urllib.request.Request(
+            url, headers={"User-Agent": "Soundroom-SourceSeparation/1"}
+        )
         with os.fdopen(fd, "wb") as output, opener(request, timeout=45) as response:
             if not response.geturl().startswith("https://"):
                 raise WorkerError("Model download redirected to an insecure URL")
@@ -226,9 +257,13 @@ def download_model(folder: Path, signature: str, manifest: dict, opener=urllib.r
         destination = folder / filename
         os.replace(temporary, destination)
         manifest["files"][filename] = {
-            "url": url, "providerChecksumPrefix": checksum_prefix(signature), "sha256": checksum,
-            "bytes": total, "mtime_ns": destination.stat().st_mtime_ns,
-            "preparedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **weight_terms,
+            "url": url,
+            "providerChecksumPrefix": checksum_prefix(signature),
+            "sha256": checksum,
+            "bytes": total,
+            "mtime_ns": destination.stat().st_mtime_ns,
+            "preparedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            **weight_terms,
         }
         atomic_text(folder / "manifest.json", json.dumps(manifest, indent=2) + "\n")
         emit("prepared", file=filename, cached=False, bytes=total, sha256=checksum)
@@ -240,11 +275,14 @@ def prepare_models(folder: Path, model: str) -> None:
     folder.mkdir(parents=True, exist_ok=True)
     # Prevent two explicit installers from losing each other's manifest entries.
     import fcntl
+
     with (folder / ".prepare.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         manifest = load_manifest(folder)
         requested = MODELS if model == "all" else (model,)
-        signatures = {signature_for(name, target) for name in requested for target in MODELS[name]["targets"]}
+        signatures = {
+            signature_for(name, target) for name in requested for target in MODELS[name]["targets"]
+        }
         for signature in sorted(signatures):
             download_model(folder, signature, manifest)
         atomic_text(folder / "DEMUCS-LICENSE.txt", MIT_LICENSE)
@@ -255,7 +293,7 @@ def prepare_models(folder: Path, model: str) -> None:
 def triangle_weights(length: int) -> list[float]:
     """Positive triangular overlap-add weights, including both endpoint samples."""
     if length < 2:
-        return [1.] * length
+        return [1.0] * length
     half = length // 2
     peak = max(half, length - half)
     return [min(i + 1, length - i) / peak for i in range(length)]
@@ -286,7 +324,7 @@ def read_stereo(stream, frames, np):
 
 def normalization(stream, np):
     # Parallel-variance update avoids cancellation for quiet audio with DC.
-    count, mean, m2, channel_power = 0, 0., 0., 0.
+    count, mean, m2, channel_power = 0, 0.0, 0.0, 0.0
     while True:
         block = read_stereo(stream, RATE * 4, np)
         if not len(block):
@@ -302,9 +340,9 @@ def normalization(stream, np):
         channel_power += float(np.square(block.astype("float64")).sum()) * 0.5
     stream.seek(0)
     if count == 0:
-        return 0., 0., 0.
-    std = math.sqrt(max(0., m2 / count))
-    rms = math.sqrt(max(0., channel_power / count))
+        return 0.0, 0.0, 0.0
+    std = math.sqrt(max(0.0, m2 / count))
+    rms = math.sqrt(max(0.0, channel_power / count))
     # Anti-phase stereo has a silent mono reference, while carrying real music.
     return mean, std if std > rms * 1e-4 else rms, rms
 
@@ -317,7 +355,9 @@ def render(args, model_loader=None, predictor=None) -> None:
     """
     ready = runtime_status(args.models_dir)
     if not ready["runtimeReady"]:
-        raise WorkerError("Source separation runtime is not installed. Run scripts/setup-source-separation.sh.")
+        raise WorkerError(
+            "Source separation runtime is not installed. Run scripts/setup-source-separation.sh."
+        )
     import numpy as np
     import soundfile as sf
     import torch
@@ -336,7 +376,9 @@ def render(args, model_loader=None, predictor=None) -> None:
     signature = signature_for(args.model, args.target)
     manifest = load_manifest(args.models_dir)
     if model_loader is None and not verified_model(args.models_dir, signature, manifest, full=True):
-        raise WorkerError("Selected model is not installed or failed checksum verification. Run the setup script.")
+        raise WorkerError(
+            "Selected model is not installed or failed checksum verification. Run the setup script."
+        )
     # get_model(repo=...) cannot download. Reject any unexpected .th files and
     # YAML bags before deserialization to keep the repository unambiguous.
     if model_loader is None:
@@ -351,14 +393,20 @@ def render(args, model_loader=None, predictor=None) -> None:
     os.close(fd)
     try:
         with sf.SoundFile(args.input) as source:
-            if source.samplerate != RATE or source.channels not in (1, 2) or source.format not in ("WAV", "WAVEX"):
+            if (
+                source.samplerate != RATE
+                or source.channels not in (1, 2)
+                or source.format not in ("WAV", "WAVEX")
+            ):
                 raise WorkerError("Expected a mono/stereo 48 kHz WAV source")
             frames = source.frames
             if not 0 <= frames <= MAX_FRAMES:
                 raise WorkerError("Source exceeds the two-hour processing limit")
-            emit("progress", progress=0., phase="Analyzing source")
+            emit("progress", progress=0.0, phase="Analyzing source")
             mean, std, rms = normalization(source, np)
-            with sf.SoundFile(temporary, "w", samplerate=RATE, channels=2, format="WAV", subtype="FLOAT") as output:
+            with sf.SoundFile(
+                temporary, "w", samplerate=RATE, channels=2, format="WAV", subtype="FLOAT"
+            ) as output:
                 if rms <= 1e-10 or frames == 0:
                     # Silence needs no model prediction. Remove still retains
                     # the original (including tiny sub-threshold float values).
@@ -368,27 +416,48 @@ def render(args, model_loader=None, predictor=None) -> None:
                         dry = read_stereo(source, n, np)
                         if len(dry) != n:
                             raise WorkerError("Source changed while processing")
-                        output.write(dry if args.operation == "remove" else np.zeros((n, 2), dtype="float32"))
+                        output.write(
+                            dry if args.operation == "remove" else np.zeros((n, 2), dtype="float32")
+                        )
                         remaining -= n
                 else:
                     if model_loader is None:
-                        from demucs.pretrained import get_model
                         from demucs.apply import apply_model
+                        from demucs.pretrained import get_model
+
                         model_loader = lambda: get_model(signature, repo=args.models_dir)
                         predictor = lambda model, audio: apply_model(
-                            model, audio[None], shifts=0, split=False, progress=False,
-                            device="cpu", num_workers=0, segment=SEGMENT_SECONDS,
+                            model,
+                            audio[None],
+                            shifts=0,
+                            split=False,
+                            progress=False,
+                            device="cpu",
+                            num_workers=0,
+                            segment=SEGMENT_SECONDS,
                         )[0, model.sources.index(args.target)]
                     model = model_loader().cpu().eval()
-                    if model.audio_channels != 2 or model.samplerate != 44100 or args.target not in model.sources:
+                    if (
+                        model.audio_channels != 2
+                        or model.samplerate != 44100
+                        or args.target not in model.sources
+                    ):
                         raise WorkerError("Provider model has unexpected input/source metadata")
                     to_model = torchaudio.transforms.Resample(
-                        RATE, model.samplerate, lowpass_filter_width=64, rolloff=0.95,
-                        resampling_method="sinc_interp_kaiser", beta=14.,
+                        RATE,
+                        model.samplerate,
+                        lowpass_filter_width=64,
+                        rolloff=0.95,
+                        resampling_method="sinc_interp_kaiser",
+                        beta=14.0,
                     )
                     from_model = torchaudio.transforms.Resample(
-                        model.samplerate, RATE, lowpass_filter_width=64, rolloff=0.95,
-                        resampling_method="sinc_interp_kaiser", beta=14.,
+                        model.samplerate,
+                        RATE,
+                        lowpass_filter_width=64,
+                        rolloff=0.95,
+                        resampling_method="sinc_interp_kaiser",
+                        beta=14.0,
                     )
                     segment = round(SEGMENT_SECONDS * RATE)
                     pending = np.zeros((segment, 2), dtype="float32")
@@ -404,11 +473,16 @@ def render(args, model_loader=None, predictor=None) -> None:
                             audio = torch.from_numpy(original.T.copy())
                             converted = to_model((audio - mean) / std)
                             prediction = predictor(model, converted)
-                            if prediction.shape != converted.shape or not torch.isfinite(prediction).all():
+                            if (
+                                prediction.shape != converted.shape
+                                or not torch.isfinite(prediction).all()
+                            ):
                                 raise WorkerError("Model returned invalid source audio")
                             selected = from_model(prediction * std + mean)
                             if selected.shape[-1] < n:
-                                selected = torch.nn.functional.pad(selected, (0, n - selected.shape[-1]))
+                                selected = torch.nn.functional.pad(
+                                    selected, (0, n - selected.shape[-1])
+                                )
                             selected = selected[:, :n].T.cpu().numpy()
                             if not np.isfinite(selected).all():
                                 raise WorkerError("Resampled source contains non-finite audio")
@@ -429,7 +503,11 @@ def render(args, model_loader=None, predictor=None) -> None:
                             weight_sum[-writable:] = 0
                             progress = min(99, int((start + writable) / frames * 100))
                             if progress != last_progress:
-                                emit("progress", progress=progress / 100., phase="Separating sources")
+                                emit(
+                                    "progress",
+                                    progress=progress / 100.0,
+                                    phase="Separating sources",
+                                )
                                 last_progress = progress
                 output.flush()
                 if output.frames != frames:
@@ -438,8 +516,16 @@ def render(args, model_loader=None, predictor=None) -> None:
             os.fsync(finished.fileno())
         # Exclusive publication leaves a concurrently created output intact.
         os.link(temporary, args.output)
-        emit("complete", progress=1., frames=frames, sampleRate=RATE, channels=2,
-             target=args.target, model=MODELS[args.model]["name"], operation=args.operation)
+        emit(
+            "complete",
+            progress=1.0,
+            frames=frames,
+            sampleRate=RATE,
+            channels=2,
+            target=args.target,
+            model=MODELS[args.model]["name"],
+            operation=args.operation,
+        )
     finally:
         temporary.unlink(missing_ok=True)
 
@@ -450,7 +536,11 @@ def main(argv=None) -> int:
     action.add_argument("--status", action="store_true")
     action.add_argument("--prepare-models", action="store_true")
     parser.add_argument("--models-dir", type=Path, required=True)
-    parser.add_argument("--ready-file", type=Path, help="Atomically publish local readiness after explicit preparation")
+    parser.add_argument(
+        "--ready-file",
+        type=Path,
+        help="Atomically publish local readiness after explicit preparation",
+    )
     parser.add_argument("--model", choices=(*MODELS, "all"), default="quality")
     parser.add_argument("--target", choices=TARGETS, default="vocals")
     parser.add_argument("--operation", choices=("extract", "remove"), default="extract")
@@ -464,11 +554,22 @@ def main(argv=None) -> int:
             prepare_models(args.models_dir, args.model)
             if args.ready_file:
                 ready = runtime_status(args.models_dir)
-                if not ready["runtimeReady"] or not any(model["available"] for model in ready["models"].values()):
+                if not ready["runtimeReady"] or not any(
+                    model["available"] for model in ready["models"].values()
+                ):
                     raise WorkerError("Installed separation runtime did not pass readiness checks")
-                atomic_text(args.ready_file, json.dumps({
-                    "schema": 1, **ready, "message": "Local separation models are ready.",
-                }, indent=2) + "\n")
+                atomic_text(
+                    args.ready_file,
+                    json.dumps(
+                        {
+                            "schema": 1,
+                            **ready,
+                            "message": "Local separation models are ready.",
+                        },
+                        indent=2,
+                    )
+                    + "\n",
+                )
         else:
             if not args.input or not args.output or args.model == "all":
                 raise WorkerError("Inference requires --input, --output and a single --model")

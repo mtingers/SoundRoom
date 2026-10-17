@@ -46,5 +46,10 @@ jobs:
       - name: Install the protocol validator's pinned TypeScript compiler
         run: npm install --global --ignore-scripts --no-audit --no-fund typescript@5.3.3
       - run: make protocol-check
+      - name: Install Python development tooling
+        run: |
+          make setup-style
+          echo "$PWD/build/Tools/style/bin" >> "$GITHUB_PATH"
+      - run: make lint-scripts
       - name: Check the hook's index handling
         run: python3 scripts/test_style.py

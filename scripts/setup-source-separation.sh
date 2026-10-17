@@ -11,24 +11,44 @@ python_bin="${SOUNDROOM_SEPARATION_PYTHON:-python3.11}"
 
 while (($#)); do
     case "$1" in
-        --runtime-dir|--models|--python)
-            if (($# < 2)); then printf 'Missing value for %s\n' "$1" >&2; exit 2; fi
+        --runtime-dir | --models | --python)
+            if (($# < 2)); then
+                printf 'Missing value for %s\n' "$1" >&2
+                exit 2
+            fi
             case "$1" in
-                --runtime-dir) runtime_dir="$2" ;;
-                --models) model_set="$2" ;;
-                --python) python_bin="$2" ;;
+                --runtime-dir)
+                    runtime_dir="$2"
+                    ;;
+                --models)
+                    model_set="$2"
+                    ;;
+                --python)
+                    python_bin="$2"
+                    ;;
             esac
-            shift 2 ;;
+            shift 2
+            ;;
         --help)
             printf '%s\n' "Usage: $0 [--runtime-dir PATH] [--models quality|standard|extended|all] [--python PYTHON3.11]"
             printf '%s\n' 'Installs an isolated Python runtime and downloads official Demucs weights.'
             printf '%s\n' 'Code: MIT. Weights: scientific purposes per upstream; general/commercial rights unconfirmed.'
             printf '%s\n' 'See THIRD_PARTY_NOTICES.md and https://github.com/facebookresearch/demucs/issues/327.'
-            exit 0 ;;
-        *) printf 'Unknown argument: %s\n' "$1" >&2; exit 2 ;;
+            exit 0
+            ;;
+        *)
+            printf 'Unknown argument: %s\n' "$1" >&2
+            exit 2
+            ;;
     esac
 done
-case "$model_set" in quality|standard|extended|all) ;; *) printf 'Invalid model set\n' >&2; exit 2 ;; esac
+case "$model_set" in
+    quality | standard | extended | all) ;;
+    *)
+        printf 'Invalid model set\n' >&2
+        exit 2
+        ;;
+esac
 printf '%s\n' 'Demucs code is MIT; pretrained weights have separate, unresolved licensing.' >&2
 printf '%s\n' 'Upstream provides weights only for scientific purposes; see THIRD_PARTY_NOTICES.md.' >&2
 "$python_bin" -c 'import sys; assert sys.version_info[:2] == (3, 11), "Python 3.11 is required for the pinned runtime"'
@@ -48,6 +68,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+
 source, destination = map(Path, sys.argv[1:])
 fd, name = tempfile.mkstemp(prefix=".worker-", suffix=".py", dir=destination.parent)
 temporary = Path(name)

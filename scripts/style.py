@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Format/check authored Swift and Rust sources without touching generated files."""
+"""Format/lint authored sources and syntax-check shell scripts without executing them."""
 
 import argparse
 import difflib
 import os
-from pathlib import Path
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 GENERATED_SWIFT = frozenset(
@@ -32,6 +33,10 @@ def source_language(name):
         return "swift"
     if name.startswith("portable/crates/") and name.endswith(".rs"):
         return "rust"
+    if name.endswith(".py"):
+        return "python"
+    if name.endswith(".sh") or name == ".githooks/pre-commit":
+        return "shell"
     return None
 
 
@@ -43,9 +48,7 @@ def files(staged=False):
     )
     names = {os.fsdecode(name) for name in git(*arguments).split(b"\0") if name}
     return sorted(
-        name
-        for name in names
-        if source_language(name) and (staged or (ROOT / name).is_file())
+        name for name in names if source_language(name) and (staged or (ROOT / name).is_file())
     )
 
 
@@ -53,9 +56,7 @@ def swift_formatter():
     # Use the selected Swift toolchain rather than a second formatter dependency.
     swift = shutil.which("swift")
     if swift:
-        result = subprocess.run(
-            [swift, "format", "--help"], capture_output=True, cwd=ROOT
-        )
+        result = subprocess.run([swift, "format", "--help"], capture_output=True, cwd=ROOT)
         if result.returncode == 0:
             return [swift, "format"]
     formatter = shutil.which("swift-format")
@@ -66,6 +67,37 @@ def swift_formatter():
 
 def run(arguments, **options):
     subprocess.run(arguments, cwd=ROOT, check=True, **options)
+
+
+def ruff():
+    local = ROOT / "build/Tools/style/bin/ruff"
+    executable = str(local) if local.is_file() else shutil.which("ruff")
+    if not executable:
+        raise RuntimeError("Python style checks require Ruff 0.14.14; run make setup-style.")
+    return executable
+
+
+def shell_check(name, contents):
+    """Use the declared interpreter's parser, including Zsh-specific syntax."""
+    header = contents.split(b"\n", 1)[0].decode()
+    if not header.startswith("#!"):
+        raise RuntimeError(f"{name}: a shell shebang is required for syntax checks.")
+    words = shlex.split(header[2:])
+    if words and Path(words[0]).name == "env":
+        words = words[1:]
+    if not words or Path(words[0]).name not in {"sh", "bash", "zsh"}:
+        raise RuntimeError(f"{name}: unsupported shell shebang {header!r}.")
+    interpreter = Path(words[0]).name
+    # No script commands run. Ignore user startup files where the shell supports it.
+    arguments = [interpreter, "-f", "-n"] if interpreter == "zsh" else [interpreter, "-n"]
+    environment = dict(os.environ, BASH_ENV="", ENV="")
+    result = subprocess.run(
+        arguments, input=contents, cwd=ROOT, env=environment, capture_output=True
+    )
+    if result.returncode:
+        sys.stderr.write(f"{name}: shell syntax check failed\n")
+        sys.stderr.write(result.stderr.decode(errors="replace"))
+        raise RuntimeError(f"Invalid {interpreter} syntax in {name}.")
 
 
 def working_tree(command, language):
@@ -88,12 +120,31 @@ def working_tree(command, language):
         run(arguments)
         action = "formatted" if command == "format" else "checked"
         print(f"Rust: workspace {action}.", flush=True)
+    if language in ("all", "scripts", "python"):
+        sources = [name for name in files() if source_language(name) == "python"]
+        if sources:
+            configuration = ["--config", str(ROOT / "ruff.toml"), "--no-cache"]
+            formatter = [ruff(), "format", *configuration]
+            if command == "format":
+                run([ruff(), "check", *configuration, "--select", "I", "--fix", *sources])
+            else:
+                formatter.append("--check")
+            run([*formatter, *sources])
+            if command == "check":
+                run([ruff(), "check", *configuration, *sources])
+            action = "formatted" if command == "format" else "formatted and linted"
+            print(f"Python: {len(sources)} authored files {action}.", flush=True)
+    if language in ("all", "scripts", "shell"):
+        sources = [name for name in files() if source_language(name) == "shell"]
+        for name in sources:
+            shell_check(name, (ROOT / name).read_bytes())
+        print(
+            f"Shell: {len(sources)} scripts syntax-checked in their declared dialect.", flush=True
+        )
 
 
 def index_configuration(name):
-    result = subprocess.run(
-        ["git", "show", ":" + name], cwd=ROOT, capture_output=True
-    )
+    result = subprocess.run(["git", "show", ":" + name], cwd=ROOT, capture_output=True)
     return result.stdout if result.returncode == 0 else (ROOT / name).read_bytes()
 
 
@@ -109,23 +160,54 @@ def staged():
         configuration = Path(folder)
         (configuration / ".swift-format").write_bytes(index_configuration(".swift-format"))
         (configuration / "rustfmt.toml").write_bytes(index_configuration("portable/rustfmt.toml"))
+        python_sources = any(source_language(name) == "python" for name in names)
+        if python_sources:
+            (configuration / "ruff.toml").write_bytes(index_configuration("ruff.toml"))
         for name in names:
             original = git("show", ":" + name)
-            if source_language(name) == "swift":
+            language = source_language(name)
+            if language == "shell":
+                shell_check(name, original)
+                continue
+            if language == "python":
+                options = [
+                    "--config",
+                    str(configuration / "ruff.toml"),
+                    "--no-cache",
+                    "--stdin-filename",
+                    name,
+                ]
+                lint = subprocess.run(
+                    [ruff(), "check", *options, "-"],
+                    input=original,
+                    cwd=ROOT,
+                    capture_output=True,
+                )
+                if lint.returncode:
+                    sys.stderr.write((lint.stdout + lint.stderr).decode(errors="replace"))
+                    failures.append(name)
+                arguments = [ruff(), "format", *options, "-"]
+            elif language == "swift":
                 arguments = swift + [
-                    "format", "--configuration", str(configuration / ".swift-format"),
-                    "--assume-filename", name,
+                    "format",
+                    "--configuration",
+                    str(configuration / ".swift-format"),
+                    "--assume-filename",
+                    name,
                 ]
             else:
                 # stdin avoids traversing modules outside the selected index blob.
                 # rustfmt --check on stdin can exit zero despite a diff, so compare bytes.
                 arguments = [
-                    "rustfmt", "--emit", "stdout",
-                    "--config-path", str(configuration / "rustfmt.toml"),
+                    "rustfmt",
+                    "--emit",
+                    "stdout",
+                    "--config-path",
+                    str(configuration / "rustfmt.toml"),
                 ]
             result = subprocess.run(arguments, input=original, cwd=ROOT, capture_output=True)
             if result.returncode:
-                sys.stderr.buffer.write(result.stderr)
+                sys.stderr.write(result.stderr.decode(errors="replace"))
                 failures.append(name)
             elif original != result.stdout:
                 failures.append(name)
@@ -138,10 +220,10 @@ def staged():
                 sys.stderr.writelines(diff)
     if failures:
         raise RuntimeError(
-            "Staged formatting failed. Run make format, review the diff, "
-            "then stage the intended changes again."
+            "Staged style/syntax checks failed. Run make format, fix the reported lint/syntax "
+            "errors, then stage the intended changes again."
         )
-    print(f"Staged formatting: {len(names)} files passed.")
+    print(f"Staged style/syntax: {len(names)} files passed.")
 
 
 def install_hook():
@@ -150,16 +232,14 @@ def install_hook():
     ).stdout.strip()
     if existing and existing != ".githooks":
         raise RuntimeError(
-            f"core.hooksPath already uses {existing!r}; "
-            "add the style check to that hook instead."
+            f"core.hooksPath already uses {existing!r}; add the style check to that hook instead."
         )
     if not existing:
         active = Path(os.fsdecode(git("rev-parse", "--git-path", "hooks/pre-commit")).strip())
         active = active if active.is_absolute() else ROOT / active
         if active.exists():
             raise RuntimeError(
-                "A pre-commit hook already exists; add the staged style check "
-                "to that hook instead."
+                "A pre-commit hook already exists; add the staged style check to that hook instead."
             )
     hook = ROOT / ".githooks/pre-commit"
     hook.chmod(hook.stat().st_mode | 0o111)
@@ -170,7 +250,9 @@ def install_hook():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=["format", "check", "staged", "install-hook"])
-    parser.add_argument("--language", choices=["all", "swift", "rust"], default="all")
+    parser.add_argument(
+        "--language", choices=["all", "swift", "rust", "scripts", "python", "shell"], default="all"
+    )
     arguments = parser.parse_args()
     try:
         if arguments.command == "staged":

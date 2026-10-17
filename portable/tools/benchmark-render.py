@@ -4,10 +4,12 @@
 This includes file I/O and is never callback deadline/hardware qualification.
 Build first: cargo build --release --locked -p soundroom-server
 """
+
 import argparse
 import json
 import math
 from pathlib import Path
+
 try:
     import resource
 except ImportError:
@@ -52,14 +54,29 @@ with tempfile.TemporaryDirectory(prefix="soundroom-render-benchmark-") as tempor
         track["clips"] = clips
     (project / "session.json").write_text(json.dumps(document))
     started = time.perf_counter()
-    result = subprocess.run([str(binary), "render", str(project), str(directory / "mix.wav")],
-                            check=True, capture_output=True, text=True)
+    result = subprocess.run(
+        [str(binary), "render", str(project), str(directory / "mix.wav")],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
     elapsed = time.perf_counter() - started
     # macOS reports bytes; Linux reports KiB. Windows resource module is unavailable.
     peak = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss if resource else None
-    peak_mib = peak / (1024 * 1024 if sys.platform == "darwin" else 1024) if peak is not None else None
-    print(json.dumps({"case": args.case, "audio_seconds": frames / 48000,
-                      "clips": sum(len(t["clips"]) for t in document["tracks"]),
-                      "worker_seconds": elapsed, "audio_seconds_per_worker_second": frames / 48000 / elapsed,
-                      "child_peak_resident_mib": peak_mib,
-                      "scope": "offline worker including file I/O; not callback/hardware qualification"}, indent=2))
+    peak_mib = (
+        peak / (1024 * 1024 if sys.platform == "darwin" else 1024) if peak is not None else None
+    )
+    print(
+        json.dumps(
+            {
+                "case": args.case,
+                "audio_seconds": frames / 48000,
+                "clips": sum(len(t["clips"]) for t in document["tracks"]),
+                "worker_seconds": elapsed,
+                "audio_seconds_per_worker_second": frames / 48000 / elapsed,
+                "child_peak_resident_mib": peak_mib,
+                "scope": "offline worker including file I/O; not callback/hardware qualification",
+            },
+            indent=2,
+        )
+    )

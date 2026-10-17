@@ -12,7 +12,18 @@ spec: {"repo": "owner/repo", "tree": "<git tree json>", "sets": [{"prefix": "...
 Octave numbering differs between libraries, so the octave is corrected from
 each note's detected pitch (median offset per set).
 """
-import json, math, os, re, shutil, statistics, subprocess, sys, tempfile, urllib.parse, urllib.request
+
+import json
+import math
+import os
+import re
+import shutil
+import statistics
+import subprocess
+import sys
+import tempfile
+import urllib.parse
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 NOTE = {"c": 0, "d": 2, "e": 4, "f": 5, "g": 7, "a": 9, "b": 11}
@@ -22,7 +33,9 @@ def named_key(name: str) -> int:
     m = re.fullmatch(r"([A-Ga-g])([#b]?)(-?\d+)", name)
     if not m:
         raise ValueError(name)
-    return (int(m.group(3)) + 1) * 12 + NOTE[m.group(1).lower()] + {"#": 1, "b": -1, "": 0}[m.group(2)]
+    return (
+        (int(m.group(3)) + 1) * 12 + NOTE[m.group(1).lower()] + {"#": 1, "b": -1, "": 0}[m.group(2)]
+    )
 
 
 def fetch(url: str) -> bytes:
@@ -73,16 +86,28 @@ def main():
     shutil.rmtree(staging, ignore_errors=True)
     os.makedirs(staging)
     try:
+
         def download(item):
             local = os.path.join(scratch, f"{picked.index(item):04d}.wav")
             open(local, "wb").write(fetch(base + urllib.parse.quote(item[1])))
             return local
+
         with ThreadPoolExecutor(8) as pool:
             locals_ = list(pool.map(download, picked))
         raw = sum(os.path.getsize(p) for p in locals_)
-        jobs = [{"input": l, "output": os.path.join(staging, f"{i:04d}.wav"), "loop": spec.get("loop", False),
-                 "maxSeconds": spec.get("maxSeconds", 30)} for i, l in enumerate(locals_)]
-        jobs_path, results_path = os.path.join(scratch, "jobs.json"), os.path.join(scratch, "results.json")
+        jobs = [
+            {
+                "input": local_path,
+                "output": os.path.join(staging, f"{i:04d}.wav"),
+                "loop": spec.get("loop", False),
+                "maxSeconds": spec.get("maxSeconds", 30),
+            }
+            for i, local_path in enumerate(locals_)
+        ]
+        jobs_path, results_path = (
+            os.path.join(scratch, "jobs.json"),
+            os.path.join(scratch, "results.json"),
+        )
         json.dump(jobs, open(jobs_path, "w"))
         subprocess.run([converter, jobs_path, results_path], check=True)
         results = {os.path.basename(r["output"]): r for r in json.load(open(results_path))}
@@ -108,8 +133,18 @@ def main():
         if lo_hi and not (lo_hi[0] <= key <= lo_hi[1]):
             continue
         layers = spec["sets"][si].get("present") or 1
-        entries.append({"file": f"{i:04d}.wav", "centre": key, "layer": layer, "layers": layers, "robin": rr - 1,
-                        "gain": r["gain"], "loopStart": r["loopStart"], "loopEnd": r["loopEnd"]})
+        entries.append(
+            {
+                "file": f"{i:04d}.wav",
+                "centre": key,
+                "layer": layer,
+                "layers": layers,
+                "robin": rr - 1,
+                "gain": r["gain"],
+                "loopStart": r["loopStart"],
+                "loopEnd": r["loopEnd"],
+            }
+        )
     # Key zones: halfway between neighbouring sampled notes.
     centres = sorted({e["centre"] for e in entries})
     for e in entries:
@@ -119,17 +154,24 @@ def main():
         n = e.pop("layers")
         e["lovel"] = 1 + (127 * e["layer"]) // n
         e["hivel"] = (127 * (e.pop("layer") + 1)) // n
-        e["tune"] = 0.
+        e["tune"] = 0.0
     for f in os.listdir(staging):
         if f.endswith(".wav") and f not in {e["file"] for e in entries}:
             os.remove(os.path.join(staging, f))
-    manifest = {"version": 1, "instrument": instrument, "source": f"https://github.com/{spec['repo']}",
-                "release": spec.get("release", 0.3), "regions": entries}
+    manifest = {
+        "version": 1,
+        "instrument": instrument,
+        "source": f"https://github.com/{spec['repo']}",
+        "release": spec.get("release", 0.3),
+        "regions": entries,
+    }
     json.dump(manifest, open(os.path.join(staging, "manifest.json"), "w"), indent=1)
     shutil.rmtree(out_dir, ignore_errors=True)
     os.rename(staging, out_dir)
     stored = sum(os.path.getsize(os.path.join(out_dir, f)) for f in os.listdir(out_dir))
-    print(f"{instrument}: {len(entries)} regions, {len(centres)} notes {centres[0]}–{centres[-1]}, octave offsets {offsets}; downloaded {raw/1e6:.0f} MB, stored {stored/1e6:.0f} MB")
+    print(
+        f"{instrument}: {len(entries)} regions, {len(centres)} notes {centres[0]}–{centres[-1]}, octave offsets {offsets}; downloaded {raw / 1e6:.0f} MB, stored {stored / 1e6:.0f} MB"
+    )
 
 
 if __name__ == "__main__":
