@@ -25,6 +25,7 @@ pub mod media;
 #[cfg(target_os = "macos")]
 pub mod media_decode;
 pub mod meters;
+pub mod metronome;
 pub mod midi;
 pub mod model;
 pub mod paged;

@@ -13,6 +13,7 @@ use soundroom_client::{
 };
 use soundroom_engine::{
     authority::{Authority, ControlEdit, MixControls, Role},
+    metronome::Grid,
     model::{Clip, Session, Track},
     project::{Media, Project},
     wave::WaveReader,
@@ -448,7 +449,7 @@ enum JobKind {
         task: Box<writes::Task>,
     },
     Record {
-        plan: record::Plan,
+        plan: Box<record::Plan>,
         backend: crate::audio::Backend,
         project: Box<Project>,
         revision: u64,
@@ -776,6 +777,7 @@ impl Service {
         state.this = Some(Arc::downgrade(shared));
         backend.observe_revision(state.authority.revision);
         state.backend = Some(backend);
+        state.sync_metronome_grid();
         Ok(())
     }
     /// Control-plane diagnostics. Applied means an actual callback adopted that graph.
@@ -904,12 +906,12 @@ impl Service {
             .and_then(|i| i.integers.get("countInBars").copied())
             .unwrap_or(0)
             .clamp(0, 4) as usize;
-        let beat = record::beat_frames(tempo, timing.beat_unit);
-        let count_in = record::clicks(
-            (bars as f64 * timing.beats_per_bar.max(1) as f64 * beat).round() as usize,
-            tempo,
-            timing.beats_per_bar,
-            timing.beat_unit,
+        let grid = Grid::new(tempo, timing.beats_per_bar, timing.beat_unit);
+        // The count-in continues the project's bar grid into the transport
+        // click, including from a start between beats.
+        let count_in = grid.count_in(
+            (bars as f64 * grid.beats_per_bar as f64 * grid.beat_frames).round() as usize,
+            playback,
         );
         let metronome = flag("metronome");
         if peer.role != RemoteRole::Operator {
@@ -970,25 +972,23 @@ impl Service {
         } else {
             0.
         };
-        let mut project = Project {
+        let project = Project {
             session: self.authority.session.clone(),
             media: self.media.clone(),
         };
-        if metronome {
-            self.add_metronome(&mut project, playback, tempo)?;
-        }
         if intent.is_some() {
             self.input_monitoring = flag("inputMonitoring");
         }
         self.set_running(&project.session);
         self.operator = Some(peer.runtime.clone());
         Ok(Handled::Job(JobKind::Record {
-            plan: record::Plan {
+            plan: Box::new(record::Plan {
                 device,
                 routes,
                 offset_frames: (offset * 48.).round() as i64,
                 directory: self.root.join("Recordings"),
                 end_frame: end,
+                metronome,
                 monitor: backend
                     .preview()
                     .monitor_writer()
@@ -997,7 +997,7 @@ impl Service {
                         enabled: Arc::new(AtomicBool::new(self.input_monitoring)),
                         routes: monitor_routes,
                     }),
-            },
+            }),
             backend,
             project: Box::new(project),
             revision: self.authority.revision,
@@ -1005,69 +1005,6 @@ impl Service {
             playback,
             count_in,
         }))
-    }
-    /// A click track for this recording only: one bar of clicks reused by a
-    /// clip on every bar line, rendered sample-accurately by the transport graph.
-    fn add_metronome(&self, project: &mut Project, from: u64, tempo: f64) -> Result<(), Error> {
-        let timing = &project.session.timing;
-        let beats = timing.beats_per_bar.max(1);
-        let bar = record::beat_frames(tempo, timing.beat_unit) * beats as f64;
-        let length = bar.ceil() as usize;
-        let path = self.root.join("Artifacts").join(format!(
-            "metronome-{}-{}-{}.wav",
-            (tempo * 1000.).round(),
-            beats,
-            timing.beat_unit
-        ));
-        if !path.exists() {
-            std::fs::create_dir_all(self.root.join("Artifacts"))?;
-            let audio = record::clicks(length, tempo, beats, timing.beat_unit);
-            let mut writer =
-                soundroom_engine::wave::WaveWriter::create(&path, length as u64).map_err(engine)?;
-            for block in audio.chunks(4096) {
-                writer.write(block, block).map_err(engine)?;
-            }
-            writer.finish().map_err(engine)?;
-        }
-        let info = WaveReader::open(&path).map_err(engine)?.info;
-        let asset = new_id()?;
-        let available = info.frames;
-        project.media.insert(asset.clone(), Media { path, info });
-        let first = (from as f64 / bar).floor() as u64;
-        let horizon = from + 60 * 60 * 48000;
-        let mut clips = vec![];
-        let mut index = first;
-        while ((index as f64) * bar) < horizon as f64 && clips.len() < 20_000 {
-            let mut clip = soundroom_engine::model::Clip {
-                id: new_id()?,
-                asset_id: asset.clone(),
-                name: "Metronome".into(),
-                start: ((index as f64) * bar).round() as u64,
-                offset: 0,
-                length: length as u64,
-                edge_fade_frames: Some(0),
-                edge_protection_disabled: Some(true),
-                cut_fade_in_frames: None,
-                cut_fade_out_frames: None,
-                fade_in_frames: None,
-                fade_out_frames: None,
-                fade_reference_offset: None,
-                fade_reference_length: None,
-                render_envelope: None,
-                previous_states: vec![],
-                extra: BTreeMap::new(),
-            };
-            clip.length = clip.length.min(available);
-            clips.push(clip);
-            index += 1;
-        }
-        project.session.tracks.push(Track {
-            id: new_id()?,
-            name: "Metronome".into(),
-            clips,
-            ..Track::default()
-        });
-        Ok(())
     }
     fn broadcast_transport(&self) {
         let (frame, playing) = match self.authority.transport {
@@ -1226,6 +1163,8 @@ impl Service {
                     "transport.record",
                     "transport.finishRecording",
                     "recording.settings",
+                    "transport.metronome",
+                    "devices.inputVolume",
                     "server.shutdown",
                     "project.new",
                     "devices.refresh",
@@ -1496,6 +1435,7 @@ impl Service {
         if old_revision == self.authority.revision {
             return Ok(());
         }
+        self.sync_metronome_grid();
         let input = self.capture_snapshot();
         self.schedule_audio_update(&input);
         self.publication.enqueue(Publication {
@@ -1597,8 +1537,20 @@ impl Service {
         if let Ok(mut running) = self.running.lock() {
             *running = None;
         }
+        self.sync_metronome_grid();
         let input = self.capture_snapshot();
         self.schedule_audio_update(&input);
+    }
+    /// Keeps the transport click on the project's tempo and meter.
+    fn sync_metronome_grid(&self) {
+        if let Some(backend) = &self.backend {
+            let timing = &self.authority.session.timing;
+            backend.set_metronome_grid(Grid::new(
+                timing.tempo,
+                timing.beats_per_bar,
+                timing.beat_unit,
+            ));
+        }
     }
     /// Records the session a newly started graph plays.
     fn set_running(&self, session: &Session) {
@@ -3564,6 +3516,18 @@ impl Service {
                 }
                 self.transport_job(peer, crate::audio::Command::Pause)
             }
+            "transport.metronome" => {
+                // A monitoring preference, not a transport command: any
+                // operator may switch it while another owns the transport.
+                if peer.role != RemoteRole::Operator {
+                    return Err(protocol("Operator role is required"));
+                }
+                if let Some(backend) = &self.backend {
+                    backend.set_metronome(intent.flags.get("enabled") == Some(&true));
+                }
+                Ok(Handled::Payload(None))
+            }
+            "devices.inputVolume" => self.input_volume(peer, intent),
             "recording.settings" => {
                 self.require_transport_owner(peer, false)?;
                 self.input_monitoring = intent.flags.get("inputMonitoring") == Some(&true);
@@ -4113,6 +4077,9 @@ fn run_job(shared: Shared, out: Outbox, job: Job, digest: [u8; 32]) {
                 let result = (|| {
                     backend.execute_recording(crate::audio::Command::Seek(playback), Box::new(Project { session: project.session.clone(), media: project.media.clone() }), revision, job.cancel.clone(), &generation)?;
                     let count_in_seconds = count_in.len() as f64 / 48000.;
+                    if plan.metronome {
+                        backend.metronome_until_stop();
+                    }
                     if !count_in.is_empty() {
                         // The callback starts the clicks and holds the graph for exactly their length.
                         backend.arm_count_in(count_in);
@@ -4137,7 +4104,7 @@ fn run_job(shared: Shared, out: Outbox, job: Job, digest: [u8; 32]) {
                         }
                     }
                     let start = target;
-                    match record::start(plan, backend.clone(), start, job.peer.clone(), job.cancel.clone()) {
+                    match record::start(*plan, backend.clone(), start, job.peer.clone(), job.cancel.clone()) {
                         Ok(active) => {
                             let mut state = shared.lock().map_err(|_| protocol("Authority is unavailable"))?;
                             if job.cancel.load(Ordering::Acquire) || !backend.telemetry().is_some_and(|t| t.playing)

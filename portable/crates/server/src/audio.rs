@@ -63,12 +63,28 @@ struct Inner {
     anchor: Mutex<Option<soundroom_engine::capture_clock::OutputClockAnchor>>,
     preview: soundroom_engine::preview::PreviewControl,
     count_in: soundroom_engine::realtime::CountIn,
+    metronome: soundroom_engine::realtime::Metronome,
+    click: Mutex<Click>,
     live: soundroom_engine::realtime::LivePublisher,
     /// The published live patch awaiting the callback: (taken count that
     /// includes it, rejections before it, its revision).
     live_pending: Mutex<Option<(u64, u64, u64)>>,
 }
+/// The transport click: the project's grid, the operator's toggle, and a
+/// recording that asked for the click until the transport next stops.
+struct Click {
+    grid: soundroom_engine::metronome::Grid,
+    enabled: bool,
+    recording: bool,
+}
 impl Inner {
+    fn update_click(&self, change: impl FnOnce(&mut Click)) {
+        if let Ok(mut click) = self.click.lock() {
+            change(&mut click);
+            self.metronome
+                .set((click.enabled || click.recording).then_some(click.grid));
+        }
+    }
     // Called only by control/preparation workers. The audio callback keeps its
     // existing atomic telemetry path and never wakes or locks this thread.
     fn wake_driver(&self) {
@@ -165,10 +181,17 @@ impl Backend {
         let (write, write_driver) = write::channel();
         let preview = control.preview();
         let count_in = control.count_in();
+        let metronome = control.metronome();
         let live = control.live_publisher();
         let inner = Arc::new(Inner {
             preview,
             count_in,
+            metronome,
+            click: Mutex::new(Click {
+                grid: soundroom_engine::metronome::Grid::new(120., 4, 4),
+                enabled: false,
+                recording: false,
+            }),
             live,
             live_pending: Mutex::new(None),
             priority,
@@ -287,6 +310,17 @@ impl Backend {
             ..Default::default()
         });
     }
+    /// Turns the transport click on or off; it applies to the running graph.
+    pub fn set_metronome(&self, enabled: bool) {
+        self.inner.update_click(|click| click.enabled = enabled);
+    }
+    pub fn set_metronome_grid(&self, grid: soundroom_engine::metronome::Grid) {
+        self.inner.update_click(|click| click.grid = grid);
+    }
+    /// A recording's click lasts until the transport next stops.
+    pub fn metronome_until_stop(&self) {
+        self.inner.update_click(|click| click.recording = true);
+    }
     pub fn preview(&self) -> soundroom_engine::preview::PreviewControl {
         self.inner.preview.clone()
     }
@@ -389,6 +423,7 @@ impl Backend {
     /// Cleanup must never supersede the explicit Stop that cancelled startup.
     pub(crate) fn pause_if_current(&self, generation: u64) -> Result<Option<Telemetry>, Error> {
         self.inner.count_in.cancel();
+        self.inner.update_click(|click| click.recording = false);
         let next = generation
             .checked_add(1)
             .ok_or_else(|| protocol("Transport generation exhausted"))?;
@@ -418,6 +453,7 @@ impl Backend {
     ) -> Result<Telemetry, Error> {
         if matches!(command, Command::Pause) {
             self.inner.count_in.cancel();
+            self.inner.update_click(|click| click.recording = false);
             let epoch = self.inner.epoch.fetch_add(1, Ordering::AcqRel) + 1;
             self.inner.updates.cancel();
             if let Ok(current) = self.inner.current_cancel.lock() {

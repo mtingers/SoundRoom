@@ -256,6 +256,7 @@ struct MainView: View {
                 }.buttonStyle(.plain).help("Record / finish recording (R)").accessibilityLabel(
                     store.recordingInProgress ? "Finish recording" : "Record"
                 ).disabled(!store.canToggleRecording)
+                MetronomeButton(store: store)
                 Button {
                     store.showRecordingSetup = true
                 } label: {
@@ -281,6 +282,7 @@ struct MainView: View {
             }.fixedSize()
             Spacer(minLength: 8)
             HStack(spacing: 9) {
+                InputVolumeButton(store: store)
                 if !compact {
                     Button {
                         store.refreshDevices()
@@ -478,7 +480,10 @@ struct TrackControls: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(spacing: 7) {
-                RoundedRectangle(cornerRadius: 2).fill(Theme.track(track.color)).frame(width: 4, height: 17)
+                HStack(spacing: 3) {
+                    TrackReorderHandle(store: store, track: track)
+                    RoundedRectangle(cornerRadius: 2).fill(Theme.track(track.color)).frame(width: 4, height: 17)
+                }.padding(.leading, -8)
                 Button {
                     store.choose(track: track.id)
                 } label: {
@@ -571,6 +576,8 @@ struct TrackControls: View {
                     .disabled(!store.canUseTrackTools(track.id) || track.clips.isEmpty)
                 Divider()
                 Button("Rename track…") { store.requestRename(track.id) }
+                Button("Move up") { store.moveTrack(track.id, by: -1) }.disabled(!store.canMoveTrack(track.id, by: -1))
+                Button("Move down") { store.moveTrack(track.id, by: 1) }.disabled(!store.canMoveTrack(track.id, by: 1))
                 Button("Show takes…") {
                     store.choose(track: track.id)
                     store.showTakeBrowser = true
@@ -1092,6 +1099,10 @@ struct DeviceSheet: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { store.showRecordingSetup = true }
             }
             Text("Choose a device and channels on each track.").font(.system(size: 12)).foregroundStyle(Theme.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Input volume").font(.system(size: 12, weight: .semibold))
+                InputVolumeList(store: store)
+            }
             HStack {
                 Text("Recording offset (ms)")
                 CommittedNumberField("Offset", value: $store.recordingOffsetMS, range: -500...500, fractionDigits: 1)

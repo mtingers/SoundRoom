@@ -174,7 +174,17 @@ private enum EditorClipboard {
     @Published var countInBars = 0
     @Published var preRollSeconds: Double = 0
     @Published var punchRecording = false
-    @Published var recordingMetronome = false
+    /// The transport click, heard during playback and recording. The server
+    /// owns the sound; this client re-asserts its choice after connecting.
+    @Published var metronome = false {
+        didSet {
+            guard metronome != oldValue else { return }
+            if !headless { UserDefaults.standard.set(metronome, forKey: "soundroom.metronome") }
+            syncMetronome()
+        }
+    }
+    let trackDragging = TrackDragState()
+    let inputVolume = InputVolumeModel()
     @Published var showRecordingSetup = false
     @Published var showTakeBrowser = false
     @Published var recordingOffsetMS: Double = 0
@@ -300,6 +310,7 @@ private enum EditorClipboard {
                 TrackSize(rawValue: UserDefaults.standard.string(forKey: "soundroom.trackSize") ?? "") ?? .comfortable
             let width = UserDefaults.standard.double(forKey: "soundroom.effectsDrawerWidth")
             if width.isFinite, width >= 280 { effectsDrawerWidth = min(600, width) }
+            metronome = UserDefaults.standard.bool(forKey: "soundroom.metronome")
         }
         inputDevice = 0
         outputDevice = 0
@@ -848,7 +859,7 @@ private enum EditorClipboard {
         _ = remoteRoute(
             "transport.record", integers: ["countInBars": countInBars],
             numbers: ["tempo": recordingTempo, "preRollSeconds": preRollSeconds, "offsetMS": recordingOffsetMS],
-            flags: ["punch": punchRecording, "metronome": recordingMetronome, "inputMonitoring": inputMonitoring])
+            flags: ["punch": punchRecording, "metronome": metronome, "inputMonitoring": inputMonitoring])
     }
     func finishRecording(message: String? = nil, automaticPunch: Bool = false) {
         _ = remoteRoute("transport.finishRecording")

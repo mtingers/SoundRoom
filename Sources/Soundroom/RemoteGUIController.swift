@@ -77,6 +77,9 @@ import SoundroomRemote
     private var inFlightGesture: RemoteGestureRevisionFence?
     private var inFlightCommand: RemoteCommand?
     private(set) var connectionGeneration = 0
+    /// The connection whose first snapshot already received this client's
+    /// server-held preferences (the transport click).
+    private var preferencesSentGeneration: Int?
     private struct MetadataWait {
         let fence: RemoteGestureRevisionFence
         let command: RemoteCommand
@@ -923,6 +926,10 @@ import SoundroomRemote
             installTransport(snapshot.transport)
             store.status = snapshot.status
             sanitizeSelection()
+            if preferencesSentGeneration != connectionGeneration {
+                preferencesSentGeneration = connectionGeneration
+                store.syncMetronome()
+            }
         case .delta(let delta):
             guard let current = authoritativeSession, delta.revision >= revision,
                 delta.hasValidControlPatches(in: current)

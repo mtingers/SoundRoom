@@ -201,19 +201,7 @@ struct TimelineView: View {
                 Spacer()
                 Text("\(store.session.tracks.count)").font(.system(size: 10))
             }.foregroundStyle(Theme.secondary).padding(.horizontal, 18).frame(height: 34)
-            ForEach(store.session.tracks) { track in
-                TrackControls(store: store, track: track).frame(height: store.trackSize.height)
-                if store.showsAutomation(track) { AutomationLaneHeader(store: store).frame(height: 84) }
-                if store.inlineDrumHeight(for: track) > 0, let drums = store.inlineDrums {
-                    InlineDrumHeader(store: store, controller: drums, editor: drums.editor).frame(
-                        height: InlineDrumLayout.height
-                    ).id(drums.id)
-                }
-                if store.inlineSoundHeight(for: track) > 0, let sound = store.inlineSound {
-                    InlineSoundHeader(store: store, controller: sound).frame(height: InlineSoundLayout.height).id(
-                        sound.id)
-                }
-            }
+            TrackHeaderList(store: store, dragging: store.trackDragging)
             MasterOutputControls(store: store).frame(height: store.trackSize.height)
             if store.showsAutomation(store.session.masterTrack) { AutomationLaneHeader(store: store).frame(height: 84) }
             Button {

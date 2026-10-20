@@ -88,6 +88,8 @@ pub(super) struct Plan {
     pub directory: PathBuf,
     /// Punch-out: takes end here and the recording finishes once input covers it.
     pub end_frame: Option<u64>,
+    /// The transport click until the next stop, armed with the count-in.
+    pub metronome: bool,
     /// Armed inputs played through the output while recording.
     pub monitor: Option<Monitor>,
 }
@@ -781,36 +783,6 @@ fn selected_input_uid(
         .ok_or_else(|| Error::Conflict("Arm a track to record".into()))
 }
 
-/// Click synthesis shared with the Swift `RecordingMetronome`: 25 ms sine
-/// blips, 1600 Hz on the downbeat and 1100 Hz otherwise.
-pub(super) fn click(beat_in_bar: usize, within: f64) -> f32 {
-    let duration = 48000. * 0.025;
-    if within >= duration {
-        return 0.;
-    }
-    let attack = (within / 48.).min(1.);
-    let release = (1. - within / duration).max(0.).powi(3);
-    let frequency = if beat_in_bar == 0 { 1600. } else { 1100. };
-    ((2. * std::f64::consts::PI * frequency * within / 48000.).sin() * attack * release * 0.15)
-        as f32
-}
-/// Frames per beat for a tempo and beat unit.
-pub(super) fn beat_frames(tempo: f64, beat_unit: u32) -> f64 {
-    60. / tempo.clamp(20., 300.) * 4. / beat_unit.max(1) as f64 * 48000.
-}
-/// Renders `frames` of clicks starting on a downbeat.
-pub(super) fn clicks(frames: usize, tempo: f64, beats_per_bar: u32, beat_unit: u32) -> Vec<f32> {
-    let beat = beat_frames(tempo, beat_unit);
-    (0..frames)
-        .map(|frame| {
-            let index = (frame as f64 / beat).floor();
-            click(
-                index as usize % beats_per_bar.max(1) as usize,
-                frame as f64 - index * beat,
-            )
-        })
-        .collect()
-}
 /// Stops capture, stops the transport and commits the takes. Used by an
 /// explicit Stop/Finish and by punch-out completion.
 pub(super) fn finish(
@@ -872,6 +844,43 @@ pub(super) fn finish(
     Ok(serde_json::json!({"takes": takes, "complete": complete}))
 }
 impl Service {
+    /// Reads, or with `volume` sets, an input device's hardware level (the
+    /// System Settings input volume). `uid` defaults to the session input.
+    /// The reply is `{uid, volume}`; volume is null when the device has none.
+    pub(super) fn input_volume(
+        &mut self,
+        peer: &Identity,
+        intent: &soundroom_client::models::RemoteEditorIntent,
+    ) -> Result<super::Handled, Error> {
+        let volume = intent.numbers.get("volume").copied();
+        if volume.is_some() && peer.role != soundroom_client::models::RemoteRole::Operator {
+            return Err(protocol("Operator role is required"));
+        }
+        #[cfg(target_os = "macos")]
+        {
+            use soundroom_engine::core_audio;
+            // Empty is the system default input.
+            let uid = intent
+                .strings
+                .get("uid")
+                .filter(|uid| !uid.is_empty())
+                .or(self.input_uid.as_ref())
+                .map_or("", String::as_str);
+            let (uid, level) = match volume {
+                Some(volume) => core_audio::set_input_volume(uid, volume as f32),
+                None => core_audio::input_volume(uid),
+            }
+            .map_err(engine)?;
+            Ok(super::Handled::Payload(Some(
+                serde_json::json!({"uid": uid, "volume": level}),
+            )))
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = (volume, &self.input_uid);
+            Err(protocol("This host cannot adjust input volume"))
+        }
+    }
     /// Commits a punch recording whose input covers its range, on its own
     /// thread so the audio driver never blocks.
     pub(crate) fn finish_completed_punch(&mut self, shared: super::Shared) {

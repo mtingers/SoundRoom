@@ -1,11 +1,13 @@
 //! Worker-side Core Audio inventory. Calling these APIs enumerates hardware;
 //! there is no automatic enumeration, device opening or default-route mutation.
+//! The only device setting written is an explicitly requested input volume.
 use crate::{Error, Result};
 use std::ffi::c_void;
 
 const GLOBAL: u32 = u32::from_be_bytes(*b"glob");
 const INPUT: u32 = u32::from_be_bytes(*b"inpt");
 const OUTPUT: u32 = u32::from_be_bytes(*b"outp");
+const VOLUME: u32 = u32::from_be_bytes(*b"volm");
 const MAX_PROPERTY: usize = 1024 * 1024;
 #[repr(C)]
 struct Address {
@@ -29,6 +31,20 @@ extern "C" {
         qualifier: *const c_void,
         size: *mut u32,
         data: *mut c_void,
+    ) -> i32;
+    fn AudioObjectHasProperty(object: u32, address: *const Address) -> u8;
+    fn AudioObjectIsPropertySettable(
+        object: u32,
+        address: *const Address,
+        settable: *mut u8,
+    ) -> i32;
+    fn AudioObjectSetPropertyData(
+        object: u32,
+        address: *const Address,
+        qualifier_size: u32,
+        qualifier: *const c_void,
+        size: u32,
+        data: *const c_void,
     ) -> i32;
 }
 #[link(name = "CoreFoundation", kind = "framework")]
@@ -244,6 +260,118 @@ pub fn core_audio_devices() -> Result<Vec<CoreAudioDevice>> {
         devices.push(device);
     }
     Ok(devices)
+}
+/// Input-scope elements that carry the hardware volume System Settings shows:
+/// the main element when the device has one, otherwise each input channel.
+fn input_volume_elements(id: u32, channels: u32) -> Vec<Address> {
+    let settable = |address: &Address| {
+        let mut settable = 0_u8;
+        unsafe {
+            AudioObjectHasProperty(id, address) != 0
+                && AudioObjectIsPropertySettable(id, address, &mut settable) == 0
+                && settable != 0
+        }
+    };
+    let address = |element| Address {
+        selector: VOLUME,
+        scope: INPUT,
+        element,
+    };
+    if settable(&address(0)) {
+        return vec![address(0)];
+    }
+    (1..=channels.min(64))
+        .map(address)
+        .filter(settable)
+        .collect()
+}
+fn read_volume(id: u32, address: &Address) -> Result<f32> {
+    let mut value = 0_f32;
+    let mut size = std::mem::size_of::<f32>() as u32;
+    let status = unsafe {
+        AudioObjectGetPropertyData(
+            id,
+            address,
+            0,
+            std::ptr::null(),
+            &mut size,
+            (&mut value as *mut f32).cast(),
+        )
+    };
+    if status != 0 {
+        return Err(error(status));
+    }
+    Ok(value.clamp(0., 1.))
+}
+/// Resolves an input device by UID without describing the whole inventory:
+/// one UID read per device, then the input layout of the match only.
+/// An empty `uid` is the system default input. Returns (UID, ID, channels).
+fn input_device(uid: &str) -> Result<(String, u32, u32)> {
+    let id = if uid.is_empty() {
+        Some(number(1, *b"dIn ")?).filter(|&id| id != 0)
+    } else {
+        let bytes = property(1, *b"dev#", GLOBAL)?;
+        bytes
+            .chunks_exact(4)
+            .map(|bytes| u32::from_ne_bytes(bytes.try_into().unwrap()))
+            .find(|&id| text(id, *b"uid ").is_ok_and(|device| device == uid))
+    };
+    let id =
+        id.ok_or_else(|| Error::Conflict("That input device is no longer available".into()))?;
+    let channels = channels(&property(id, *b"slay", INPUT)?)?;
+    if channels == 0 {
+        return Err(Error::Conflict("That device has no inputs".into()));
+    }
+    let uid = if uid.is_empty() {
+        text(id, *b"uid ")?
+    } else {
+        uid.to_owned()
+    };
+    Ok((uid, id, channels))
+}
+fn average_volume(id: u32, elements: &[Address]) -> Result<Option<f32>> {
+    if elements.is_empty() {
+        return Ok(None);
+    }
+    let mut total = 0.;
+    for address in elements {
+        total += read_volume(id, address)?;
+    }
+    Ok(Some(total / elements.len() as f32))
+}
+/// The input device's UID and hardware input volume (0…1), averaged across
+/// channels when it has no main control; the volume is `None` when the device
+/// offers no adjustable input level. An empty `uid` is the default input.
+pub fn input_volume(uid: &str) -> Result<(String, Option<f32>)> {
+    let (uid, id, channels) = input_device(uid)?;
+    let volume = average_volume(id, &input_volume_elements(id, channels))?;
+    Ok((uid, volume))
+}
+/// Sets every input volume control of the device and returns its UID and the
+/// level the hardware reports afterwards (drivers may quantize it).
+pub fn set_input_volume(uid: &str, volume: f32) -> Result<(String, Option<f32>)> {
+    if !volume.is_finite() {
+        return Err(Error::Invalid("Input volume must be a number".into()));
+    }
+    let (uid, id, channels) = input_device(uid)?;
+    let elements = input_volume_elements(id, channels);
+    let value = volume.clamp(0., 1.);
+    for address in &elements {
+        let status = unsafe {
+            AudioObjectSetPropertyData(
+                id,
+                address,
+                0,
+                std::ptr::null(),
+                std::mem::size_of::<f32>() as u32,
+                (&value as *const f32).cast(),
+            )
+        };
+        if status != 0 {
+            return Err(error(status));
+        }
+    }
+    Ok((uid, average_volume(id, &elements)?))
 }
 pub(crate) fn output_device(uid: &str) -> Result<CoreAudioDevice> {
     if uid.is_empty() || uid.len() > 32768 {

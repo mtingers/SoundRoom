@@ -116,6 +116,7 @@ final class AppDelegate: NSResponder, NSApplicationDelegate, NSWindowDelegate, N
                     return event
                 }
             case 37: if !self.store.isRecording && self.store.canToggleLoop { self.store.loopSelection.toggle() }
+            case 40: self.store.toggleMetronome()
             case 48:
                 self.store.jumpToClipEdge(forward: !event.modifierFlags.contains(.shift))
             case 3: self.store.revealPlayhead()
@@ -167,6 +168,11 @@ final class AppDelegate: NSResponder, NSApplicationDelegate, NSWindowDelegate, N
             return editingAllowed && store.currentTrack != nil
         }
         if action == #selector(deleteTrack) { return editingAllowed && store.canDeleteSelectedTrack }
+        if action == #selector(moveTrackUp) || action == #selector(moveTrackDown) {
+            return editingAllowed
+                && store.selectedTrack.map { store.canMoveTrack($0, by: action == #selector(moveTrackUp) ? -1 : 1) }
+                    == true
+        }
         if action == #selector(pasteTrack) { return editingAllowed && store.canPasteTrack }
         if action == #selector(commandSearch) { return editingAllowed }
         if action == #selector(selectAll(_:)) { return editingAllowed && !(store.currentTrack?.clips.isEmpty ?? true) }
@@ -191,6 +197,10 @@ final class AppDelegate: NSResponder, NSApplicationDelegate, NSWindowDelegate, N
             return !store.busy && window.attachedSheet == nil && NSApp.modalWindow == nil
         }
         if action == #selector(renameSession) { return editingAllowed && store.canRenameSession }
+        if action == #selector(metronome) {
+            item.state = store.metronome ? .on : .off
+            return true
+        }
         if action == #selector(zoomIn) { return editingAllowed && store.zoom < SessionStore.zoomRange.upperBound }
         if action == #selector(zoomOut) { return editingAllowed && store.zoom > SessionStore.zoomRange.lowerBound }
         if [
@@ -298,6 +308,13 @@ final class AppDelegate: NSResponder, NSApplicationDelegate, NSWindowDelegate, N
         item(edit, "Paste Track", #selector(pasteTrack))
         // ⌘⌫ deletes the selected track (plain Delete removes selected audio).
         item(edit, "Delete Track", #selector(deleteTrack), "\u{8}")
+        for (title, selector, arrow) in [
+            ("Move Track Up", #selector(moveTrackUp), NSUpArrowFunctionKey),
+            ("Move Track Down", #selector(moveTrackDown), NSDownArrowFunctionKey),
+        ] {
+            item(edit, title, selector, String(Character(UnicodeScalar(UInt16(arrow))!)))
+            edit.items.last?.keyEquivalentModifierMask = [.command, .option]
+        }
         edit.addItem(.separator())
         item(edit, "Command Search…", #selector(commandSearch), "k")
         item(edit, "Split at Playhead", #selector(split), "e")
@@ -323,6 +340,7 @@ final class AppDelegate: NSResponder, NSApplicationDelegate, NSWindowDelegate, N
         item(transport, "Record / Finish (R)", #selector(record))
         item(transport, "Return to Start (Return)", #selector(start))
         item(transport, "Loop (L)", #selector(loop))
+        item(transport, "Metronome (K)", #selector(metronome))
         let help = submenu("Help")
         item(help, "Soundroom Quick Guide", #selector(guide))
         NSApp.mainMenu = menu
@@ -417,6 +435,8 @@ final class AppDelegate: NSResponder, NSApplicationDelegate, NSWindowDelegate, N
     @objc func copyTrack() { if editingAllowed { store.copyTrack() } }
     @objc func copyTrackWithAutomation() { if editingAllowed { store.copyTrack(includeAutomation: true) } }
     @objc func pasteTrack() { if editingAllowed { store.pasteTrack() } }
+    @objc func moveTrackUp() { if editingAllowed, let id = store.selectedTrack { store.moveTrack(id, by: -1) } }
+    @objc func moveTrackDown() { if editingAllowed, let id = store.selectedTrack { store.moveTrack(id, by: 1) } }
     @objc func deleteTrack() { if editingAllowed { store.deleteSelectedTrack() } }
     override func selectAll(_ sender: Any?) {
         if let text = NSApp.keyWindow?.firstResponder as? NSTextView {
@@ -448,6 +468,7 @@ final class AppDelegate: NSResponder, NSApplicationDelegate, NSWindowDelegate, N
     @objc func reveal() { if editingAllowed { store.revealPlayhead() } }
     @objc func follow() { if editingAllowed { store.followPlayhead.toggle() } }
     @objc func loop() { if editingAllowed { store.loopSelection.toggle() } }
+    @objc func metronome() { store.toggleMetronome() }
     @objc func storage() {
         guard editingAllowed else { return }
         let alert = NSAlert()

@@ -69,7 +69,8 @@ struct RecordingSetupView: View {
                 ).frame(width: 80)
                 Text("BPM")
             }
-            Toggle("Metronome while recording", isOn: $store.recordingMetronome)
+            Toggle("Metronome (K)", isOn: $store.metronome)
+                .help("Click during playback and recording. Count-in clicks play whenever a count-in is set.")
             Toggle("Monitor armed inputs through output", isOn: $store.inputMonitoring)
                 .help(
                     "Armed inputs mix using the volume and pan set when recording starts. Reduce track levels if the output meter clips."

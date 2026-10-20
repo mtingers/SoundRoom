@@ -472,7 +472,7 @@ import XCTest
         store.punchRecording = true
         store.preRollSeconds = 0.25
         store.countInBars = 1
-        store.recordingMetronome = true
+        store.metronome = true
         store.record()
         // One 4/4 bar at 120 BPM of count-in, a quarter second of pre-roll, then
         // the half-second punch; the host stops and commits on its own.

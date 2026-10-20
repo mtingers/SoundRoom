@@ -63,6 +63,9 @@ struct Shared {
     anchor_epoch: AtomicU64,
     /// Frames of silence before the next Play starts the graph (count-in).
     start_delay: AtomicU64,
+    /// Transport click: frames per beat as f64 bits (0 is off) and beats per bar.
+    metronome_beat: AtomicU64,
+    metronome_meter: AtomicU32,
     /// Parameter-only edits for the current graph, and the applied (or
     /// rejected) patch handed back for release off the callback.
     live: AtomicPtr<LivePatch>,
@@ -107,6 +110,27 @@ impl CountIn {
         let frames = clicks.left.len() as u64;
         self.preview.arm(crate::preview::COUNT_IN_VOICE, clicks);
         self.shared.start_delay.store(frames, Ordering::Release);
+    }
+}
+/// Switches the transport click. The callback mixes it into the playing graph
+/// at the timeline position, so it follows seeks, loops and graph handoffs.
+#[derive(Clone)]
+pub struct Metronome {
+    shared: Arc<Shared>,
+}
+impl Metronome {
+    pub fn set(&self, grid: Option<crate::metronome::Grid>) {
+        match grid.filter(|g| g.beat_frames.is_finite() && g.beat_frames >= 1.) {
+            Some(grid) => {
+                self.shared
+                    .metronome_meter
+                    .store(grid.beats_per_bar.max(1), Ordering::Release);
+                self.shared
+                    .metronome_beat
+                    .store(grid.beat_frames.to_bits(), Ordering::Release);
+            }
+            None => self.shared.metronome_beat.store(0, Ordering::Release),
+        }
     }
 }
 /// Control-thread endpoint. Mutable methods enforce one command/graph publisher.
@@ -221,6 +245,8 @@ pub fn channel() -> (GraphControl, AudioHost) {
         anchor_frames: AtomicU64::new(0),
         anchor_epoch: AtomicU64::new(0),
         start_delay: AtomicU64::new(0),
+        metronome_beat: AtomicU64::new(0),
+        metronome_meter: AtomicU32::new(4),
         live: AtomicPtr::new(std::ptr::null_mut()),
         live_retired: AtomicPtr::new(std::ptr::null_mut()),
         live_taken: AtomicU64::new(0),
@@ -611,6 +637,11 @@ impl GraphControl {
             preview: self.preview.clone(),
         }
     }
+    pub fn metronome(&self) -> Metronome {
+        Metronome {
+            shared: self.shared.clone(),
+        }
+    }
     pub fn take_peaks(&self) -> (f32, f32) {
         (
             f32::from_bits(self.shared.peak_left.swap(0, Ordering::AcqRel)),
@@ -971,6 +1002,13 @@ impl AudioHost {
         let mut offset = 0;
         let mut start_clock = 0;
         let mut start_epoch = 0;
+        let metronome = match self.shared.metronome_beat.load(Ordering::Acquire) {
+            0 => None,
+            bits => Some(crate::metronome::Grid {
+                beat_frames: f64::from_bits(bits),
+                beats_per_bar: self.shared.metronome_meter.load(Ordering::Acquire),
+            }),
+        };
         self.apply_live();
         loop {
             if command & 1 != 0 && self.delay > 0 && self.gain == 0. {
@@ -1036,9 +1074,10 @@ impl AudioHost {
             });
             let l = &mut left[offset..offset + count];
             let r = &mut right[offset..offset + count];
+            let first = unsafe { &*self.current }.position();
             let wrap = unsafe { &*self.current }
                 .loop_range()
-                .map(|range| (range, unsafe { &*self.current }.position()));
+                .map(|range| (range, first));
             let rendered = unsafe { &mut *self.current }.render_callback(l, r);
             if rendered != CallbackStatus::Rendered {
                 status = rendered;
@@ -1067,6 +1106,17 @@ impl AudioHost {
                     let gain = loop_wrap_gain(range, first + i as u64);
                     l[i] *= gain;
                     r[i] *= gain;
+                }
+            }
+            if let Some(grid) = metronome {
+                for i in 0..count {
+                    let mut frame = first + i as u64;
+                    if let Some((range, _)) = wrap.filter(|(range, _)| frame >= range.end) {
+                        frame = range.start + (frame - range.start) % (range.end - range.start);
+                    }
+                    let click = grid.sample(frame as f64);
+                    l[i] += click;
+                    r[i] += click;
                 }
             }
             for i in 0..count {
@@ -1337,6 +1387,41 @@ mod count_in_tests {
         host.render(&mut left, &mut right);
         assert!(left[..44].iter().all(|v| *v == 1.) && left[44..].iter().all(|v| *v == 0.));
         assert_eq!(host.delay, 0);
+    }
+    #[test]
+    fn metronome_follows_the_playing_timeline_and_switches_live() {
+        let project = crate::project::Project {
+            session: Default::default(),
+            media: Default::default(),
+        };
+        let graph = crate::render::PreparedGraph::prepare_resident(
+            &project,
+            1 << 20,
+            &AtomicBool::new(false),
+        )
+        .unwrap();
+        let (mut control, mut host) = channel();
+        assert!(control.publish(Box::new(graph)).is_ok());
+        let metronome = control.metronome();
+        metronome.set(Some(crate::metronome::Grid::new(120., 4, 4)));
+        let (mut left, mut right) = (vec![0.; 4096], vec![0.; 4096]);
+        host.render(&mut left, &mut right);
+        assert!(left.iter().all(|v| *v == 0.), "stopped transport is silent");
+        control.request_playing(true);
+        let mut rendered = vec![];
+        for _ in 0..8 {
+            host.render(&mut left, &mut right);
+            rendered.extend_from_slice(&left);
+        }
+        assert_eq!(left, right);
+        assert!(rendered[..1200].iter().any(|v| *v != 0.));
+        assert!(rendered[1200..24000].iter().all(|v| *v == 0.));
+        assert!(rendered[24000..25200].iter().any(|v| *v != 0.));
+        metronome.set(None);
+        for _ in 0..8 {
+            host.render(&mut left, &mut right);
+            assert!(left.iter().all(|v| *v == 0.), "switched off while playing");
+        }
     }
     #[test]
     fn cancelled_count_in_does_not_delay_a_later_play() {

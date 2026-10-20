@@ -2773,6 +2773,79 @@ fn track_controls_preserve_and_clear_explicit_input_assignments() {
 }
 
 #[test]
+fn metronome_clicks_during_playback_and_switches_off_live() {
+    use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+    let f = Fixture::new();
+    let (control, mut host) = soundroom_engine::realtime::channel();
+    Service::attach_audio(&f.service, control).unwrap();
+    let quit = Arc::new(AtomicBool::new(false));
+    let peak = Arc::new(AtomicU32::new(0));
+    let (quit_worker, peak_worker) = (quit.clone(), peak.clone());
+    let callback = std::thread::spawn(move || {
+        let (mut left, mut right) = ([0.; 128], [0.; 128]);
+        while !quit_worker.load(Ordering::Acquire) {
+            host.render(&mut left, &mut right);
+            let block = left.iter().fold(0f32, |m, v| m.max(v.abs()));
+            peak_worker.fetch_max(block.to_bits(), Ordering::AcqRel);
+            std::thread::sleep(Duration::from_micros(2667));
+        }
+    });
+    let (out, inbox) = f.channel();
+    let editor = |p: &Identity, operation: &str, flags: Value| {
+        request(
+            &f,
+            p,
+            &out,
+            &inbox,
+            None,
+            json!({}),
+            json!({"type":"editor","intent":{"operation":operation,"context":{"clipIDs":[],"cursorFrame":0},"integers":{},"numbers":{},"strings":{},"flags":flags}}),
+        )
+    };
+    assert_ne!(
+        editor(&f.viewer, "transport.metronome", json!({"enabled":true}))["status"],
+        "accepted"
+    );
+    assert_eq!(
+        editor(&f.operator, "transport.metronome", json!({"enabled":true}))["status"],
+        "accepted"
+    );
+    assert_eq!(
+        editor(&f.operator, "transport.play", json!({}))["status"],
+        "accepted"
+    );
+    let heard = |peak: &AtomicU32| f32::from_bits(peak.load(Ordering::Acquire));
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while heard(&peak) < 0.05 {
+        assert!(Instant::now() < deadline, "the click plays during playback");
+        std::thread::sleep(Duration::from_millis(5));
+    }
+    assert_eq!(
+        editor(&f.operator, "transport.metronome", json!({"enabled":false}))["status"],
+        "accepted"
+    );
+    std::thread::sleep(Duration::from_millis(50));
+    peak.store(0, Ordering::Release);
+    // Longer than a beat at the default 120 BPM.
+    std::thread::sleep(Duration::from_millis(1200));
+    assert_eq!(
+        heard(&peak),
+        0.,
+        "switching off silences the running transport"
+    );
+    assert_eq!(
+        f.service.lock().unwrap().snapshot().unwrap()["transport"]["isPlaying"],
+        true
+    );
+    assert_eq!(
+        editor(&f.operator, "transport.pause", json!({}))["status"],
+        "accepted"
+    );
+    quit.store(true, Ordering::Release);
+    callback.join().unwrap();
+}
+
+#[test]
 fn stop_during_count_in_cancels_capture_startup() {
     use std::sync::atomic::{AtomicBool, Ordering};
     let f = Fixture::new();

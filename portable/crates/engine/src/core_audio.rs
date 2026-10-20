@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::{cell::UnsafeCell, ffi::c_void, marker::PhantomData, rc::Rc};
 #[path = "core_audio_devices.rs"]
 mod devices;
-pub use devices::{core_audio_devices, CoreAudioDevice};
+pub use devices::{core_audio_devices, input_volume, set_input_volume, CoreAudioDevice};
 type Unit = *mut c_void;
 #[repr(C)]
 struct ComponentDescription {
