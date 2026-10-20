@@ -259,6 +259,48 @@ fn wav_streaming_exact_float_and_invalid_range() {
     assert!(reader.read_stereo(1, &mut l, &mut r).is_err());
     std::fs::remove_file(path).unwrap();
 }
+/// Pitch fixtures whose correction intentionally improved after the Swift
+/// engine was retired (octave-stable tracking, exactly followed curves). They
+/// keep the block-size and seek invariance checks against one full Rust render.
+const REVISED_PITCH: [&str; 10] = [
+    "pitch-automatic",
+    "pitch-major",
+    "pitch-custom",
+    "pitch-up",
+    "pitch-down",
+    "pitch-formant",
+    "pitch-edits",
+    "pitch-automation",
+    "pitch-master",
+    "pitch-chain",
+];
+/// The whole fixture rendered in 8192-frame blocks.
+fn render_whole(project: &Project, frames: u64) -> (Vec<f32>, Vec<f32>) {
+    let mut renderer = Renderer::new(project).unwrap();
+    let (mut left, mut right) = (vec![0.; frames as usize], vec![0.; frames as usize]);
+    for (l, r) in left.chunks_mut(8192).zip(right.chunks_mut(8192)) {
+        renderer.render(l, r).unwrap();
+    }
+    (left, right)
+}
+/// Reference audio for `frames` at `position`: the Swift render, or for a
+/// revised pitch fixture the whole Rust render.
+fn reference(
+    swift: &mut WaveReader,
+    own: &Option<(Vec<f32>, Vec<f32>)>,
+    position: u64,
+    left: &mut [f32],
+    right: &mut [f32],
+) {
+    match own {
+        Some((l, r)) => {
+            let range = position as usize..position as usize + left.len();
+            left.copy_from_slice(&l[range.clone()]);
+            right.copy_from_slice(&r[range]);
+        }
+        None => swift.read_stereo(position, left, right).unwrap(),
+    }
+}
 #[test]
 fn swift_render_parity_across_block_sizes() {
     let names = [
@@ -315,11 +357,14 @@ fn swift_render_parity_across_block_sizes() {
             .parent()
             .unwrap()
             .join(format!("{name}-swift.wav"));
+        let own = REVISED_PITCH
+            .contains(&name)
+            .then(|| render_whole(&project, WaveReader::open(&expected).unwrap().info.frames));
         for block in [1, 128, 257, 8192] {
             let mut renderer = Renderer::new(&project).unwrap();
-            let mut reference = WaveReader::open(&expected).unwrap();
+            let mut swift = WaveReader::open(&expected).unwrap();
             let mut max_error = 0_f32;
-            let end = reference.info.frames;
+            let end = swift.info.frames;
             if name.starts_with("tail-") {
                 assert_eq!(
                     project.session.end() + renderer.tail_frames(),
@@ -335,7 +380,7 @@ fn swift_render_parity_across_block_sizes() {
                 let mut el = vec![0.; n];
                 let mut er = vec![0.; n];
                 renderer.render(&mut left, &mut right).unwrap();
-                reference.read_stereo(pos, &mut el, &mut er).unwrap();
+                reference(&mut swift, &own, pos, &mut el, &mut er);
                 for (a, b) in left.iter().zip(&el).chain(right.iter().zip(&er)) {
                     max_error = max_error.max((a - b).abs());
                 }
@@ -522,6 +567,13 @@ fn latency_processors_seek_preserves_dsp_and_automation_history() {
         "pitch-chain",
     ] {
         let p = Project::open(&fixture(name)).unwrap();
+        let reference_path = fixture(name)
+            .parent()
+            .unwrap()
+            .join(format!("{name}-swift.wav"));
+        let own = REVISED_PITCH
+            .contains(&name)
+            .then(|| render_whole(&p, WaveReader::open(&reference_path).unwrap().info.frames));
         for position in [0, 5999, 7001, 12345] {
             let mut renderer = Renderer::new(&p).unwrap();
             renderer
@@ -530,14 +582,10 @@ fn latency_processors_seek_preserves_dsp_and_automation_history() {
             let mut left = [0.; 257];
             let mut right = [0.; 257];
             renderer.render(&mut left, &mut right).unwrap();
-            let reference_path = fixture(name)
-                .parent()
-                .unwrap()
-                .join(format!("{name}-swift.wav"));
-            let mut reference = WaveReader::open(&reference_path).unwrap();
+            let mut swift = WaveReader::open(&reference_path).unwrap();
             let mut el = [0.; 257];
             let mut er = [0.; 257];
-            reference.read_stereo(position, &mut el, &mut er).unwrap();
+            reference(&mut swift, &own, position, &mut el, &mut er);
             let error = left
                 .iter()
                 .zip(&el)

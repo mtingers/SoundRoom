@@ -350,7 +350,8 @@ final class PitchPointEditingTests: XCTestCase {
             PitchEditorKeyboardRouting.action(keyCode: 6, modifiers: [.command, .shift], repeated: false), .redo)
         XCTAssertNil(PitchEditorKeyboardRouting.action(keyCode: 49, modifiers: .command, repeated: false))
         XCTAssertNil(PitchEditorKeyboardRouting.action(keyCode: 6, modifiers: [.command, .option], repeated: false))
-        XCTAssertNil(PitchEditorKeyboardRouting.action(keyCode: 51, modifiers: [], repeated: false))
+        XCTAssertNil(PitchEditorKeyboardRouting.action(keyCode: 51, modifiers: .command, repeated: false))
+        XCTAssertNil(PitchEditorKeyboardRouting.action(keyCode: 126, modifiers: .command, repeated: false))
     }
     func testUndoWorksAfterNontextControlsWhileSpaceKeepsNativeControlBehavior() {
         MainActor.assumeIsolated {
@@ -361,5 +362,33 @@ final class PitchPointEditingTests: XCTestCase {
                 XCTAssertFalse(PitchEditorKeyboardRouting.accepts(.consume, responder: control))
             }
         }
+    }
+    func testExpandedKeyboardEditsSelectedPoints() {
+        typealias Routing = PitchEditorKeyboardRouting
+        XCTAssertEqual(Routing.action(keyCode: 51, modifiers: [], repeated: false), .delete)
+        XCTAssertEqual(Routing.action(keyCode: 117, modifiers: [], repeated: false), .delete)
+        XCTAssertEqual(Routing.action(keyCode: 126, modifiers: [], repeated: true), .nudge(frames: 0, cents: 100))
+        XCTAssertEqual(Routing.action(keyCode: 125, modifiers: .option, repeated: false), .nudge(frames: 0, cents: -10))
+        XCTAssertEqual(Routing.action(keyCode: 123, modifiers: [], repeated: false), .nudge(frames: -48, cents: 0))
+        XCTAssertEqual(Routing.action(keyCode: 124, modifiers: .option, repeated: false), .nudge(frames: 480, cents: 0))
+        XCTAssertEqual(Routing.action(keyCode: 0, modifiers: .command, repeated: false), .selectAll)
+        XCTAssertEqual(Routing.action(keyCode: 53, modifiers: [], repeated: false), .deselect)
+        XCTAssertFalse(Routing.accepts(.nudge(frames: 0, cents: 100), responder: NSSlider()))
+        XCTAssertFalse(Routing.accepts(.delete, responder: NSPopUpButton()))
+        XCTAssertTrue(Routing.accepts(.selectAll, responder: NSSlider()))
+    }
+    func testSelectAllAndDragOnlyMoveTouchedRegions() {
+        let a = PitchEditRegion(
+            startFrame: 0, endFrame: 4800, points: [.init(frame: 100, note: 60), .init(frame: 4000, note: 61)])
+        let b = PitchEditRegion(startFrame: 9600, endFrame: 14_400, points: [.init(frame: 10_000, note: 62)])
+        var editing = PitchPointEditing()
+        editing.selectAll([a, b])
+        XCTAssertEqual(editing.selected.count, 3)
+        editing = PitchPointEditing()
+        editing.select(a.points[0].id, extending: false)
+        let moved = editing.moving([a, b], frames: 48, notes: 1)
+        XCTAssertEqual(moved[0].points[0].frame, 148)
+        XCTAssertEqual(moved[0].points[0].note, 61)
+        XCTAssertEqual(moved[1], b, "An untouched region is returned as is")
     }
 }

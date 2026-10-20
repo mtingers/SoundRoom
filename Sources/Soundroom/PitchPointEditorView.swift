@@ -4,7 +4,12 @@ import SwiftUI
 
 /// The same source-timeline editor is embedded in selection and live-insert inspectors.
 /// The owner handles rendering/persistence; this view never starts the main transport.
-struct PitchPointEditorView: View {
+///
+/// Pointer-rate state (hover, a point being dragged) lives in small reference
+/// models that only the chart layers and the readout observe, so moving the
+/// mouse never rebuilds the controls, and the measured contours redraw only
+/// when the viewport or the analysis changes.
+struct PitchPointEditorView: View, Equatable {
     @Binding var regions: [PitchEditRegion]
     let before: [PitchContourPoint]
     let after: [PitchContourPoint]?
@@ -37,36 +42,48 @@ struct PitchPointEditorView: View {
     @State private var viewport = PitchPointViewport()
     @State private var snap = false
     @State private var smoothing = 0.5
-    @State private var hoverFrame: Int?
-    @State private var dragOriginal: [PitchEditRegion]?
-    @State private var dragPreview: [PitchEditRegion]?
-    @State private var dragPoint: UUID?
-    @State private var dragStartFrame: Int?
-    @State private var dragStarted = false
     @State private var initialized = false
-    @State private var chartPoints: [PitchEditPoint] = []
-    @State private var preparedTargets: [PreparedPitchChartRegion] = []
+    @State private var showsDetails = false
+    /// The style that produced the current targets, until a manual edit.
+    @State private var style: PitchCurvePreset?
+    @State private var pointer = PitchChartPointer()
+    @State private var drag = PitchChartDrag()
+    @State private var targetCache = PitchChartTargetCache()
 
-    private var points: [PitchEditPoint] { chartPoints }
-    private var selectedPoint: PitchEditPoint? { editing.selectedPoint(in: dragPreview ?? regions) }
+    /// The callbacks only reach the owner's stable controller and store, so the
+    /// displayed values decide whether the editor needs to redraw.
+    static func == (a: Self, b: Self) -> Bool {
+        a.regions == b.regions && a.before == b.before && a.after == b.after && a.scope == b.scope
+            && a.reference == b.reference && a.busy == b.busy && a.isPreviewing == b.isPreviewing
+            && a.canBake == b.canBake && a.title == b.title && a.context == b.context && a.bakeTitle == b.bakeTitle
+            && a.error == b.error && a.expanded == b.expanded && a.canUndo == b.canUndo && a.canRedo == b.canRedo
+    }
+
+    private var selectedPoint: PitchEditPoint? { editing.selectedPoint(in: regions) }
     private var safeReference: Float { reference.isFinite && reference > 0 ? reference : 440 }
-    private var selectedPoints: [PitchEditPoint] { points.filter { editing.selected.contains($0.id) } }
     private var hasTargets: Bool { !regions.isEmpty }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             header
             if !before.isEmpty || hasTargets {
-                zoomTools.disabled(busy)
-                chart
-                legend
-                editingTools
-                numericTools
-                smoothingTools
+                styles
+                PitchChart(
+                    editing: $editing, viewport: $viewport, drag: drag, pointer: pointer, cache: targetCache,
+                    regions: regions, before: before, after: after, reference: safeReference, snap: snap,
+                    busy: busy, height: expanded ? 360 : 180,
+                    onBeginDrag: { onBeginEdit("Move pitch points") },
+                    onFinishDrag: {
+                        finishDrag()
+                        focusChart()
+                    },
+                    onAddPoint: addPoint(frame:note:))
+                chartFooter
+                selectionTools
+                if showsDetails { detailTools }
                 actions
             } else {
-                Text("Select audio, then Analyze to edit measured pitch while stopped.").foregroundStyle(
-                    Theme.secondary)
+                emptyState
             }
             if let error { Text(error).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true) }
         }.font(.system(size: 10)).padding(expanded ? 16 : 10)
@@ -74,26 +91,33 @@ struct PitchPointEditorView: View {
             .background {
                 if expanded {
                     PitchEditorKeyboardBridge(
-                        onSpace: {
+                        onAction: { action in
                             guard !busy else { return }
-                            if isPreviewing { onStop() } else if hasTargets { onAudition() }
-                        }, onUndo: { if canUndo && !busy { onUndo() } }, onRedo: { if canRedo && !busy { onRedo() } })
+                            switch action {
+                            case .space: if isPreviewing { onStop() } else if hasTargets { onAudition() }
+                            case .undo: if canUndo { onUndo() }
+                            case .redo: if canRedo { onRedo() }
+                            case .delete: change("Delete pitch points", editing.deleting(regions))
+                            case .nudge(let frames, let cents): nudge(frames: frames, notes: Float(cents) / 100)
+                            case .selectAll: editing.selectAll(regions)
+                            case .deselect: editing = PitchPointEditing()
+                            case .consume: break
+                            }
+                        })
                 }
             }
             .onAppear {
-                prepareTargets()
                 if !before.isEmpty || hasTargets { fit() }
             }
             .onChange(of: scope) { _, _ in
                 finishDrag(commit: false)
                 editing = PitchPointEditing()
-                prepareTargets()
+                style = nil
                 fit()
             }
             .onChange(of: before) { _, _ in if !initialized, !before.isEmpty { fit() } }
             .onChange(of: regions) { _, value in
-                if let original = dragOriginal, value != original { finishDrag(commit: false) }
-                prepareTargets()
+                if let original = drag.original, value != original { finishDrag(commit: false) }
                 editing.reconcile(value)
             }
             .onChange(of: busy) { _, value in if value { finishDrag(commit: false) } }
@@ -108,18 +132,19 @@ struct PitchPointEditorView: View {
                 if !expanded {
                     Text(title).fontWeight(.medium)
                         .help(
-                            "Single voice or instrument, 50–1000 Hz. Correction is limited to one octave. Targets use track timeline time and follow Move with automation. Recheck independently measures the output."
+                            "Tunes one voice or instrument (50–1000 Hz) by up to an octave. Targets follow the track timeline and play live until you apply them to the audio."
                         )
                 }
                 Spacer()
                 ZStack {
                     if busy { ProgressView().controlSize(.mini).accessibilityLabel("Preparing pitch audio") }
                 }.frame(width: 14, height: 14).accessibilityHidden(!busy)
-                Button(before.isEmpty ? "Analyze" : "Analyze again", action: onAnalyze)
+                Button(before.isEmpty ? "Analyze" : "Re-analyze", action: onAnalyze)
                     .buttonStyle(.borderless).frame(width: 82).disabled(busy || scope.isEmpty)
+                    .help("Measure the sung pitch of the selection. Never changes the audio.")
                 if !expanded {
                     Button(action: onExpand) { Image(systemName: "arrow.up.left.and.arrow.down.right") }
-                        .buttonStyle(.borderless).help("Open larger pitch editor").accessibilityLabel(
+                        .buttonStyle(.borderless).help("Open the large pitch editor").accessibilityLabel(
                             "Expand pitch editor")
                 }
             }
@@ -128,90 +153,90 @@ struct PitchPointEditorView: View {
                 .frame(height: expanded ? 12 : 24, alignment: .topLeading).help(context)
         }
     }
-    private var zoomTools: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 4) {
-                Text("Time").frame(width: 30, alignment: .leading)
-                icon("minus", "Zoom out in time") { viewport.zoomTime(0.5) }
-                icon("plus", "Zoom in in time") { viewport.zoomTime(2, around: selectedPoint?.frame ?? hoverFrame) }
-                icon("chevron.left", "Earlier time") { viewport.panTime(-1) }
-                icon("chevron.right", "Later time") { viewport.panTime(1) }
-                Spacer(minLength: 0)
-                Button("Fit") { fit() }.help("Fit measured pitches and targets across the selection")
-                Button("Selected") { viewport.fitSelected(selectedPoints) }.disabled(editing.selected.isEmpty).help(
-                    "Zoom to selected points")
-            }
-            HStack(spacing: 4) {
-                Text("Pitch").frame(width: 30, alignment: .leading)
-                icon("minus", "Zoom out in pitch") { viewport.zoomPitch(0.5) }
-                icon("plus", "Zoom in in pitch") { viewport.zoomPitch(2) }
-                icon("chevron.down", "Show lower pitches") { viewport.panPitch(-1) }
-                icon("chevron.up", "Show higher pitches") { viewport.panPitch(1) }
-                Spacer(minLength: 0)
-                Text(
-                    String(
-                        format: "%.3f–%.3f s", Double(viewport.frames.lowerBound) / sessionRate,
-                        Double(viewport.frames.upperBound) / sessionRate)
-                ).font(.system(size: 8)).monospacedDigit()
-            }
-        }.controlSize(.mini)
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Tune a vocal in three steps").fontWeight(.medium)
+            Label("Select a vocal clip, or drag across part of its track", systemImage: "1.circle")
+            Label("Click Analyze to see the sung pitch", systemImage: "2.circle")
+            Label("Pick a style, then drag any note to fine-tune it", systemImage: "3.circle")
+        }.foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
     }
-    private var legend: some View {
+    /// One click retunes the whole selection; each style is one Undo step.
+    private var styles: some View {
+        HStack(spacing: 4) {
+            ForEach(PitchCurvePreset.allCases) { preset in
+                Button {
+                    style = preset
+                    onResetTargets(preset)
+                } label: {
+                    Text(preset.title).frame(maxWidth: .infinity, minHeight: 20)
+                        .background(
+                            style == preset ? Theme.accent.opacity(0.85) : Theme.background,
+                            in: RoundedRectangle(cornerRadius: 5)
+                        )
+                        .foregroundStyle(style == preset ? Theme.background : Theme.ink)
+                        .contentShape(Rectangle())
+                }.buttonStyle(.plain).help(preset.help).accessibilityLabel("\(preset.title) tuning style")
+                    .accessibilityAddTraits(style == preset ? .isSelected : [])
+            }
+        }.disabled(busy || before.isEmpty)
+    }
+    private var chartFooter: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 8) {
-                Text("Input").foregroundStyle(Theme.tracks[1])
+                Text("Sung").foregroundStyle(Theme.tracks[1])
                 Text("Target").foregroundStyle(Theme.tracks[2])
-                Text(after == nil ? "Output · recheck" : "Output · measured").foregroundStyle(
-                    after == nil ? Theme.secondary : Theme.accent)
+                Text(after == nil ? "Result" : "Result · measured").foregroundStyle(
+                    after == nil ? Theme.secondary : Theme.accent
+                ).help("Measure result (in More) checks the corrected pitch without playing")
                 Spacer(minLength: 0)
-            }
-            Text(
-                hoverFrame.map { reading(at: $0) }
-                    ?? "Click a location, then Add point · Drag points · Shift selects several · drag empty space to select"
-            )
-            .font(.system(size: 9)).foregroundStyle(Theme.secondary).monospacedDigit()
-            .lineLimit(expanded ? 1 : 2).frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: expanded ? 12 : 24, alignment: .topLeading)
-            .accessibilityLabel(
-                hoverFrame.map { reading(at: $0) }
-                    ?? "Click a location, then Add point. Drag points. Shift adds to selection. Drag empty space to select."
-            )
+                icon("minus.magnifyingglass", "Zoom out (pinch or ⌘-scroll on the chart)") {
+                    viewport.zoomTime(0.5, around: pointer.hoverFrame)
+                }
+                icon("plus.magnifyingglass", "Zoom in (pinch or ⌘-scroll on the chart)") {
+                    viewport.zoomTime(2, around: selectedPoint?.frame ?? pointer.hoverFrame)
+                }
+                Button("Fit") { fit() }.buttonStyle(.borderless).help("Show the whole selection")
+                Menu {
+                    Button("Zoom to selected points") { viewport.fitSelected(selectedPoints) }
+                        .disabled(editing.selected.isEmpty)
+                    Divider()
+                    Button("Earlier") { viewport.panTime(-1) }
+                    Button("Later") { viewport.panTime(1) }
+                    Divider()
+                    Button("Zoom in pitch") { viewport.zoomPitch(2, around: pointer.hoverNote) }
+                    Button("Zoom out pitch") { viewport.zoomPitch(0.5, around: pointer.hoverNote) }
+                    Button("Higher notes") { viewport.panPitch(2) }
+                    Button("Lower notes") { viewport.panPitch(-2) }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                    .help("More view controls. Scroll sideways to move in time; ⌥-scroll moves the pitch view.")
+                    .accessibilityLabel("View controls")
+            }.disabled(busy)
+            PitchHoverReadout(
+                pointer: pointer, before: before, after: after, regions: regions, reference: safeReference,
+                expanded: expanded)
         }
     }
-    private var editingTools: some View {
-        VStack(spacing: 5) {
-            HStack(spacing: 5) {
-                Text("\(editing.selected.count) selected").foregroundStyle(Theme.secondary)
-                Spacer(minLength: 0)
-                Toggle("Note snap", isOn: $snap).toggleStyle(.checkbox).help(
-                    "Snap the dragged anchor to a semitone; selected points preserve their relative pitch")
-            }
-            HStack(spacing: 5) {
-                Button("Add point") { addPoint() }.disabled(!canAdd).help(
-                    "Click a location in the chart, then add a point at that time and pitch. Points stay within measured voiced regions."
-                )
-                Button("Delete") { change("Delete pitch points", editing.deleting(regions)) }.disabled(
-                    editing.selected.isEmpty)
-                Spacer(minLength: 0)
-            }.controlSize(.small)
-            HStack(spacing: 5) {
-                Menu("Curve") {
-                    ForEach(AutomationCurve.allCases) { curve in
-                        Button(curve.name) {
-                            change("\(curve.name) pitch curve", editing.settingCurve(curve, in: regions))
-                        }
-                    }
-                }.disabled(editing.selected.isEmpty).help("Curve follows each selected point until its next point")
-                Menu("Targets") {
-                    ForEach(PitchCurvePreset.allCases) { preset in Button(preset.rawValue) { onResetTargets(preset) } }
-                }.help("Rebuild targets from measured input; leaves input audio intact")
-            }.controlSize(.small)
-        }.disabled(busy)
+    private var selectionTools: some View {
+        HStack(spacing: 6) {
+            Text(editing.selected.isEmpty ? "No points selected" : "\(editing.selected.count) selected")
+                .foregroundStyle(Theme.secondary).lineLimit(1)
+            Spacer(minLength: 0)
+            Toggle(isOn: $snap) { Image(systemName: "dot.squareshape.split.2x2") }.toggleStyle(.button)
+                .help("Snap dragged notes to the nearest semitone").accessibilityLabel("Snap to notes")
+            icon("trash", "Delete selected points (Delete key in the large editor)") {
+                change("Delete pitch points", editing.deleting(regions))
+            }.disabled(editing.selected.isEmpty)
+            Toggle("Fine-tune", isOn: $showsDetails).toggleStyle(.button)
+                .help("Exact time, note and cents, curve shape and smoothing for selected points")
+        }.controlSize(.small).disabled(busy)
     }
-    private var numericTools: some View {
-        VStack(spacing: 4) {
+    private var detailTools: some View {
+        VStack(spacing: 5) {
             HStack(spacing: 4) {
-                Text("Time").foregroundStyle(Theme.secondary)
+                Text("Time").foregroundStyle(Theme.secondary).frame(width: 30, alignment: .leading)
                 CommittedNumberField(
                     "Pitch point time",
                     value: Binding(
@@ -230,22 +255,15 @@ struct PitchPointEditorView: View {
                 ).frame(width: 76).accessibilityLabel("Selected pitch point time in seconds")
                 Text("s").foregroundStyle(Theme.secondary)
                 Spacer(minLength: 0)
-                icon("chevron.left", "Move selected points earlier by one millisecond") { nudge(frames: -48, notes: 0) }
-                icon("chevron.right", "Move selected points later by one millisecond") { nudge(frames: 48, notes: 0) }
+                icon("chevron.left", "Earlier by one millisecond") { nudge(frames: -48, notes: 0) }
+                icon("chevron.right", "Later by one millisecond") { nudge(frames: 48, notes: 0) }
             }
             HStack(spacing: 4) {
-                Text("Note").foregroundStyle(Theme.secondary)
-                Picker(
-                    "Selected pitch note",
-                    selection: Binding(
-                        get: { Int((selectedPoint?.note ?? 69).rounded()) },
-                        set: { note in
-                            guard let point = selectedPoint else { return }
-                            let cents = point.note - point.note.rounded()
-                            nudge(frames: 0, notes: Float(note) + cents - point.note)
-                        })
-                ) { ForEach(0...95, id: \.self) { note in Text(Self.noteName(Float(note))).tag(note) } }.labelsHidden()
-                    .frame(width: 65)
+                Text("Note").foregroundStyle(Theme.secondary).frame(width: 30, alignment: .leading)
+                icon("minus", "Down one semitone") { nudge(frames: 0, notes: -1) }
+                Text(selectedPoint.map { Self.noteName($0.note) } ?? "—").monospacedDigit().frame(width: 34)
+                    .accessibilityLabel("Selected note")
+                icon("plus", "Up one semitone") { nudge(frames: 0, notes: 1) }
                 CommittedNumberField(
                     "Pitch cents",
                     value: Binding(
@@ -257,62 +275,58 @@ struct PitchPointEditorView: View {
                 ).frame(width: 50).accessibilityLabel("Selected pitch point cents from note")
                 Text("¢").foregroundStyle(Theme.secondary)
                 Spacer(minLength: 0)
-                icon("minus", "Lower selected points by one semitone") { nudge(frames: 0, notes: -1) }
-                icon("plus", "Raise selected points by one semitone") { nudge(frames: 0, notes: 1) }
+            }
+            HStack(spacing: 5) {
+                Menu("Curve") {
+                    ForEach(AutomationCurve.allCases) { curve in
+                        Button(curve.name) {
+                            change("\(curve.name) pitch curve", editing.settingCurve(curve, in: regions))
+                        }
+                    }
+                }.fixedSize().help("How the target moves from each selected point to the next")
+                Text("Smooth").foregroundStyle(Theme.secondary)
+                RoomSlider(value: $smoothing, in: 0...1, label: "Local pitch smoothing strength")
+                Button("Apply") { change("Smooth pitch points", editing.smoothing(regions, amount: Float(smoothing))) }
+                    .help("Smooth selected interior points, keeping region ends and timing")
             }
         }.textFieldStyle(.roundedBorder).controlSize(.small).disabled(busy || selectedPoint == nil)
     }
-    private var smoothingTools: some View {
-        HStack(spacing: 5) {
-            Text("Smooth").foregroundStyle(Theme.secondary)
-            RoomSlider(value: $smoothing, in: 0...1, label: "Local pitch smoothing strength")
-            Text("\(Int(smoothing * 100))%").monospacedDigit().frame(width: 30)
-            Button("Apply") { change("Smooth pitch points", editing.smoothing(regions, amount: Float(smoothing))) }
-                .help(
-                    "Smooth selected interior targets, keeping region endpoints and times. Separate from Retune and Humanize."
-                )
-        }.controlSize(.small).disabled(busy || editing.selected.isEmpty)
-    }
     private var actions: some View {
-        VStack(spacing: 5) {
-            HStack(spacing: 5) {
-                Button("Original") { finishNumberEntry(onAuditionOriginal) }.help(
-                    "Audition the same chain with this pitch effect removed")
-                Button(isPreviewing ? "Stop" : "Audition") { finishNumberEntry(isPreviewing ? onStop : onAudition) }
-                    .frame(width: 72).help("Listen to this selection")
-                Spacer(minLength: 0)
-            }
-            HStack(spacing: 5) {
-                Button("Recheck") { finishNumberEntry(onRecheck) }.help("Measure the rendered result while stopped")
-                    .disabled(!hasTargets)
-                Spacer(minLength: 0)
-                Button(bakeTitle) { finishNumberEntry(onBake) }.disabled(!canBake).help(
-                    context + ". Undo and clip history retain the original audio.")
-            }
+        HStack(spacing: 5) {
+            Button {
+                finishNumberEntry(isPreviewing ? onStop : onAudition)
+            } label: {
+                Label(isPreviewing ? "Stop" : "Listen", systemImage: isPreviewing ? "stop.fill" : "play.fill")
+                    .frame(width: 58)
+            }.help("Listen to the tuned selection (Space in the large editor)")
+            Button("Original") { finishNumberEntry(onAuditionOriginal) }.help(
+                "Listen to the selection without this pitch correction")
+            Menu {
+                Button("Measure result") { finishNumberEntry(onRecheck) }.disabled(!hasTargets)
+                    .help("Measure the corrected pitch without playing; shown as Result")
+            } label: {
+                Text("More")
+            }.menuStyle(.borderlessButton).fixedSize()
+            Spacer(minLength: 0)
+            Button(bakeTitle) { finishNumberEntry(onBake) }.disabled(!canBake).help(
+                context + ". Undo and clip history keep the original audio.")
         }.controlSize(.small).disabled(busy || before.isEmpty)
     }
-    private var canAdd: Bool {
-        let target = editing.insertionTarget(
-            in: regions, defaultFrame: viewport.frames.lowerBound + viewport.frames.count / 2)
-        return regions.contains { $0.range.contains(target.frame) && !$0.points.contains { $0.frame == target.frame } }
+    private var selectedPoints: [PitchEditPoint] {
+        regions.flatMap(\.points).filter { editing.selected.contains($0.id) }
     }
     private func icon(_ name: String, _ label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { Image(systemName: name).frame(width: 10) }.help(label).accessibilityLabel(label)
+        Button(action: action) { Image(systemName: name).frame(width: 12) }.buttonStyle(.borderless)
+            .help(label).accessibilityLabel(label)
     }
     private func fit() {
+        let reference = safeReference
+        let midi = { (frequency: Float) in 69 + 12 * log2(frequency / reference) }
         viewport.fit(
             scope: scope,
             notes: before.filter(\.isVoiced).map { midi($0.frequency) }
-                + (after ?? []).filter(\.isVoiced).map { midi($0.frequency) } + points.map(\.note))
+                + (after ?? []).filter(\.isVoiced).map { midi($0.frequency) } + regions.flatMap(\.points).map(\.note))
         initialized = true
-    }
-    private func prepareTargets(_ preview: [PitchEditRegion]? = nil) {
-        let displayed = preview ?? regions
-        preparedTargets = displayed.map(PreparedPitchChartRegion.init)
-        let values = displayed.flatMap(\.points)
-        chartPoints =
-            zip(values, values.dropFirst()).allSatisfy { $0.frame <= $1.frame }
-            ? values : values.sorted { $0.frame < $1.frame }
     }
     private func change(_ name: String, _ result: [PitchEditRegion]) {
         guard !busy, result != regions else { return }
@@ -320,18 +334,16 @@ struct PitchPointEditorView: View {
         regions = result
         onEndEdit()
         editing.reconcile(result)
+        style = nil
     }
     private func nudge(frames: Int, notes: Float) {
         change("Move pitch points", editing.moving(regions, frames: frames, notes: notes))
     }
-    private func addPoint() {
-        let target = editing.insertionTarget(
-            in: regions, defaultFrame: viewport.frames.lowerBound + viewport.frames.count / 2)
-        let added = editing.adding(to: regions, frame: target.frame, note: snap ? target.note.rounded() : target.note)
+    private func addPoint(frame: Int, note: Float) {
+        let added = editing.adding(to: regions, frame: frame, note: snap ? note.rounded() : note)
         change("Add pitch point", added.regions)
         if let id = added.point { editing.select(id, extending: false) }
     }
-    private func midi(_ frequency: Float) -> Float { 69 + 12 * log2(frequency / safeReference) }
     nonisolated static func noteName(_ note: Float, cents: Bool = false) -> String {
         guard note.isFinite else { return "—" }
         let n = Int(note.rounded())
@@ -339,34 +351,16 @@ struct PitchPointEditorView: View {
         let name = "\(names[(n % 12 + 12) % 12])\(Int(floor(Double(n) / 12)) - 1)"
         return cents ? name + String(format: " %+.1f¢", (note - Float(n)) * 100) : name
     }
-    private func reading(at frame: Int) -> String {
-        func nearest(_ contour: [PitchContourPoint]) -> String {
-            guard
-                let point = contour.min(by: {
-                    abs(Double($0.frame) - Double(frame)) < abs(Double($1.frame) - Double(frame))
-                }), point.isVoiced
-            else { return "unvoiced" }
-            return Self.noteName(midi(point.frequency), cents: true)
-        }
-        let target =
-            regions.first { $0.range.contains(frame) }?.note(at: frame).map { Self.noteName($0, cents: true) }
-            ?? "automatic"
-        return String(
-            format: "%.4f s · %@ · target %@ · %@", Double(frame) / sessionRate, nearest(before), target,
-            after.map(nearest) ?? "recheck output")
-    }
     private func finishDrag(commit: Bool = true) {
-        let pending = dragPreview
-        let started = dragStarted
-        dragOriginal = nil
-        dragPreview = nil
-        dragPoint = nil
-        dragStartFrame = nil
-        dragStarted = false
+        let pending = drag.preview
+        let started = drag.started
+        drag.reset()
         // Draw the private gesture locally; author its final value once on release.
-        if commit, started, let pending, pending != regions { regions = pending }
+        if commit, started, let pending, pending != regions {
+            regions = pending
+            style = nil
+        }
         if started { onEndEdit() }
-        prepareTargets()
     }
     private func focusChart() {
         guard expanded, let window = NSApp.keyWindow else { return }
@@ -377,53 +371,252 @@ struct PitchPointEditorView: View {
     }
 }
 
-private extension PitchPointEditorView {
-    func position(_ point: PitchEditPoint, in size: CGSize) -> CGPoint {
-        CGPoint(
-            x: 31 + CGFloat(point.frame - viewport.frames.lowerBound) / CGFloat(viewport.frames.count)
-                * max(1, size.width - 35),
-            y: 5 + CGFloat((viewport.upper - point.note) / (viewport.upper - viewport.lower)) * max(1, size.height - 24)
+extension PitchCurvePreset {
+    var title: String { self == .performance ? "As sung" : rawValue }
+    var help: String {
+        switch self {
+        case .natural: return "Moves each note halfway to the nearest allowed pitch and keeps your vibrato"
+        case .tight: return "Puts each note on pitch with smooth transitions"
+        case .robotic: return "Holds exact notes with instant jumps, the classic hard-tune effect"
+        case .performance: return "Targets follow exactly what was sung; a starting point for hand edits"
+        }
+    }
+}
+
+/// Hover position over the chart. Only the readout, the zoom anchor and the
+/// scroll bridge read it.
+final class PitchChartPointer: ObservableObject {
+    @Published var hoverFrame: Int?
+    @Published var hoverNote: Float?
+}
+
+/// A point drag in progress: the snapshot it started from and the preview drawn
+/// while the pointer moves. Only the target layer observes the preview.
+final class PitchChartDrag: ObservableObject {
+    @Published var preview: [PitchEditRegion]?
+    var original: [PitchEditRegion]?
+    var point: UUID?
+    var startFrame: Int?
+    var started = false
+    func reset() {
+        if preview != nil { preview = nil }
+        original = nil
+        point = nil
+        startFrame = nil
+        started = false
+    }
+}
+
+/// Prepared curves keyed by region; a drag only re-prepares the regions it moves.
+final class PitchChartTargetCache {
+    private var entries: [UUID: (region: PitchEditRegion, prepared: PreparedPitchChartRegion)] = [:]
+    func prepared(_ regions: [PitchEditRegion]) -> [PreparedPitchChartRegion] {
+        var next: [UUID: (region: PitchEditRegion, prepared: PreparedPitchChartRegion)] = [:]
+        let result = regions.map { region in
+            let prepared =
+                entries[region.id].flatMap { $0.region == region ? $0.prepared : nil }
+                ?? PreparedPitchChartRegion(region)
+            next[region.id] = (region, prepared)
+            return prepared
+        }
+        entries = next
+        return result
+    }
+}
+
+/// Chart coordinates shared by every layer and the gestures.
+struct PitchChartGeometry {
+    let size: CGSize
+    let viewport: PitchPointViewport
+    static let left: CGFloat = 31
+    var plot: CGRect {
+        CGRect(x: Self.left, y: 0, width: max(1, size.width - 35), height: max(1, size.height - 18))
+    }
+    private var width: CGFloat { max(1, size.width - 35) }
+    private var height: CGFloat { max(1, size.height - 24) }
+    func x(_ frame: Int) -> CGFloat {
+        Self.left + CGFloat(frame - viewport.frames.lowerBound) / CGFloat(viewport.frames.count) * width
+    }
+    func y(_ note: Float) -> CGFloat {
+        5 + CGFloat((viewport.upper - note) / (viewport.upper - viewport.lower)) * height
+    }
+    func point(_ frame: Int, _ note: Float) -> CGPoint { CGPoint(x: x(frame), y: y(note)) }
+    func frame(at x: CGFloat) -> Int { viewport.frame(Double(x - Self.left) / Double(width)) }
+    func note(at y: CGFloat) -> Float { viewport.note(Double(y - 5) / Double(height)) }
+    func framesPerPoint() -> Double { Double(viewport.frames.count) / Double(width) }
+}
+
+private struct PitchChart: View {
+    @Binding var editing: PitchPointEditing
+    @Binding var viewport: PitchPointViewport
+    @ObservedObject var drag: PitchChartDrag
+    let pointer: PitchChartPointer
+    let cache: PitchChartTargetCache
+    let regions: [PitchEditRegion]
+    let before: [PitchContourPoint]
+    let after: [PitchContourPoint]?
+    let reference: Float
+    let snap: Bool
+    let busy: Bool
+    let height: CGFloat
+    let onBeginDrag: () -> Void
+    let onFinishDrag: () -> Void
+    let onAddPoint: (Int, Float) -> Void
+
+    var body: some View {
+        let displayed = drag.preview ?? regions
+        let points = Self.sortedPoints(displayed)
+        ZStack {
+            PitchChartBackdrop(before: before, after: after, viewport: viewport, reference: reference).equatable()
+            PitchChartTargets(
+                prepared: cache.prepared(displayed), points: points, editing: editing, viewport: viewport, snap: snap)
+        }
+        .frame(height: height).background(Theme.background, in: RoundedRectangle(cornerRadius: 4))
+        .overlay {
+            GeometryReader { geometry in
+                Color.clear.contentShape(Rectangle())
+                    .onContinuousHover { phase in
+                        let chart = PitchChartGeometry(size: geometry.size, viewport: viewport)
+                        switch phase {
+                        case .active(let location):
+                            pointer.hoverFrame = chart.frame(at: location.x)
+                            pointer.hoverNote = chart.note(at: location.y)
+                        case .ended:
+                            pointer.hoverFrame = nil
+                            pointer.hoverNote = nil
+                        }
+                    }
+                    .gesture(dragGesture(size: geometry.size, points: points))
+                    .background(
+                        PitchChartScrollBridge { event in scroll(event, size: geometry.size) }
+                    )
+            }
+        }
+        .contextMenu {
+            Button("Select all points") { editing.selectAll(regions) }
+            Button("Select none") { editing = PitchPointEditing() }.disabled(editing.selected.isEmpty)
+        }
+        .accessibilityLabel(
+            "Pitch chart. Drag a target point to move it in time and pitch; Shift adds to the selection. Drag empty space to select a time range. Double-click to add a point. Fine-tune offers exact values."
         )
     }
-    func nearestPoint(_ location: CGPoint, size: CGSize) -> PitchEditPoint? {
-        let frame = viewport.frame(Double(location.x - 31) / Double(max(1, size.width - 35)))
-        let margin = max(1, Int(Double(viewport.frames.count) * 11 / Double(max(1, size.width - 35))))
+    static func sortedPoints(_ regions: [PitchEditRegion]) -> [PitchEditPoint] {
+        let values = regions.flatMap(\.points)
+        return zip(values, values.dropFirst()).allSatisfy { $0.frame <= $1.frame }
+            ? values : values.sorted { $0.frame < $1.frame }
+    }
+    private func nearestPoint(_ location: CGPoint, chart: PitchChartGeometry, points: [PitchEditPoint])
+        -> PitchEditPoint?
+    {
+        let frame = chart.frame(at: location.x)
+        let margin = max(1, Int(chart.framesPerPoint() * 11))
         let start = PitchChartSampling.lowerBound(points, frame: frame - margin, time: { $0.frame })
         let end = PitchChartSampling.lowerBound(points, frame: frame + margin + 1, time: { $0.frame })
-        let distances = points[start..<end].map { point -> (PitchEditPoint, CGFloat) in
-            let value = position(point, in: size)
+        guard start < end else { return nil }
+        let nearest = points[start..<end].map { point in
+            let value = chart.point(point.frame, point.note)
             return (point, hypot(value.x - location.x, value.y - location.y))
-        }
-        guard let nearest = distances.min(by: { $0.1 < $1.1 }), nearest.1 <= 10 else { return nil }
+        }.min { $0.1 < $1.1 }
+        guard let nearest, nearest.1 <= 10 else { return nil }
         return nearest.0
     }
-    var chart: some View {
-        Canvas { context, size in
-            let plotRect = CGRect(x: 31, y: 0, width: max(1, size.width - 35), height: max(1, size.height - 18))
-            let coordinate: (Int, Float) -> CGPoint = { frame, note in
-                CGPoint(
-                    x: 31 + CGFloat(frame - viewport.frames.lowerBound) / CGFloat(viewport.frames.count)
-                        * max(1, size.width - 35),
-                    y: 5 + CGFloat((viewport.upper - note) / (viewport.upper - viewport.lower))
-                        * max(1, size.height - 24))
+    private func dragGesture(size: CGSize, points: [PitchEditPoint]) -> some Gesture {
+        DragGesture(minimumDistance: 0).onChanged { value in
+            guard !busy else { return }
+            let chart = PitchChartGeometry(size: size, viewport: viewport)
+            if drag.original == nil {
+                drag.original = regions
+                drag.startFrame = chart.frame(at: value.startLocation.x)
+                let event = NSApp.currentEvent
+                if let point = nearestPoint(value.startLocation, chart: chart, points: points) {
+                    let shift = (event?.modifierFlags ?? NSEvent.modifierFlags).contains(.shift)
+                    editing.select(point.id, extending: shift)
+                    drag.point = editing.selected.contains(point.id) ? point.id : nil
+                } else if chart.plot.contains(value.startLocation), let frame = drag.startFrame {
+                    let note = chart.note(at: value.startLocation.y)
+                    if (event?.clickCount ?? 1) >= 2 {
+                        onAddPoint(frame, note)
+                        drag.original = nil
+                        return
+                    }
+                    editing.placeInsertion(frame: frame, note: note)
+                }
             }
+            if drag.point != nil, let original = drag.original {
+                guard abs(value.translation.width) + abs(value.translation.height) >= 2 else { return }
+                let frames = Int(Double(value.translation.width) * chart.framesPerPoint())
+                let notes =
+                    -Float(value.translation.height / max(1, size.height - 24)) * (viewport.upper - viewport.lower)
+                let moved = editing.moving(original, frames: frames, notes: notes, snap: snap)
+                if moved != (drag.preview ?? regions) {
+                    if !drag.started {
+                        onBeginDrag()
+                        drag.started = true
+                    }
+                    drag.preview = moved
+                }
+            } else if let start = drag.startFrame, abs(value.translation.width) > 3 {
+                let end = chart.frame(at: value.location.x)
+                editing.select(min(start, end)..<(max(start, end) + 1), regions: regions)
+            }
+        }.onEnded { _ in onFinishDrag() }
+    }
+    /// Pinch or ⌘-scroll zooms time around the pointer, sideways scrolling pans
+    /// time and ⌥-scroll pans pitch. Plain vertical scrolling still scrolls the
+    /// surrounding inspector.
+    private func scroll(_ event: NSEvent, size: CGSize) -> Bool {
+        guard !busy else { return false }
+        let anchor = pointer.hoverFrame
+        if event.type == .magnify {
+            viewport.zoomTime(1 + Double(event.magnification), around: anchor)
+            return true
+        }
+        let dx = Double(event.scrollingDeltaX)
+        let dy = Double(event.scrollingDeltaY)
+        let scale = event.hasPreciseScrollingDeltas ? 1.0 : 12.0
+        if event.modifierFlags.contains(.command), dy != 0 {
+            viewport.zoomTime(pow(1.01, dy * scale / 2), around: anchor)
+            return true
+        }
+        if event.modifierFlags.contains(.option), dy != 0 {
+            viewport.panPitch(Float(dy * scale) / 40)
+            return true
+        }
+        let sideways = event.modifierFlags.contains(.shift) ? dy : dx
+        guard abs(sideways) > abs(event.modifierFlags.contains(.shift) ? 0 : dy) else { return false }
+        viewport.panTime(fraction: -sideways * scale / Double(max(1, size.width - 35)))
+        return true
+    }
+}
+
+/// Grid, labels and measured contours. Equatable, so a drag or hover leaves it
+/// alone; it redraws only for a new viewport or analysis.
+private struct PitchChartBackdrop: View, Equatable {
+    let before: [PitchContourPoint]
+    let after: [PitchContourPoint]?
+    let viewport: PitchPointViewport
+    let reference: Float
+    var body: some View {
+        Canvas { context, size in
+            let chart = PitchChartGeometry(size: size, viewport: viewport)
+            let plotRect = chart.plot
             var plot = context
             plot.clip(to: Path(plotRect))
-            let pitchStep: Float =
-                viewport.upper - viewport.lower <= 2 ? 0.25 : max(1, ceil((viewport.upper - viewport.lower) / 8))
+            let span = viewport.upper - viewport.lower
+            let pitchStep: Float = span <= 2 ? 0.25 : max(1, ceil(span / 8))
             for note in stride(
                 from: ceil(viewport.lower / pitchStep) * pitchStep, through: viewport.upper, by: pitchStep)
             {
-                let y =
-                    5 + CGFloat((viewport.upper - note) / (viewport.upper - viewport.lower)) * max(1, size.height - 24)
+                let y = chart.y(note)
                 var grid = Path()
-                grid.move(to: CGPoint(x: 31, y: y))
+                grid.move(to: CGPoint(x: PitchChartGeometry.left, y: y))
                 grid.addLine(to: CGPoint(x: size.width - 4, y: y))
                 context.stroke(
                     grid, with: .color(Theme.line.opacity(note.rounded() == note ? 0.7 : 0.35)), lineWidth: 1)
                 context.draw(
-                    Text(Self.noteName(note, cents: pitchStep < 1)).font(.system(size: pitchStep < 1 ? 7 : 8))
-                        .foregroundColor(Theme.secondary), at: CGPoint(x: 1, y: y), anchor: .leading)
+                    Text(PitchPointEditorView.noteName(note, cents: pitchStep < 1)).font(
+                        .system(size: pitchStep < 1 ? 7 : 8)
+                    ).foregroundColor(Theme.secondary), at: CGPoint(x: 1, y: y), anchor: .leading)
             }
             for (contour, color) in [(before, Theme.tracks[1]), (after ?? [], Theme.accent)] {
                 var path = Path()
@@ -433,38 +626,58 @@ private extension PitchPointEditorView {
                         previous = false
                         continue
                     }
-                    let p = coordinate(point.frame, midi(point.frequency))
+                    let p = chart.point(point.frame, 69 + 12 * log2(point.frequency / reference))
                     if previous { path.addLine(to: p) } else { path.move(to: p) }
                     previous = true
                 }
                 plot.stroke(path, with: .color(color.opacity(0.8)), lineWidth: 1.5)
             }
+            for index in 0...4 {
+                let fraction = Double(index) / 4
+                let frame = viewport.frame(fraction)
+                context.draw(
+                    Text(String(format: "%.3f", Double(frame) / sessionRate)).font(.system(size: 8)).foregroundColor(
+                        Theme.secondary),
+                    at: CGPoint(x: PitchChartGeometry.left + CGFloat(fraction) * plotRect.width, y: size.height - 6),
+                    anchor: index == 0 ? .leading : index == 4 ? .trailing : .center)
+            }
+        }
+    }
+}
+
+/// Target curves, anchors, the time selection and the insertion guide.
+private struct PitchChartTargets: View {
+    let prepared: [PreparedPitchChartRegion]
+    let points: [PitchEditPoint]
+    let editing: PitchPointEditing
+    let viewport: PitchPointViewport
+    let snap: Bool
+    var body: some View {
+        Canvas { context, size in
+            let chart = PitchChartGeometry(size: size, viewport: viewport)
+            let plotRect = chart.plot
+            var plot = context
+            plot.clip(to: Path(plotRect))
             if let range = editing.range {
-                let start = coordinate(range.lowerBound, 69).x
-                let end = coordinate(range.upperBound, 69).x
+                let start = chart.x(range.lowerBound)
                 plot.fill(
-                    Path(CGRect(x: start, y: 0, width: end - start, height: plotRect.height)),
+                    Path(CGRect(x: start, y: 0, width: chart.x(range.upperBound) - start, height: plotRect.height)),
                     with: .color(Theme.accent.opacity(0.12)))
             }
-            for region in preparedTargets
+            for region in prepared
             where region.range.upperBound >= viewport.frames.lowerBound
                 && region.range.lowerBound < viewport.frames.upperBound
             {
                 var path = Path()
-                var first = true
-                for sample in region.samples(frames: viewport.frames, pixels: Int(plotRect.width)) {
-                    let p = coordinate(sample.frame, sample.note)
-                    if first {
-                        path.move(to: p)
-                        first = false
-                    } else {
-                        path.addLine(to: p)
-                    }
+                for (index, sample) in region.samples(frames: viewport.frames, pixels: Int(plotRect.width)).enumerated()
+                {
+                    let p = chart.point(sample.frame, sample.note)
+                    if index == 0 { path.move(to: p) } else { path.addLine(to: p) }
                 }
                 plot.stroke(path, with: .color(Theme.tracks[2]), lineWidth: 1.7)
             }
             if let frame = editing.insertionFrame, let note = editing.insertionNote, viewport.frames.contains(frame) {
-                let p = coordinate(frame, snap ? note.rounded() : note)
+                let p = chart.point(frame, snap ? note.rounded() : note)
                 if plotRect.contains(p) {
                     var guides = Path()
                     guides.move(to: CGPoint(x: p.x, y: 0))
@@ -474,18 +687,17 @@ private extension PitchPointEditorView {
                     plot.stroke(
                         guides, with: .color(Theme.secondary.opacity(0.6)),
                         style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
-                    plot.stroke(
-                        Path(ellipseIn: CGRect(x: p.x - 5, y: p.y - 5, width: 10, height: 10)), with: .color(Theme.ink),
-                        lineWidth: 1.5)
                 }
             }
-            var visiblePoints = PitchChartSampling.anchors(
+            var visible = PitchChartSampling.anchors(
                 points, frames: viewport.frames, pixels: max(1, Int(plotRect.width / 5)))
-            if let primary = selectedPoint, !visiblePoints.contains(where: { $0.id == primary.id }) {
-                visiblePoints.append(primary)
+            if let primary = editing.primary, !visible.contains(where: { $0.id == primary }),
+                let point = points.first(where: { $0.id == primary })
+            {
+                visible.append(point)
             }
-            for point in visiblePoints {
-                let p = position(point, in: size)
+            for point in visible {
+                let p = chart.point(point.frame, point.note)
                 guard plotRect.insetBy(dx: -5, dy: -5).contains(p) else { continue }
                 let selected = editing.selected.contains(point.id)
                 let radius: CGFloat = selected ? 4.5 : 3
@@ -498,99 +710,100 @@ private extension PitchPointEditorView {
                         with: .color(Theme.tracks[2]), lineWidth: 1)
                 }
             }
-            for index in 0...4 {
-                let fraction = Double(index) / 4
-                let frame = viewport.frame(fraction)
-                let x = 31 + CGFloat(fraction) * plotRect.width
-                context.draw(
-                    Text(String(format: "%.3f", Double(frame) / sessionRate)).font(.system(size: 8)).foregroundColor(
-                        Theme.secondary),
-                    at: CGPoint(x: x, y: size.height - 6),
-                    anchor: index == 0 ? .leading : index == 4 ? .trailing : .center)
+        }.allowsHitTesting(false)
+    }
+}
+
+/// The pitch under the pointer. Binary search keeps it cheap at pointer rate.
+private struct PitchHoverReadout: View {
+    @ObservedObject var pointer: PitchChartPointer
+    let before: [PitchContourPoint]
+    let after: [PitchContourPoint]?
+    let regions: [PitchEditRegion]
+    let reference: Float
+    let expanded: Bool
+    var body: some View {
+        let text =
+            pointer.hoverFrame.map(reading)
+            ?? "Drag a point to retune · Shift-click selects several · drag empty space to select · double-click adds a point"
+        Text(text).font(.system(size: 9)).foregroundStyle(Theme.secondary).monospacedDigit()
+            .lineLimit(expanded ? 1 : 2).frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: expanded ? 12 : 24, alignment: .topLeading).accessibilityLabel(text)
+    }
+    private func reading(at frame: Int) -> String {
+        func nearest(_ contour: [PitchContourPoint]) -> String {
+            let index = PitchChartSampling.lowerBound(contour, frame: frame, time: { $0.frame })
+            let candidates = [index - 1, index].filter { contour.indices.contains($0) }.map { contour[$0] }
+            guard let point = candidates.min(by: { abs($0.frame - frame) < abs($1.frame - frame) }), point.isVoiced
+            else { return "unvoiced" }
+            return PitchPointEditorView.noteName(69 + 12 * log2(point.frequency / reference), cents: true)
+        }
+        let target =
+            regions.first { $0.range.contains(frame) }?.note(at: frame).map {
+                PitchPointEditorView.noteName($0, cents: true)
+            } ?? "none"
+        return String(
+            format: "%.3f s · sung %@ · target %@ · result %@", Double(frame) / sessionRate, nearest(before), target,
+            after.map(nearest) ?? "not measured")
+    }
+}
+
+/// Scroll and pinch over the chart, delivered while the pointer is inside it.
+private struct PitchChartScrollBridge: NSViewRepresentable {
+    var onEvent: (NSEvent) -> Bool
+    final class Coordinator {
+        weak var view: NSView?
+        var onEvent: (NSEvent) -> Bool
+        var monitor: Any?
+        init(onEvent: @escaping (NSEvent) -> Bool) { self.onEvent = onEvent }
+        func install() {
+            monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel, .magnify]) { [weak self] event in
+                guard let self, let view = self.view, let window = view.window, event.window === window,
+                    window.attachedSheet == nil,
+                    view.bounds.contains(view.convert(event.locationInWindow, from: nil))
+                else { return event }
+                return self.onEvent(event) ? nil : event
             }
-        }.frame(height: expanded ? 360 : 180).background(Theme.background, in: RoundedRectangle(cornerRadius: 4))
-            .overlay {
-                GeometryReader { geometry in
-                    Color.clear.contentShape(Rectangle())
-                        .onContinuousHover { phase in
-                            switch phase {
-                            case .active(let location):
-                                hoverFrame = viewport.frame(
-                                    Double(location.x - 31) / Double(max(1, geometry.size.width - 35)))
-                            case .ended: hoverFrame = nil
-                            }
-                        }
-                        .gesture(
-                            DragGesture(minimumDistance: 0).onChanged { value in
-                                guard !busy else { return }
-                                let size = geometry.size
-                                if dragOriginal == nil {
-                                    dragOriginal = regions
-                                    dragStartFrame = viewport.frame(
-                                        Double(value.startLocation.x - 31) / Double(max(1, size.width - 35)))
-                                    if let point = nearestPoint(value.startLocation, size: size) {
-                                        let shift = (NSApp.currentEvent?.modifierFlags ?? NSEvent.modifierFlags)
-                                            .contains(.shift)
-                                        editing.select(point.id, extending: shift)
-                                        dragPoint = editing.selected.contains(point.id) ? point.id : nil
-                                    } else {
-                                        let note = viewport.note(
-                                            Double(value.startLocation.y - 5) / Double(max(1, size.height - 24)))
-                                        let plot = CGRect(
-                                            x: 31, y: 5, width: max(1, size.width - 35),
-                                            height: max(1, size.height - 24))
-                                        if plot.contains(value.startLocation), let frame = dragStartFrame {
-                                            editing.placeInsertion(frame: frame, note: note)
-                                        }
-                                    }
-                                }
-                                if dragPoint != nil, let original = dragOriginal {
-                                    guard abs(value.translation.width) + abs(value.translation.height) >= 2 else {
-                                        return
-                                    }
-                                    let frames = Int(
-                                        Double(value.translation.width) / Double(max(1, size.width - 35))
-                                            * Double(viewport.frames.count))
-                                    let notes =
-                                        -Float(value.translation.height / max(1, size.height - 24))
-                                        * (viewport.upper - viewport.lower)
-                                    let moved = editing.moving(original, frames: frames, notes: notes, snap: snap)
-                                    if moved != (dragPreview ?? regions) {
-                                        if !dragStarted {
-                                            onBeginEdit("Move pitch points")
-                                            dragStarted = true
-                                        }
-                                        dragPreview = moved
-                                        prepareTargets(moved)
-                                    }
-                                } else if let start = dragStartFrame {
-                                    let end = viewport.frame(
-                                        Double(value.location.x - 31) / Double(max(1, size.width - 35)))
-                                    if abs(value.translation.width) > 3 {
-                                        editing.select(min(start, end)..<(max(start, end) + 1), regions: regions)
-                                    }
-                                }
-                            }.onEnded { _ in
-                                finishDrag()
-                                focusChart()
-                            })
-                }
-            }.accessibilityLabel(
-                "Pitch target chart. Click a location, then Add point at that time and pitch. Drag target points in time and pitch; Shift selects several. Release to apply the move. All edits are also available in numeric controls."
-            )
+        }
+    }
+    func makeCoordinator() -> Coordinator { Coordinator(onEvent: onEvent) }
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        context.coordinator.view = view
+        context.coordinator.install()
+        return view
+    }
+    func updateNSView(_ view: NSView, context: Context) { context.coordinator.onEvent = onEvent }
+    static func dismantleNSView(_ view: NSView, coordinator: Coordinator) {
+        if let monitor = coordinator.monitor { NSEvent.removeMonitor(monitor) }
+        coordinator.monitor = nil
     }
 }
 
 enum PitchEditorKeyboardRouting {
-    enum Action: Equatable { case space, undo, redo, consume }
+    enum Action: Equatable {
+        case space, undo, redo, consume, delete, selectAll, deselect
+        /// Selected points: frames in time, cents in pitch.
+        case nudge(frames: Int, cents: Int)
+    }
     static func action(keyCode: UInt16, modifiers: NSEvent.ModifierFlags, repeated: Bool) -> Action? {
         let commandModifiers = modifiers.intersection([.command, .control, .option, .shift])
-        if keyCode == 6 {
+        let fine = commandModifiers == .option
+        let plain = commandModifiers.isEmpty
+        switch keyCode {
+        case 6:
             if commandModifiers == .command { return .undo }
             if commandModifiers == [.command, .shift] { return .redo }
-        }
-        if keyCode == 49 && modifiers.intersection([.command, .control, .option]).isEmpty {
+        case 0 where commandModifiers == .command: return .selectAll
+        case 49 where modifiers.intersection([.command, .control, .option]).isEmpty:
             return repeated ? .consume : .space
+        case 51 where plain, 117 where plain: return .delete
+        case 53 where plain: return .deselect
+        case 123 where plain || fine: return .nudge(frames: fine ? -480 : -48, cents: 0)
+        case 124 where plain || fine: return .nudge(frames: fine ? 480 : 48, cents: 0)
+        case 125 where plain || fine: return .nudge(frames: 0, cents: fine ? -10 : -100)
+        case 126 where plain || fine: return .nudge(frames: 0, cents: fine ? 10 : 100)
+        default: break
         }
         return nil
     }
@@ -601,29 +814,22 @@ enum PitchEditorKeyboardRouting {
         guard let editorWindow, eventWindow === editorWindow, isKey, !hasNestedSheet else { return false }
         return !(responder is NSTextView) && !(responder is NSTextField)
     }
+    /// Controls keep their own Space, arrow and Delete behaviour.
     static func accepts(_ action: Action, responder: NSResponder?) -> Bool {
-        if action == .space || action == .consume {
-            return !(responder is NSPopUpButton) && !(responder is NSSlider)
+        switch action {
+        case .undo, .redo, .selectAll: return true
+        default: return !(responder is NSPopUpButton) && !(responder is NSSlider)
         }
-        return true
     }
 }
 
 private struct PitchEditorKeyboardBridge: NSViewRepresentable {
-    var onSpace: () -> Void
-    var onUndo: () -> Void
-    var onRedo: () -> Void
+    var onAction: (PitchEditorKeyboardRouting.Action) -> Void
     final class Coordinator {
         weak var view: NSView?
-        var onSpace: () -> Void
-        var onUndo: () -> Void
-        var onRedo: () -> Void
+        var onAction: (PitchEditorKeyboardRouting.Action) -> Void
         var monitor: Any?
-        init(onSpace: @escaping () -> Void, onUndo: @escaping () -> Void, onRedo: @escaping () -> Void) {
-            self.onSpace = onSpace
-            self.onUndo = onUndo
-            self.onRedo = onRedo
-        }
+        init(onAction: @escaping (PitchEditorKeyboardRouting.Action) -> Void) { self.onAction = onAction }
         func install() {
             monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
                 guard let self, let window = self.view?.window,
@@ -635,28 +841,19 @@ private struct PitchEditorKeyboardBridge: NSViewRepresentable {
                         keyCode: event.keyCode, modifiers: event.modifierFlags, repeated: event.isARepeat),
                     PitchEditorKeyboardRouting.accepts(action, responder: window.firstResponder)
                 else { return event }
-                switch action {
-                case .space: self.onSpace()
-                case .undo: self.onUndo()
-                case .redo: self.onRedo()
-                case .consume: break
-                }
+                self.onAction(action)
                 return nil
             }
         }
     }
-    func makeCoordinator() -> Coordinator { Coordinator(onSpace: onSpace, onUndo: onUndo, onRedo: onRedo) }
+    func makeCoordinator() -> Coordinator { Coordinator(onAction: onAction) }
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         context.coordinator.view = view
         context.coordinator.install()
         return view
     }
-    func updateNSView(_ view: NSView, context: Context) {
-        context.coordinator.onSpace = onSpace
-        context.coordinator.onUndo = onUndo
-        context.coordinator.onRedo = onRedo
-    }
+    func updateNSView(_ view: NSView, context: Context) { context.coordinator.onAction = onAction }
     static func dismantleNSView(_ view: NSView, coordinator: Coordinator) {
         if let monitor = coordinator.monitor { NSEvent.removeMonitor(monitor) }
         coordinator.monitor = nil

@@ -22,6 +22,25 @@ struct PitchSelectionAnalysisView: View {
         return effects.first { $0.id == store.selectedRealtimeEffect && $0.kind == .pitchCorrection }?.id
             ?? effects.first { $0.kind == .pitchCorrection }?.id
     }
+    /// Everything `synchronize` reads. Comparing this, rather than the whole
+    /// session and every asset, keeps unrelated edits from costing the editor.
+    private struct SyncKey: Equatable {
+        let track: Track?
+        let effect: UUID?
+        let range: Range<Int>?
+        let assets: [UUID: UUID]
+        let parameters: [String: Float]
+    }
+    private var syncKey: SyncKey {
+        let track = store.currentTrack
+        let assets = Dictionary(
+            uniqueKeysWithValues: (track?.referencedAssetIDs ?? []).compactMap { id in
+                store.assets[id].map { (id, $0.cacheIdentity) }
+            })
+        return SyncKey(
+            track: track, effect: requestedEffect, range: store.selectedRange, assets: assets,
+            parameters: store.effectParameters)
+    }
     private func synchronize() {
         editor.synchronize(
             track: store.currentTrack, effectID: requestedEffect,
@@ -42,7 +61,8 @@ struct PitchSelectionAnalysisView: View {
             onStop: { store.stopTransport() }, onBake: { editor.bake() },
             onResetTargets: { editor.resetTargets($0) }, expanded: expanded,
             canUndo: store.canUndo, canRedo: store.canRedo,
-            onUndo: { store.undo() }, onRedo: { store.redo() }, onExpand: { showExpanded = true })
+            onUndo: { store.undo() }, onRedo: { store.redo() }, onExpand: { showExpanded = true }
+        ).equatable()
     }
     private func finishNumberEntry(_ action: @escaping () -> Void) {
         EffectWorkspaceFocus.finishNumberEntry(action)
@@ -85,12 +105,7 @@ struct PitchSelectionAnalysisView: View {
             if expanded { editor.presented() }
             synchronize()
         }
-        .onChange(of: store.session) { _, _ in synchronize() }
-        .onChange(of: store.selectedTrack) { _, _ in synchronize() }
-        .onChange(of: store.selectedRange) { _, _ in synchronize() }
-        .onChange(of: requestedEffect) { _, _ in synchronize() }
-        .onChange(of: store.assets.mapValues(\.cacheIdentity)) { _, _ in synchronize() }
-        .onChange(of: store.effectParameters) { _, _ in synchronize() }
+        .onChange(of: syncKey) { _, _ in synchronize() }
         .onChange(of: editor.completedBakeID) { _, completed in
             if expanded, completed != nil { dismiss() }
         }

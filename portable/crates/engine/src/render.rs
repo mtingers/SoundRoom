@@ -1243,6 +1243,7 @@ impl Processor {
                     let only = self.effect.pitch_edits_only;
                     if let Some((note, blend)) = self.pitch_regions.sample(frame) {
                         controls.manual_target = note;
+                        controls.curve = true;
                         if only {
                             controls.mix *= blend;
                         }

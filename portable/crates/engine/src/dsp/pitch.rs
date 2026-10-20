@@ -3,6 +3,12 @@
 const CAPACITY: usize = 16384;
 const MASK: i64 = CAPACITY as i64 - 1;
 pub const LATENCY: usize = 4096;
+/// Analyses (256 frames each) an octave jump must persist before it is
+/// believed, and how long an unvoiced gap keeps the previous track.
+const OCTAVE_PERSISTENCE: u32 = 6;
+const OCTAVE_MEMORY: u32 = 10;
+const CURVE_SMOOTHING_MS: f32 = 4.;
+const OCTAVE_FOLD_CENTS: f32 = 250.;
 #[derive(Clone, Copy, Debug)]
 pub struct Controls {
     pub key: i32,
@@ -17,6 +23,9 @@ pub struct Controls {
     pub formant: f32,
     pub mix: f32,
     pub manual_target: f32,
+    /// `manual_target` comes from an authored curve: follow it as drawn, without
+    /// the automatic mode's retune glide, vibrato retention, humanize or tolerance.
+    pub curve: bool,
 }
 impl Default for Controls {
     fn default() -> Self {
@@ -33,6 +42,7 @@ impl Default for Controls {
             formant: 0.,
             mix: 1.,
             manual_target: -1.,
+            curve: false,
         }
     }
 }
@@ -51,6 +61,7 @@ impl Controls {
             formant: v[9],
             mix: v[10],
             manual_target: v[11],
+            curve: false,
         }
     }
 }
@@ -83,6 +94,11 @@ pub struct Pitch {
     hann: Vec<f32>,
     frame: i64,
     decimated_count: i64,
+    /// Decimated lag of the last voiced estimate (0 when none is recent), the
+    /// analyses since it, and how many analyses in a row proposed an octave jump.
+    track_lag: f32,
+    track_age: u32,
+    jump_count: u32,
     lowpass: [f32; 2],
     energy: [f32; 2],
     use_right: bool,
@@ -125,6 +141,9 @@ impl Default for Pitch {
                 .collect(),
             frame: 0,
             decimated_count: 0,
+            track_lag: 0.,
+            track_age: 0,
+            jump_count: 0,
             lowpass: [0.; 2],
             energy: [0.; 2],
             use_right: false,
@@ -358,9 +377,15 @@ impl Pitch {
             }
             lag += 1;
         }
+        lag = self.continue_octave(lag);
         if self.difference[lag] >= 0.25 {
             self.confidence = 0.;
             self.detected_frequency = 0.;
+            self.track_age += 1;
+            if self.track_age > OCTAVE_MEMORY {
+                self.track_lag = 0.;
+                self.jump_count = 0;
+            }
             return;
         }
         let a = self.difference[lag - 1];
@@ -372,6 +397,8 @@ impl Pitch {
         } else {
             0.
         };
+        self.track_lag = lag as f32 + adjustment;
+        self.track_age = 0;
         let base = (4. * (lag as f32 + adjustment)).round() as i64;
         for index in 0..7 {
             let candidate = base + index as i64 - 3;
@@ -408,6 +435,57 @@ impl Pitch {
         self.detected_frequency = 48000. / ((base + best as i64 - 3) as f32 + fraction);
         self.confidence = 1. - b;
     }
+    /// Low voices put a strong second harmonic, or a weak fundamental, inside
+    /// one short window, so a lone estimate can land an octave, a fifth or a
+    /// twelfth away from the voice. Those flips swap the grain size and, against a
+    /// drawn target, ask for an octave of correction. Keep the lag that
+    /// continues the recent track while it explains the window about as well,
+    /// and accept a sustained jump once it persists, so real leaps still land.
+    fn continue_octave(&mut self, lag: usize) -> usize {
+        if self.track_lag <= 0. || self.track_age > OCTAVE_MEMORY {
+            return lag;
+        }
+        let ratio = lag as f32 / self.track_lag;
+        // Rough voices also alternate pulse shapes in threes (a twelfth or a
+        // fifth away), besides the classic octave errors.
+        let flipped = [0.5_f32, 1. / 3., 2. / 3., 1.5, 2., 3.]
+            .iter()
+            .any(|&jump| (ratio / jump - 1.).abs() < 0.09);
+        let voiced = self.difference[lag] < 0.25;
+        if voiced && !flipped {
+            self.jump_count = 0;
+            return lag;
+        }
+        let lower = ((self.track_lag * 0.88) as usize).max(12);
+        let upper = ((self.track_lag * 1.12).ceil() as usize).min(240);
+        let Some(near) = (lower..=upper).min_by(|&a, &b| {
+            self.difference[a]
+                .partial_cmp(&self.difference[b])
+                .unwrap_or(std::cmp::Ordering::Equal)
+        }) else {
+            return lag;
+        };
+        let near_voiced = self.difference[near] < 0.25
+            && near > 12
+            && near < 240
+            && self.difference[near] <= self.difference[near - 1]
+            && self.difference[near] <= self.difference[near + 1];
+        if !near_voiced {
+            return lag;
+        }
+        if !voiced {
+            // A breathy window that still repeats at the tracked period.
+            return near;
+        }
+        if self.difference[near] > self.difference[lag] + 0.12
+            || self.jump_count >= OCTAVE_PERSISTENCE
+        {
+            self.jump_count = 0;
+            return lag;
+        }
+        self.jump_count += 1;
+        near
+    }
     fn synthesize(&mut self) {
         let output_center = self.next_epoch;
         let source_center = output_center - LATENCY as f64;
@@ -439,7 +517,12 @@ impl Pitch {
         }
         self.center_pitch +=
             (1. - (-interval / (48000. * 0.12)).exp()) * (midi - self.center_pitch);
-        let vibrato = clamp(p.vibrato, 0., 1., 0.5);
+        let curve = p.curve && p.manual_target.is_finite() && p.manual_target >= 0.;
+        let vibrato = if curve {
+            0.
+        } else {
+            clamp(p.vibrato, 0., 1., 0.5)
+        };
         let targeting = midi * (1. - vibrato) + self.center_pitch * vibrato;
         let manual = if p.manual_target.is_finite() && p.manual_target >= 0. {
             Some(p.manual_target.min(95.))
@@ -469,15 +552,30 @@ impl Pitch {
             desired = 0.;
             self.target_frequency = f0;
         }
+        if curve {
+            // Rough or low voices are legitimately heard an octave either way
+            // (alternating cycles). A target an octave from the sung note means
+            // the same note, never an octave of correction.
+            let octaves = (desired / 1200.).round();
+            if octaves != 0. && (desired - octaves * 1200.).abs() < OCTAVE_FOLD_CENTS {
+                desired -= octaves * 1200.;
+            }
+        }
         if manual.is_some() {
             desired = desired.clamp(-1200., 1200.);
         }
-        if desired.abs() <= clamp(p.tolerance, 0., 100., 5.) {
+        if !curve && desired.abs() <= clamp(p.tolerance, 0., 100., 5.) {
             desired = 0.;
         }
         desired *= clamp(p.strength, 0., 1., 1.);
-        let time = clamp(p.retune, 0., 500., 40.)
-            + clamp(p.humanize, 0., 1., 0.35) * 250. * (self.sustained / 48000.).min(1.);
+        // A drawn curve already is the intended glide; only smooth detector
+        // jitter between grains.
+        let time = if curve {
+            CURVE_SMOOTHING_MS
+        } else {
+            clamp(p.retune, 0., 500., 40.)
+                + clamp(p.humanize, 0., 1., 0.35) * 250. * (self.sustained / 48000.).min(1.)
+        };
         let alpha = if time <= 0. {
             1.
         } else {

@@ -96,21 +96,35 @@ fn fixture(name: &str) -> std::path::PathBuf {
         .join("../../fixtures")
         .join(name)
 }
+/// Matches the Swift detector wherever it found a pitch. Where it gave up, the
+/// octave-stable tracker may only continue the pitch it was already following.
 fn compare_contour(left: &[f32], right: &[f32], name: &str) {
     let actual = pitch::analyze(left, right, 96, &AtomicBool::new(false)).unwrap();
     let expected: Vec<pitch::ContourPoint> =
         serde_json::from_slice(&std::fs::read(fixture(name)).unwrap()).unwrap();
     assert_eq!(actual.len(), expected.len());
+    let mut previous: Option<f32> = None;
     for (a, b) in actual.iter().zip(expected) {
         assert_eq!(a.frame, b.frame);
-        assert!(
-            (a.frequency - b.frequency).abs() < 0.001,
-            "{name} at {}: {} != {}",
-            a.frame,
-            a.frequency,
-            b.frequency
-        );
-        assert!((a.confidence - b.confidence).abs() < 0.000005);
+        if b.is_voiced() || !a.is_voiced() {
+            assert!(
+                (a.frequency - b.frequency).abs() < 0.001,
+                "{name} at {}: {} != {}",
+                a.frame,
+                a.frequency,
+                b.frequency
+            );
+            assert!((a.confidence - b.confidence).abs() < 0.000005);
+        } else {
+            let tracked = previous.expect("a continuation follows a voiced estimate");
+            assert!(
+                (a.frequency / tracked - 1.).abs() < 0.12,
+                "{name} at {}: {} does not continue {tracked}",
+                a.frame,
+                a.frequency
+            );
+        }
+        previous = a.is_voiced().then_some(a.frequency).or(previous);
     }
 }
 #[test]
@@ -141,7 +155,8 @@ fn swift_detector_contours_measure_input_and_corrected_output() {
         for (l, r) in left.chunks_mut(8192).zip(right.chunks_mut(8192)) {
             renderer.render(l, r).unwrap();
         }
-        compare_contour(&left, &right, &format!("{name}-contour-swift.json"));
+        // Correction itself changed (exactly followed curves, octave-stable
+        // tracking), so the output is held to its target rather than to Swift.
         let points = pitch::analyze(&left, &right, 96, &AtomicBool::new(false)).unwrap();
         let voiced: Vec<_> = points
             .iter()

@@ -42,6 +42,13 @@ struct PitchPointEditing: Equatable {
         selected = Set(regions.flatMap(\.points).filter { range.contains($0.frame) }.map(\.id))
         primary = regions.flatMap(\.points).first { selected.contains($0.id) }?.id
     }
+    mutating func selectAll(_ regions: [PitchEditRegion]) {
+        insertionFrame = nil
+        insertionNote = nil
+        range = nil
+        selected = Set(regions.flatMap(\.points).map(\.id))
+        primary = regions.first?.points.first?.id
+    }
     mutating func reconcile(_ regions: [PitchEditRegion]) {
         selected.formIntersection(Set(regions.flatMap(\.points).map(\.id)))
         if let primary, !selected.contains(primary) { self.primary = selected.first }
@@ -57,11 +64,13 @@ struct PitchPointEditing: Equatable {
         _ regions: [PitchEditRegion], frames requestedFrames: Int, notes requestedNotes: Float,
         snap: Bool = false, noteLimits: ClosedRange<Float> = 0...95
     ) -> [PitchEditRegion] {
-        let chosen = regions.flatMap(\.points).filter { selected.contains($0.id) }
+        // Only regions holding a selected point move; a drag touches few of many.
+        let touched = regions.indices.filter { regions[$0].points.contains { selected.contains($0.id) } }
+        let chosen = touched.flatMap { regions[$0].points.filter { selected.contains($0.id) } }
         guard !chosen.isEmpty, requestedNotes.isFinite else { return regions }
         var minimumFrame = Int.min / 2
         var maximumFrame = Int.max / 2
-        for region in regions {
+        for region in touched.map({ regions[$0] }) {
             let sorted = region.points.sorted { $0.frame < $1.frame }
             for (index, point) in sorted.enumerated() where selected.contains(point.id) {
                 var lower = region.startFrame
@@ -84,7 +93,7 @@ struct PitchPointEditing: Equatable {
         if snap, let anchor = selectedPoint(in: regions) { notes = (anchor.note + notes).rounded() - anchor.note }
         notes = max(minimumNote, min(maximumNote, notes))
         var result = regions
-        for r in result.indices {
+        for r in touched {
             for p in result[r].points.indices where selected.contains(result[r].points[p].id) {
                 result[r].points[p].frame += frames
                 result[r].points[p].note += notes
@@ -359,14 +368,21 @@ struct PitchPointViewport: Equatable {
         let start = max(scope.lowerBound, min(scope.upperBound - count, middle - count / 2))
         frames = start..<(start + count)
     }
+    /// Pans by a fraction of the visible width (scroll gestures).
+    mutating func panTime(fraction: Double) {
+        guard fraction.isFinite else { return }
+        let step = Int(Double(frames.count) * fraction)
+        let start = max(scope.lowerBound, min(scope.upperBound - frames.count, frames.lowerBound + step))
+        frames = start..<(start + frames.count)
+    }
     mutating func panTime(_ direction: Int) {
         let step = frames.count / 2 * max(-1, min(1, direction))
         let start = max(scope.lowerBound, min(scope.upperBound - frames.count, frames.lowerBound + step))
         frames = start..<(start + frames.count)
     }
-    mutating func zoomPitch(_ factor: Float) {
+    mutating func zoomPitch(_ factor: Float, around note: Float? = nil) {
         guard factor.isFinite, factor > 0 else { return }
-        let middle = (lower + upper) / 2
+        let middle = note.flatMap { $0.isFinite ? $0 : nil } ?? (lower + upper) / 2
         let span = max(0.5, min(96, (upper - lower) / factor))
         lower = middle - span / 2
         upper = middle + span / 2

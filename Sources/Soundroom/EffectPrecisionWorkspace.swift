@@ -614,6 +614,8 @@ private struct EffectPrecisionKeyboardBridge: NSViewRepresentable {
                 case .undo: self.onUndo()
                 case .redo: self.onRedo()
                 case .consume: break
+                // Point editing keys belong to the pitch editor; leave them to the workspace.
+                case .delete, .nudge, .selectAll, .deselect: return event
                 }
                 return nil
             }

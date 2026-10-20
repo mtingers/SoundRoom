@@ -85,4 +85,20 @@ final class PitchChartSamplingTests: XCTestCase {
         XCTAssertLessThan(zoomed.count, 14)
         XCTAssertTrue(zoomed.allSatisfy { zoom.contains($0.frame) })
     }
+    func testManyShortPhrasesCostTheirOwnWidthNotTheChartWidthEach() {
+        // 100 phrases of 0.2 s across 30 s on an 860 pt chart previously drew
+        // 1,720 samples each (172,000 per redraw).
+        let regions = (0..<100).map { index in
+            let start = index * 14_400
+            return PitchEditRegion(
+                startFrame: start, endFrame: start + 9_600,
+                points: [
+                    .init(frame: start, note: 60), .init(frame: start + 4_800, note: 62),
+                    .init(frame: start + 9_599, note: 61),
+                ])
+        }
+        let total = regions.map { PreparedPitchChartRegion($0).samples(frames: 0..<1_440_000, pixels: 860).count }
+            .reduce(0, +)
+        XCTAssertLessThan(total, 2_500)
+    }
 }

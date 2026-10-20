@@ -57,12 +57,14 @@ final class PitchEditorController: ObservableObject {
         return PitchAudioCommit.plan(session: owner.session, trackID: trackID, effectID: effectID)
     }
     var context: String {
-        if targetsAreDraft { return "Draft targets · Move a point or choose Targets to activate this curve" }
+        if targetsAreDraft { return "Showing the sung pitch · pick a style or drag a note to start tuning" }
         if let plan = bakePlan {
-            let mode = activeEffect?.pitchEditsOnly == true ? "Live targets" : "Live targets · Automatic outside edits"
+            let mode =
+                activeEffect?.pitchEditsOnly == true
+                ? "Tuning plays live" : "Tuning plays live · automatic outside your edits"
             return "\(mode) · \(plan.label)"
         }
-        return "Analyze, then move a point or choose Targets to start live tuning"
+        return "Analyze, then pick a style or drag a note to start tuning"
     }
 
     /// Changes to audio or preceding inserts invalidate measured input. Changes to

@@ -126,7 +126,10 @@ struct PreparedPitchChartRegion {
         let start = max(range.lowerBound, frames.lowerBound)
         let end = min(range.upperBound - 1, frames.upperBound - 1)
         guard start <= end, !points.isEmpty else { return [] }
-        let count = max(1, pixels * 2)
+        // Two samples per pixel this region actually covers, not per chart width:
+        // a hundred short phrases in view must not cost a hundred full-width curves.
+        let covered = Double(end - start + 1) / Double(max(1, frames.count)) * Double(max(1, pixels))
+        let count = max(2, Int((covered * 2).rounded(.up)))
         let hop = max(1, (end - start) / count)
         var times = Array(stride(from: start, through: end, by: hop))
         times.append(end)

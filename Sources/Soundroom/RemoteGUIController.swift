@@ -926,9 +926,10 @@ import SoundroomRemote
             installTransport(snapshot.transport)
             store.status = snapshot.status
             sanitizeSelection()
+            // The server starts with the click off; only an enabled click needs asserting.
             if preferencesSentGeneration != connectionGeneration {
                 preferencesSentGeneration = connectionGeneration
-                store.syncMetronome()
+                if store.metronome { store.syncMetronome() }
             }
         case .delta(let delta):
             guard let current = authoritativeSession, delta.revision >= revision,

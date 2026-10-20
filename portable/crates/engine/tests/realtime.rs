@@ -96,6 +96,77 @@ fn prepare(name: &str) -> PreparedGraph {
     )
     .unwrap()
 }
+/// Pitch fixtures whose correction intentionally improved after the Swift
+/// engine was retired (octave-stable tracking, exactly followed curves). They
+/// are held to one continuous Rust render instead, which keeps the block-size,
+/// paging, checkpoint and seek checks; every other fixture stays on Swift.
+const REVISED_PITCH: [&str; 10] = [
+    "pitch-automatic",
+    "pitch-major",
+    "pitch-custom",
+    "pitch-up",
+    "pitch-down",
+    "pitch-formant",
+    "pitch-edits",
+    "pitch-automation",
+    "pitch-master",
+    "pitch-chain",
+];
+struct Reference {
+    swift: WaveReader,
+    own: Option<[Vec<f32>; 2]>,
+}
+impl Reference {
+    fn read_stereo(
+        &mut self,
+        start: u64,
+        left: &mut [f32],
+        right: &mut [f32],
+    ) -> soundroom_engine::Result<()> {
+        match &self.own {
+            Some([l, r]) => {
+                let range = start as usize..start as usize + left.len();
+                left.copy_from_slice(&l[range.clone()]);
+                right.copy_from_slice(&r[range]);
+                Ok(())
+            }
+            None => self.swift.read_stereo(start, left, right),
+        }
+    }
+}
+fn reference_for(name: &str) -> Reference {
+    let swift = WaveReader::open(&fixture(name, "-swift.wav")).unwrap();
+    let own = REVISED_PITCH.contains(&name).then(|| {
+        let project = Project::open(&fixture(name, ".soundroom")).unwrap();
+        let mut renderer = soundroom_engine::render::Renderer::new(&project).unwrap();
+        let frames = swift.info.frames as usize;
+        let mut audio = [vec![0.; frames], vec![0.; frames]];
+        let [left, right] = &mut audio;
+        for (l, r) in left.chunks_mut(8192).zip(right.chunks_mut(8192)) {
+            renderer.render(l, r).unwrap();
+        }
+        audio
+    });
+    Reference { swift, own }
+}
+fn loop_reference(case: &LoopCase) -> Reference {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../fixtures")
+        .join(&case.reference);
+    let swift = WaveReader::open(&path).unwrap();
+    let own = REVISED_PITCH.contains(&case.project.as_str()).then(|| {
+        let project = Project::open(&fixture(&case.project, ".soundroom")).unwrap();
+        let mut graph = PreparedGraph::prepare_resident_loop(
+            &project,
+            16 * 1024 * 1024,
+            &AtomicBool::new(false),
+            soundroom_engine::render::LoopRange::new(case.start, case.end).unwrap(),
+        )
+        .unwrap();
+        render_no_alloc(&mut graph, case.frames, 8192)
+    });
+    Reference { swift, own }
+}
 fn render_no_alloc(graph: &mut PreparedGraph, count: usize, block: usize) -> [Vec<f32>; 2] {
     let mut audio = [vec![0.; count], vec![0.; count]];
     let [left, right] = &mut audio;
@@ -120,7 +191,7 @@ fn render_no_alloc(graph: &mut PreparedGraph, count: usize, block: usize) -> [Ve
     audio
 }
 fn compare(name: &str, start: u64, audio: &[Vec<f32>; 2]) {
-    let mut reference = WaveReader::open(&fixture(name, "-swift.wav")).unwrap();
+    let mut reference = reference_for(name);
     let mut error = 0_f32;
     for index in (0..audio[0].len()).step_by(8192) {
         let n = (audio[0].len() - index).min(8192);
@@ -433,10 +504,7 @@ fn continuous_loop_dsp_source_wrap_latency_and_automation_match_swift_without_al
         for block in [1, 128, 257, 8192] {
             let mut fork = graph.fork();
             let audio = render_no_alloc(&mut fork, case.frames, block);
-            let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../../fixtures")
-                .join(&case.reference);
-            let mut reader = WaveReader::open(&path).unwrap();
+            let mut reader = loop_reference(&case);
             let mut error = 0_f32;
             for i in (0..case.frames).step_by(8192) {
                 let n = (case.frames - i).min(8192);
@@ -532,10 +600,7 @@ fn paged_loops_use_continuous_histories_and_never_decode_on_callback() {
         let reads = loader.stats().worker_file_reads;
         let audio = render_no_alloc(&mut graph, case.frames, 257);
         assert_eq!(loader.stats().worker_file_reads, reads);
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../fixtures")
-            .join(&case.reference);
-        let mut reader = WaveReader::open(&path).unwrap();
+        let mut reader = loop_reference(&case);
         let mut error = 0_f32;
         for i in (0..case.frames).step_by(8192) {
             let n = (case.frames - i).min(8192);
@@ -896,10 +961,7 @@ fn continuous_loop_worker_clock_checkpoints_and_paged_seeks_match_swift_history(
         );
         assert!(cache.store(&worker).is_err());
         cache.store_playback_clock(&worker).unwrap();
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../fixtures")
-            .join(&case.reference);
-        let mut reference = WaveReader::open(&path).unwrap();
+        let mut reference = loop_reference(&case);
         for elapsed in [0, length / 2, length + 31, 3 * length + 9, 4 * length + 11] {
             let clock = range.start + elapsed;
             worker.seek_playback_clock(clock, &cache, &cancel).unwrap();
